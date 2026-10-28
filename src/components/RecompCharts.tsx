@@ -89,7 +89,7 @@ export const RecompCharts: React.FC = () => {
             {latest.bodyFatPct}%
           </span>
           <span className="text-[9px] text-zinc-400 font-mono block mt-0.5">
-            Meta: 16.0%
+            Meta: {activeProfile.targetBodyFatPct || (activeProfile.slug === "hoplita" ? 16 : 21)}%
           </span>
         </div>
 

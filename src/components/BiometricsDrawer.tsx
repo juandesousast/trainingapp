@@ -63,8 +63,8 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
     <Drawer.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50" />
-        <Drawer.Content className="bg-zinc-950 border-t border-zinc-800 fixed bottom-0 left-0 right-0 z-50 rounded-t-[32px] p-6 max-w-md mx-auto outline-none max-h-[90vh] overflow-y-auto">
-          <div className="w-12 h-1.5 bg-zinc-700 rounded-full mx-auto mb-5" />
+        <Drawer.Content className="bg-zinc-950 border-t border-zinc-800 fixed bottom-0 left-0 right-0 z-50 rounded-t-[32px] px-6 pt-5 pb-6 max-w-md mx-auto outline-none max-h-[85vh] overflow-y-auto">
+          <div className="w-12 h-1.5 bg-zinc-700 rounded-full mx-auto mb-4" />
 
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">

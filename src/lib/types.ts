@@ -7,6 +7,7 @@ export interface Profile {
   gender: "male" | "female";
   themeAccent: string; // '#CCFF00' o '#F43F5E'
   targetBodyFatPct: number;
+  targetWeightKg?: number;
   streakDays: number;
   weeklyCompleted: number;
   weeklyTarget: number;

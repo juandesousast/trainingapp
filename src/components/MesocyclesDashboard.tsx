@@ -3,26 +3,43 @@
 import React, { useState, useEffect } from "react";
 import { useProfileStore } from "@/stores/useProfileStore";
 import { useWorkoutSessionStore } from "@/stores/useWorkoutSessionStore";
+import { useMesocyclesStore } from "@/stores/useMesocyclesStore";
 import { getMesocyclesForProfile } from "@/lib/mesocyclesData";
 import { BentoMesocycleCard } from "@/components/BentoMesocycleCard";
 import { RecoveryCheckinDrawer } from "@/components/RecoveryCheckinDrawer";
+import { TargetGoalDialog } from "@/components/TargetGoalDialog";
 import { useBiometricsStore } from "@/stores/useBiometricsStore";
 import { Mesocycle, Workout } from "@/lib/types";
-import { Play, Sparkles, Scale, HeartPulse } from "lucide-react";
+import { Play, Sparkles, Scale, HeartPulse, Check, Eye } from "lucide-react";
 import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 export const MesocyclesDashboard: React.FC = () => {
   const { activeProfile } = useProfileStore();
   const { startWorkout } = useWorkoutSessionStore();
+  const { activeMesoNumberByProfile, setActiveMesoNumber } = useMesocyclesStore();
   const accentColor = activeProfile.themeAccent;
 
+  const activeMesoNumber = activeMesoNumberByProfile[activeProfile.slug] || 1;
   const mesocycles = getMesocyclesForProfile(activeProfile.slug);
-  const activeMeso = mesocycles.find((m) => m.isActive) || mesocycles[0];
+
+  const activeMeso =
+    mesocycles.find((m) => m.number === activeMesoNumber) || mesocycles[0];
 
   const [selectedMesocycle, setSelectedMesocycle] = useState<Mesocycle>(activeMeso);
+  const [selectedWorkoutIndex, setSelectedWorkoutIndex] = useState<number>(0);
   const [isRecoveryOpen, setIsRecoveryOpen] = useState(false);
+  const [isGoalOpen, setIsGoalOpen] = useState(false);
   const { recoveryCheckins } = useBiometricsStore();
   const latestRecovery = recoveryCheckins[0];
+
+  // Cuando cambie el perfil activo o el mesociclo activo, actualizar la selección
+  useEffect(() => {
+    const nextActive =
+      mesocycles.find((m) => m.number === activeMesoNumber) || mesocycles[0];
+    setSelectedMesocycle(nextActive);
+    setSelectedWorkoutIndex(0);
+  }, [activeProfile.slug, activeMesoNumber]);
 
   // Sincronizar el objetivo semanal del mesociclo activo
   useEffect(() => {
@@ -37,17 +54,22 @@ export const MesocyclesDashboard: React.FC = () => {
   }, [activeMeso, activeProfile.weeklyTarget, activeProfile.streakDays, activeProfile.weeklyCompleted]);
 
   const workouts = selectedMesocycle.workouts || [];
-  const nextWorkout: Workout =
-    workouts.length > 0
-      ? workouts[0]
-      : {
-          id: "w-fallback",
-          mesocycleId: selectedMesocycle.id,
-          letter: "A",
-          name: "Entreno A: Progresión Principal BIIO",
-          orderIndex: 1,
-          exercises: [],
-        };
+  const currentWorkout: Workout =
+    workouts[selectedWorkoutIndex] ||
+    workouts[0] || {
+      id: "w-fallback",
+      mesocycleId: selectedMesocycle.id,
+      letter: "A",
+      name: "Entreno A: Progresión Principal BIIO",
+      orderIndex: 1,
+      exercises: [],
+    };
+
+  const isSelectedActive = selectedMesocycle.number === activeMesoNumber;
+
+  const handleMarkAsActive = (meso: Mesocycle) => {
+    setActiveMesoNumber(activeProfile.slug, meso.number);
+  };
 
   return (
     <div className="max-w-md mx-auto px-4 pb-28 pt-4 space-y-6">
@@ -70,34 +92,95 @@ export const MesocyclesDashboard: React.FC = () => {
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-3">
             <span
-              className="text-[10px] font-black uppercase px-2.5 py-1 rounded-full text-black font-mono tracking-wider flex items-center gap-1.5 shadow-sm"
-              style={{ backgroundColor: accentColor }}
+              className={cn(
+                "text-[10px] font-black uppercase px-2.5 py-1 rounded-full font-mono tracking-wider flex items-center gap-1.5 shadow-sm",
+                isSelectedActive ? "text-black" : "bg-zinc-800 text-zinc-200 border border-zinc-700"
+              )}
+              style={{ backgroundColor: isSelectedActive ? accentColor : undefined }}
             >
-              <Sparkles className="w-3 h-3" />
-              SESIÓN DE HOY RECOMENDADA
+              {isSelectedActive ? (
+                <>
+                  <Sparkles className="w-3 h-3" />
+                  MESOCICLO ACTIVO HOY
+                </>
+              ) : (
+                <>
+                  <Eye className="w-3 h-3" />
+                  EXPLORANDO M{selectedMesocycle.number}
+                </>
+              )}
             </span>
             <span className="text-xs font-mono font-bold text-zinc-400">
               {selectedMesocycle.code}
             </span>
           </div>
 
-          <h2 className="text-2xl font-black text-white uppercase tracking-tight leading-tight">
-            {selectedMesocycle.name}
-          </h2>
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <h2 className="text-2xl font-black text-white uppercase tracking-tight leading-tight">
+                {selectedMesocycle.name}
+              </h2>
+              <p className="text-xs text-zinc-400 mt-1 line-clamp-2">
+                Exposición {selectedMesocycle.currentExposure}º de {selectedMesocycle.totalExposures}º · {selectedMesocycle.splitStructure}
+              </p>
+            </div>
 
-          <p className="text-sm font-semibold text-zinc-300 mt-1">
-            {nextWorkout.name}
-          </p>
+            {/* Botón para marcar como activo si se está explorando otro ciclo */}
+            {!isSelectedActive && (
+              <button
+                type="button"
+                onClick={() => handleMarkAsActive(selectedMesocycle)}
+                className="shrink-0 text-[10px] font-mono font-black uppercase px-2.5 py-1.5 rounded-xl border border-zinc-700 hover:border-zinc-500 bg-zinc-900/90 text-zinc-200 hover:text-white transition-all flex items-center gap-1 shadow-md active:scale-95"
+              >
+                <Check className="w-3 h-3 text-emerald-400" />
+                <span>Activar</span>
+              </button>
+            )}
+          </div>
 
-          <p className="text-xs text-zinc-400 mt-2 line-clamp-2">
-            Exposición {selectedMesocycle.currentExposure}º de {selectedMesocycle.totalExposures}º · {selectedMesocycle.splitStructure}
-          </p>
+          {/* Selector de Entrenos del Mesociclo (A, B, C) */}
+          {workouts.length > 1 && (
+            <div className="mt-4 pt-3 border-t border-zinc-800/80">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-400 block mb-2">
+                Seleccionar Sesión a Realizar:
+              </span>
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {workouts.map((w, idx) => {
+                  const isSelectedW = idx === selectedWorkoutIndex;
+                  return (
+                    <button
+                      key={w.id}
+                      type="button"
+                      onClick={() => setSelectedWorkoutIndex(idx)}
+                      className={cn(
+                        "px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all flex items-center gap-1.5 whitespace-nowrap",
+                        isSelectedW
+                          ? "bg-zinc-200 text-black shadow-md font-extrabold"
+                          : "bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white"
+                      )}
+                    >
+                      <span className="font-mono font-black">Entreno {w.letter}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          <div className="mt-3 bg-zinc-950/60 border border-zinc-800/80 rounded-2xl p-3">
+            <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider block">
+              Sesión Seleccionada
+            </span>
+            <p className="text-xs font-bold text-zinc-100 mt-0.5">
+              {currentWorkout.name}
+            </p>
+          </div>
 
           {/* Botón Principal Cinético */}
           <motion.button
             whileTap={{ scale: 0.96 }}
-            onClick={() => startWorkout(selectedMesocycle, nextWorkout)}
-            className="w-full mt-6 py-4 rounded-2xl font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 text-black shadow-xl transition-all duration-300"
+            onClick={() => startWorkout(selectedMesocycle, currentWorkout)}
+            className="w-full mt-5 py-4 rounded-2xl font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 text-black shadow-xl transition-all duration-300"
             style={{
               backgroundColor: accentColor,
               boxShadow: `0 10px 25px -5px ${accentColor}66`,
@@ -111,7 +194,7 @@ export const MesocyclesDashboard: React.FC = () => {
 
       {/* Fila de Accesos Rápidos: Báscula & Check-in de Recuperación */}
       <div className="grid grid-cols-1 gap-2.5">
-        {/* Pill de Línea Base Biométrica */}
+        {/* Pill de Línea Base Biométrica y Meta Personalizada Clicable */}
         <div className="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-3.5 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl bg-zinc-800 flex items-center justify-center text-zinc-300">
@@ -119,19 +202,24 @@ export const MesocyclesDashboard: React.FC = () => {
             </div>
             <div>
               <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider block">
-                Báscula en Ayunas (Baseline)
+                Báscula en Ayunas ({activeProfile.displayName})
               </span>
               <span className="text-xs font-mono font-bold text-zinc-200">
                 82.15 kg · 25.6% Grasa · 58.08 kg Músculo
               </span>
             </div>
           </div>
-          <span
-            className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full text-black"
+
+          {/* Píldora de Meta Dinámica y Clicable */}
+          <button
+            type="button"
+            onClick={() => setIsGoalOpen(true)}
+            title="Pulsar para personalizar meta corporal"
+            className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full text-black hover:opacity-90 active:scale-95 transition-all shadow-md flex items-center gap-1 cursor-pointer"
             style={{ backgroundColor: accentColor }}
           >
-            Meta: 16%
-          </span>
+            <span>Meta: {activeProfile.targetBodyFatPct || (activeProfile.slug === "hoplita" ? 16 : 21)}%</span>
+          </button>
         </div>
 
         {/* Botón Trigger: Check-in Diario de Recuperación */}
@@ -175,16 +263,11 @@ export const MesocyclesDashboard: React.FC = () => {
         </button>
       </div>
 
-      <RecoveryCheckinDrawer
-        isOpen={isRecoveryOpen}
-        onClose={() => setIsRecoveryOpen(false)}
-      />
-
-      {/* Catálogo Bento de los 5 Mesociclos */}
+      {/* Catálogo Bento de los 5 Mesociclos (Navegación Desbloqueada) */}
       <div className="space-y-3">
         <div className="flex items-center justify-between px-1">
           <h3 className="text-xs font-black uppercase tracking-wider text-zinc-400 font-mono">
-            Plan Maestro Hoplita (5 Mesociclos)
+            Plan Maestro Hoplita (5 Mesociclos Desbloqueados)
           </h3>
           <span className="text-[11px] font-mono text-zinc-400">
             {mesocycles.length} Bloques
@@ -196,11 +279,29 @@ export const MesocyclesDashboard: React.FC = () => {
             <BentoMesocycleCard
               key={meso.id}
               mesocycle={meso}
-              onSelect={(m) => setSelectedMesocycle(m)}
+              isSelected={selectedMesocycle.number === meso.number}
+              isActiveMeso={activeMesoNumber === meso.number}
+              onSelect={(m) => {
+                setSelectedMesocycle(m);
+                setSelectedWorkoutIndex(0);
+              }}
+              onActivate={handleMarkAsActive}
             />
           ))}
         </div>
       </div>
+
+      {/* Modal / Dialog de Meta Personalizada */}
+      <TargetGoalDialog
+        isOpen={isGoalOpen}
+        onClose={() => setIsGoalOpen(false)}
+      />
+
+      {/* Drawer de Check-in de Recuperación */}
+      <RecoveryCheckinDrawer
+        isOpen={isRecoveryOpen}
+        onClose={() => setIsRecoveryOpen(false)}
+      />
     </div>
   );
 };
