@@ -44,7 +44,22 @@ export const RecompCharts: React.FC = () => {
     { name: "M5 (Target)", squat: 135, bench: 105, deadlift: 165, military: 67.5, hipThrust: 145 },
   ];
 
-  const latest = entries[entries.length - 1] || entries[0];
+  const latest = entries[entries.length - 1] || {
+    weightKg: activeProfile.targetWeightKg || 75,
+    bodyFatPct: activeProfile.targetBodyFatPct || 16,
+    muscleMassKg: 58,
+    bmi: 24.5,
+    visceralFatRating: 6,
+    subcutaneousFatPct: 18,
+    fatFreeMassKg: 61,
+    boneMassKg: 3.1,
+    skeletalMusclePct: 47,
+    bodyWaterPct: 54,
+    proteinPct: 17,
+    bmrKcal: 1680,
+    metabolicAge: 30,
+    waistCircumferenceCm: 85,
+  };
   const bmiBadge = getBMIBadge(latest.bmi);
   const fatBadge = getBodyFatBadge(latest.bodyFatPct, activeProfile.gender);
   const viscBadge = getVisceralFatBadge(latest.visceralFatRating);

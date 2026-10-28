@@ -47,8 +47,13 @@ export const DailyCheckinView: React.FC = () => {
       const todayStr = toLocalDateString(new Date());
       const parsedSleep = parseFloat(sleepHours) || 8;
 
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       await supabase.from("daily_habits").upsert(
         {
+          user_id: user?.id,
           profile_id: activeProfile.id,
           log_date: todayStr,
           sleep_hours: parsedSleep,

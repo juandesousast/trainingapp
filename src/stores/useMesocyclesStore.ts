@@ -3,18 +3,21 @@ import { persist } from "zustand/middleware";
 import { ProfileSlug } from "@/lib/types";
 
 interface MesocyclesState {
-  activeMesoNumberByProfile: Record<ProfileSlug, number>;
-  setActiveMesoNumber: (slug: ProfileSlug, mesoNumber: number) => void;
+  activeMesoNumberByProfile: Record<string, number>;
+  setActiveMesoNumber: (slug: string, mesoNumber: number) => void;
 }
 
 export const useMesocyclesStore = create<MesocyclesState>()(
   persist(
     (set) => ({
       activeMesoNumberByProfile: {
+        juan: 1,
+        wendy: 1,
+        nato: 1,
         hoplita: 1,
         hoplita_girl: 1,
       },
-      setActiveMesoNumber: (slug: ProfileSlug, mesoNumber: number) => {
+      setActiveMesoNumber: (slug: string, mesoNumber: number) => {
         set((state) => ({
           activeMesoNumberByProfile: {
             ...state.activeMesoNumberByProfile,

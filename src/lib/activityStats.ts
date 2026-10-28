@@ -84,21 +84,21 @@ export interface ActivityStatsResult {
 }
 
 /**
- * Consulta Supabase para obtener la racha y el progreso semanal real del usuario.
+ * Consulta Supabase para obtener la racha y el progreso semanal real del usuario autenticado.
  */
 export async function fetchUserActivityStats(
-  profileId: string,
+  userId: string,
   weeklyTarget: number = 3
 ): Promise<ActivityStatsResult> {
   try {
     const { startOfWeek, endOfWeek } = getStartAndEndOfWeek();
     const activeDates = new Set<string>();
 
-    // 1. Consultar sesiones completadas en Supabase (workout_sessions o vista workout_logs)
+    // 1. Consultar sesiones completadas en Supabase con filtro estricto por user_id
     const { data: workoutsData, error: workoutsError } = await supabase
       .from("workout_sessions")
       .select("id, completed_at, started_at")
-      .eq("profile_id", profileId)
+      .eq("user_id", userId)
       .not("completed_at", "is", null);
 
     if (workoutsError) {
@@ -121,11 +121,11 @@ export async function fetchUserActivityStats(
       }
     }
 
-    // 2. Consultar registros del diario (daily_habits) para el usuario
+    // 2. Consultar registros del diario (daily_habits) con filtro estricto por user_id
     const { data: habitsData, error: habitsError } = await supabase
       .from("daily_habits")
       .select("id, log_date, created_at")
-      .eq("profile_id", profileId);
+      .eq("user_id", userId);
 
     if (habitsError) {
       console.warn("Aviso al consultar daily_habits:", habitsError.message);

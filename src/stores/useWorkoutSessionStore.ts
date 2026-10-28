@@ -177,7 +177,12 @@ export const useWorkoutSessionStore = create<WorkoutSessionState>((set, get) => 
           : new Date().toISOString();
         const completedAt = new Date().toISOString();
 
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
         await supabase.from("workout_sessions").insert({
+          user_id: user?.id,
           profile_id: profile.id,
           workout_id: workoutUuid,
           exposure_number: activeMesocycle.currentExposure || 1,

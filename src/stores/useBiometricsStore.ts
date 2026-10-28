@@ -53,125 +53,96 @@ interface BiometricsState {
   entries: BiometricEntry[];
   dailyHabits: DailyHabitEntry[];
   recoveryCheckins: RecoveryCheckinEntry[];
-  addBiometricEntry: (entry: Omit<BiometricEntry, "id">) => void;
-  addDailyHabit: (habit: Omit<DailyHabitEntry, "id">) => void;
+  fetchUserData: () => Promise<void>;
+  addBiometricEntry: (entry: Omit<BiometricEntry, "id">) => Promise<void>;
+  addDailyHabit: (habit: Omit<DailyHabitEntry, "id">) => Promise<void>;
   addRecoveryCheckin: (checkin: Omit<RecoveryCheckinEntry, "id" | "recordedAt">) => void;
 }
 
-// Registro histórico inicial Día 1 en ayunas para Hoplita
-const initialHoplitaEntries: BiometricEntry[] = [
-  {
-    id: "bio-init-1",
-    profileId: "11111111-1111-1111-1111-111111111111",
-    date: "Semana 1 (Día 1)",
-    weightKg: 82.15,
-    bmi: 25.4,
-    bodyFatPct: 25.6,
-    subcutaneousFatPct: 22.8,
-    visceralFatRating: 8,
-    muscleMassKg: 58.08,
-    skeletalMusclePct: 47.9,
-    fatFreeMassKg: 61.12,
-    boneMassKg: 3.04,
-    bmrKcal: 1683,
-    bodyWaterPct: 53.7,
-    proteinPct: 17.0,
-    metabolicAge: 37,
-    waistCircumferenceCm: 89,
-  },
-  {
-    id: "bio-init-2",
-    profileId: "11111111-1111-1111-1111-111111111111",
-    date: "Semana 2",
-    weightKg: 81.7,
-    bmi: 25.2,
-    bodyFatPct: 24.8,
-    subcutaneousFatPct: 22.1,
-    visceralFatRating: 8,
-    muscleMassKg: 58.2,
-    skeletalMusclePct: 48.1,
-    fatFreeMassKg: 61.4,
-    boneMassKg: 3.05,
-    bmrKcal: 1690,
-    bodyWaterPct: 54.1,
-    proteinPct: 17.2,
-    metabolicAge: 36,
-    waistCircumferenceCm: 88,
-  },
-  {
-    id: "bio-init-3",
-    profileId: "11111111-1111-1111-1111-111111111111",
-    date: "Semana 3",
-    weightKg: 81.3,
-    bmi: 25.0,
-    bodyFatPct: 23.9,
-    subcutaneousFatPct: 21.4,
-    visceralFatRating: 7,
-    muscleMassKg: 58.5,
-    skeletalMusclePct: 48.5,
-    fatFreeMassKg: 61.8,
-    boneMassKg: 3.05,
-    bmrKcal: 1702,
-    bodyWaterPct: 54.6,
-    proteinPct: 17.4,
-    metabolicAge: 35,
-    waistCircumferenceCm: 87,
-  },
-  {
-    id: "bio-init-4",
-    profileId: "11111111-1111-1111-1111-111111111111",
-    date: "Semana 4",
-    weightKg: 80.8,
-    bmi: 24.8,
-    bodyFatPct: 22.9,
-    subcutaneousFatPct: 20.6,
-    visceralFatRating: 7,
-    muscleMassKg: 58.8,
-    skeletalMusclePct: 49.0,
-    fatFreeMassKg: 62.1,
-    boneMassKg: 3.06,
-    bmrKcal: 1715,
-    bodyWaterPct: 55.2,
-    proteinPct: 17.6,
-    metabolicAge: 34,
-    waistCircumferenceCm: 86,
-  },
-];
-
-const initialHabits: DailyHabitEntry[] = [
-  {
-    id: "habit-1",
-    profileId: "11111111-1111-1111-1111-111111111111",
-    date: "Hoy",
-    sleepHours: "8",
-    psychologicalCondition: 1,
-    sessionRpe: 8,
-    workoutQuality: 9,
-    notes: "Sesión sólida de Box Squat y Banca. RPE en el target.",
-  },
-];
-
-const initialRecoveryCheckin: RecoveryCheckinEntry[] = [
-  {
-    id: "rec-1",
-    profileId: "11111111-1111-1111-1111-111111111111",
-    date: "Hoy",
-    sleepQuality: "Reparador",
-    domsLevel: "Leve",
-    waterIntake: "3L",
-    motivation: "Altas",
-    dailySteps: "+10k",
-    recordedAt: Date.now(),
-  },
-];
-
 export const useBiometricsStore = create<BiometricsState>((set) => ({
-  entries: initialHoplitaEntries,
-  dailyHabits: initialHabits,
-  recoveryCheckins: initialRecoveryCheckin,
+  entries: [],
+  dailyHabits: [],
+  recoveryCheckins: [],
+
+  fetchUserData: async () => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        set({ entries: [], dailyHabits: [] });
+        return;
+      }
+
+      // 1. Consultar registros biométricos del usuario autenticado con filtro estricto por user_id
+      const { data: bioData } = await supabase
+        .from("biometric_logs")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("measured_at", { ascending: true });
+
+      if (bioData && bioData.length > 0) {
+        set({
+          entries: bioData.map((b: any) => ({
+            id: b.id,
+            profileId: b.profile_id,
+            date: b.measured_at,
+            weightKg: Number(b.weight_kg),
+            bmi: Number(b.bmi || 25),
+            bodyFatPct: Number(b.body_fat_pct || 20),
+            subcutaneousFatPct: Number(b.subcutaneous_fat_pct || 18),
+            visceralFatRating: Number(b.visceral_fat_rating || 5),
+            fatFreeMassKg: Number(b.fat_free_mass_kg || 60),
+            muscleMassKg: Number(b.muscle_mass_kg || 55),
+            boneMassKg: Number(b.bone_mass_kg || 3),
+            skeletalMusclePct: Number(b.skeletal_muscle_pct || 45),
+            bodyWaterPct: Number(b.body_water_pct || 55),
+            proteinPct: Number(b.protein_pct || 17),
+            bmrKcal: Number(b.bmr_kcal || 1650),
+            metabolicAge: Number(b.metabolic_age || 30),
+            waistCircumferenceCm: b.waist_cm ? Number(b.waist_cm) : undefined,
+            neckCm: b.neck_cm ? Number(b.neck_cm) : undefined,
+            chestCm: b.chest_cm ? Number(b.chest_cm) : undefined,
+            armCm: b.arm_cm ? Number(b.arm_cm) : undefined,
+            thighCm: b.thigh_cm ? Number(b.thigh_cm) : undefined,
+            hipCm: b.hip_cm ? Number(b.hip_cm) : undefined,
+          })),
+        });
+      } else {
+        set({ entries: [] });
+      }
+
+      // 2. Consultar hábitos diarios del usuario autenticado con filtro estricto por user_id
+      const { data: habitsData } = await supabase
+        .from("daily_habits")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("log_date", { ascending: false });
+
+      if (habitsData && habitsData.length > 0) {
+        set({
+          dailyHabits: habitsData.map((h: any) => ({
+            id: h.id,
+            profileId: h.profile_id,
+            date: h.log_date,
+            sleepHours: String(h.sleep_hours || "8"),
+            psychologicalCondition: h.psychological_condition || 1,
+            sessionRpe: h.session_rpe || 8,
+            workoutQuality: h.workout_quality || 8,
+            notes: h.notes,
+          })),
+        });
+      } else {
+        set({ dailyHabits: [] });
+      }
+    } catch (err) {
+      console.error("Error al cargar datos de biometría del usuario:", err);
+    }
+  },
 
   addBiometricEntry: async (entry) => {
-    const newEntry = {
+    const newEntry: BiometricEntry = {
       ...entry,
       id: `bio-${Date.now()}`,
     };
@@ -181,7 +152,12 @@ export const useBiometricsStore = create<BiometricsState>((set) => ({
     }));
 
     try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       await supabase.from("biometric_logs").insert({
+        user_id: user?.id,
         profile_id: entry.profileId,
         measured_at: new Date().toISOString().split("T")[0],
         is_fasting: true,
@@ -210,16 +186,34 @@ export const useBiometricsStore = create<BiometricsState>((set) => ({
     }
   },
 
-  addDailyHabit: (habit) => {
+  addDailyHabit: async (habit) => {
+    const newHabit: DailyHabitEntry = {
+      ...habit,
+      id: `habit-${Date.now()}`,
+    };
+
     set((state) => ({
-      dailyHabits: [
-        {
-          ...habit,
-          id: `habit-${Date.now()}`,
-        },
-        ...state.dailyHabits,
-      ],
+      dailyHabits: [newHabit, ...state.dailyHabits],
     }));
+
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      await supabase.from("daily_habits").insert({
+        user_id: user?.id,
+        profile_id: habit.profileId,
+        log_date: new Date().toISOString().split("T")[0],
+        sleep_hours: parseFloat(habit.sleepHours) || 8,
+        psychological_condition: habit.psychologicalCondition,
+        session_rpe: habit.sessionRpe,
+        workout_quality: habit.workoutQuality,
+        notes: habit.notes,
+      });
+    } catch (err) {
+      console.warn("Aviso al guardar daily_habits en Supabase:", err);
+    }
   },
 
   addRecoveryCheckin: (checkin) => {
