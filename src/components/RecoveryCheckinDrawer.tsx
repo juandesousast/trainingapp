@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import { Drawer } from "vaul";
 import { useBiometricsStore } from "@/stores/useBiometricsStore";
 import { useProfileStore } from "@/stores/useProfileStore";
+import { supabase } from "@/lib/supabase";
+import { toLocalDateString } from "@/lib/activityStats";
 import { HeartPulse, Check, X, Moon, Droplets, Zap, Footprints, Flame } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -17,7 +19,7 @@ export const RecoveryCheckinDrawer: React.FC<RecoveryCheckinDrawerProps> = ({
   onClose,
 }) => {
   const { addRecoveryCheckin } = useBiometricsStore();
-  const { activeProfile } = useProfileStore();
+  const { activeProfile, refreshStats } = useProfileStore();
   const accentColor = activeProfile.themeAccent;
 
   const [sleepQuality, setSleepQuality] = useState<"Muy profundo" | "Reparador" | "Normal" | "Ligero" | "Imposible">("Reparador");
@@ -66,7 +68,7 @@ export const RecoveryCheckinDrawer: React.FC<RecoveryCheckinDrawerProps> = ({
     "-4k",
   ];
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
 
     addRecoveryCheckin({
@@ -78,6 +80,38 @@ export const RecoveryCheckinDrawer: React.FC<RecoveryCheckinDrawerProps> = ({
       motivation,
       dailySteps,
     });
+
+    try {
+      const todayStr = toLocalDateString(new Date());
+      await supabase.from("daily_habits").upsert(
+        {
+          profile_id: activeProfile.id,
+          log_date: todayStr,
+          sleep_hours:
+            sleepQuality === "Muy profundo"
+              ? 9
+              : sleepQuality === "Reparador"
+              ? 8
+              : sleepQuality === "Normal"
+              ? 7
+              : 6,
+          psychological_condition:
+            motivation === "Máximas"
+              ? 1
+              : motivation === "Altas"
+              ? 2
+              : motivation === "Normal"
+              ? 3
+              : 4,
+          notes: `Sueño: ${sleepQuality}, DOMS: ${domsLevel}, Agua: ${waterIntake}, Pasos: ${dailySteps}`,
+        },
+        { onConflict: "profile_id,log_date" }
+      );
+
+      await refreshStats();
+    } catch (err) {
+      console.warn("Aviso al guardar daily_habits:", err);
+    }
 
     onClose();
   };

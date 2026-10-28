@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import { Workout, Mesocycle, LoggedSet } from "@/lib/types";
 import { soundEngine } from "@/lib/audio";
+import { supabase } from "@/lib/supabase";
+import { useProfileStore } from "@/stores/useProfileStore";
 
 interface WorkoutSessionState {
   activeMesocycle: Mesocycle | null;
@@ -31,7 +33,7 @@ interface WorkoutSessionState {
 
   // Acciones
   startWorkout: (mesocycle: Mesocycle, workout: Workout) => void;
-  finishWorkout: () => void;
+  finishWorkout: (cooldownInfo?: { cooldownType: string; durationMinutes: number }) => Promise<void>;
   setCurrentExerciseIndex: (index: number) => void;
 
   // Cero-teclado
@@ -150,10 +152,50 @@ export const useWorkoutSessionStore = create<WorkoutSessionState>((set, get) => 
     });
   },
 
-  finishWorkout: () => {
+  finishWorkout: async (cooldownInfo?: { cooldownType: string; durationMinutes: number }) => {
     soundEngine.playRestFinished();
     get().stopRestTimer();
     get().stopClusterTimer();
+
+    const { activeMesocycle, activeWorkout, sessionStartTime } = get();
+    const profile = useProfileStore.getState().activeProfile;
+
+    if (activeWorkout && activeMesocycle) {
+      try {
+        // Buscar el UUID del entrenamiento en Supabase
+        const { data: dbWorkout } = await supabase
+          .from("workouts")
+          .select("id, mesocycles!inner(number, profile_id)")
+          .eq("letter", activeWorkout.letter)
+          .eq("mesocycles.number", activeMesocycle.number)
+          .eq("mesocycles.profile_id", profile.id)
+          .maybeSingle();
+
+        const workoutUuid = dbWorkout?.id || "42a0fd16-5d1e-4fa9-b1fb-8b05bbe98378";
+        const startedAt = sessionStartTime
+          ? new Date(sessionStartTime).toISOString()
+          : new Date().toISOString();
+        const completedAt = new Date().toISOString();
+
+        await supabase.from("workout_sessions").insert({
+          profile_id: profile.id,
+          workout_id: workoutUuid,
+          exposure_number: activeMesocycle.currentExposure || 1,
+          started_at: startedAt,
+          completed_at: completedAt,
+          session_rpe: 8.0,
+          notes: cooldownInfo
+            ? `Enfriamiento: ${cooldownInfo.cooldownType} (${cooldownInfo.durationMinutes} min)`
+            : "Entrenamiento finalizado",
+        });
+
+        // Refrescar estadísticas reales en Supabase
+        await useProfileStore.getState().refreshStats();
+      } catch (err) {
+        console.error("Error al persistir sesión en Supabase:", err);
+      }
+    }
+
     set({
       isLiveSession: false,
       activeWorkout: null,

@@ -129,7 +129,7 @@ export const ActiveWorkoutView: React.FC = () => {
       {/* Encabezado del Entreno Activo */}
       <div className="sticky top-14 z-30 bg-zinc-950/95 backdrop-blur-md pt-2 pb-3 border-b border-zinc-800/80 mb-4 flex items-center justify-between">
         <button
-          onClick={finishWorkout}
+          onClick={() => finishWorkout()}
           className="flex items-center gap-1 text-xs font-bold text-zinc-400 hover:text-white"
         >
           <ChevronLeft className="w-4 h-4" />
@@ -519,7 +519,7 @@ export const ActiveWorkoutView: React.FC = () => {
         onClose={() => setIsCooldownOpen(false)}
         onConfirmFinish={({ cooldownType, durationMinutes }) => {
           setIsCooldownOpen(false);
-          finishWorkout();
+          finishWorkout({ cooldownType, durationMinutes });
         }}
         workoutName={`${activeMesocycle.name} · ${activeWorkout.name}`}
         elapsedSeconds={60 * 45} // Duración estimada estándar

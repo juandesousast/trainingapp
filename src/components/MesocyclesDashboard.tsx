@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useProfileStore } from "@/stores/useProfileStore";
 import { useWorkoutSessionStore } from "@/stores/useWorkoutSessionStore";
 import { getMesocyclesForProfile } from "@/lib/mesocyclesData";
@@ -23,6 +23,18 @@ export const MesocyclesDashboard: React.FC = () => {
   const [isRecoveryOpen, setIsRecoveryOpen] = useState(false);
   const { recoveryCheckins } = useBiometricsStore();
   const latestRecovery = recoveryCheckins[0];
+
+  // Sincronizar el objetivo semanal del mesociclo activo
+  useEffect(() => {
+    const target = activeMeso?.weeklyTarget || 3;
+    if (activeProfile.weeklyTarget !== target) {
+      useProfileStore.getState().updateActivityStats(
+        activeProfile.streakDays,
+        activeProfile.weeklyCompleted,
+        target
+      );
+    }
+  }, [activeMeso, activeProfile.weeklyTarget, activeProfile.streakDays, activeProfile.weeklyCompleted]);
 
   const workouts = selectedMesocycle.workouts || [];
   const nextWorkout: Workout =

@@ -56,6 +56,7 @@ export interface Mesocycle {
   targetGoal: string;
   totalExposures: number;
   currentExposure: number;
+  weeklyTarget?: number;
   isUnlocked: boolean;
   isActive: boolean;
   workouts: Workout[];

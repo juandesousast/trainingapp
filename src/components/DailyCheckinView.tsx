@@ -3,12 +3,14 @@
 import React, { useState } from "react";
 import { useBiometricsStore } from "@/stores/useBiometricsStore";
 import { useProfileStore } from "@/stores/useProfileStore";
+import { supabase } from "@/lib/supabase";
+import { toLocalDateString } from "@/lib/activityStats";
 import { Moon, Smile, Activity, Star, Check, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const DailyCheckinView: React.FC = () => {
   const { dailyHabits, addDailyHabit } = useBiometricsStore();
-  const { activeProfile } = useProfileStore();
+  const { activeProfile, refreshStats } = useProfileStore();
   const accentColor = activeProfile.themeAccent;
 
   const [sleepHours, setSleepHours] = useState<string>("8");
@@ -28,7 +30,7 @@ export const DailyCheckinView: React.FC = () => {
     { val: 5, label: "5 · Negativa" },
   ];
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
 
     addDailyHabit({
@@ -40,6 +42,28 @@ export const DailyCheckinView: React.FC = () => {
       workoutQuality,
       notes: notes.trim() || undefined,
     });
+
+    try {
+      const todayStr = toLocalDateString(new Date());
+      const parsedSleep = parseFloat(sleepHours) || 8;
+
+      await supabase.from("daily_habits").upsert(
+        {
+          profile_id: activeProfile.id,
+          log_date: todayStr,
+          sleep_hours: parsedSleep,
+          psychological_condition: psychologicalCondition,
+          session_rpe: sessionRpe,
+          workout_quality: workoutQuality,
+          notes: notes.trim() || undefined,
+        },
+        { onConflict: "profile_id,log_date" }
+      );
+
+      await refreshStats();
+    } catch (err) {
+      console.warn("Aviso al guardar diario en Supabase:", err);
+    }
 
     setSavedSuccess(true);
     setTimeout(() => setSavedSuccess(false), 2500);
