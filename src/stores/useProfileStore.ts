@@ -4,13 +4,20 @@ import { fetchUserActivityStats } from "@/lib/activityStats";
 import { supabase } from "@/lib/supabase";
 
 interface ProfileState {
+  authUserId: string | null;
+  authUserEmail: string | null;
+  myProfileSlug: ProfileSlug;
+  isConsultationMode: boolean;
   activeProfile: Profile;
   profiles: Record<ProfileSlug, Profile>;
   isLoadingStats: boolean;
+  initAuthSession: () => Promise<void>;
   setActiveProfile: (slug: ProfileSlug) => void;
+  toggleConsultationProfile: (slug: ProfileSlug) => void;
   updateActivityStats: (streakDays: number, weeklyCompleted: number, weeklyTarget: number) => void;
   updateProfileGoals: (targetBodyFatPct: number, targetWeightKg?: number) => Promise<void>;
   refreshStats: () => Promise<void>;
+  signOut: () => Promise<void>;
 }
 
 const defaultProfiles: Record<ProfileSlug, Profile> = {
@@ -41,9 +48,113 @@ const defaultProfiles: Record<ProfileSlug, Profile> = {
 };
 
 export const useProfileStore = create<ProfileState>((set, get) => ({
+  authUserId: null,
+  authUserEmail: null,
+  myProfileSlug: "hoplita",
+  isConsultationMode: false,
   activeProfile: defaultProfiles.hoplita,
   profiles: defaultProfiles,
   isLoadingStats: false,
+
+  initAuthSession: async () => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        set({ authUserId: null, authUserEmail: null });
+        return;
+      }
+
+      set({ authUserId: user.id, authUserEmail: user.email || null });
+
+      // 1. Obtener todos los perfiles de la base de datos (permitido por RLS para authenticated)
+      const { data: dbProfiles } = await supabase.from("profiles").select("*");
+
+      if (dbProfiles && dbProfiles.length > 0) {
+        const updatedProfiles = { ...get().profiles };
+
+        dbProfiles.forEach((p: any) => {
+          const slug = p.slug as ProfileSlug;
+          if (updatedProfiles[slug]) {
+            updatedProfiles[slug] = {
+              ...updatedProfiles[slug],
+              id: p.id,
+              userId: p.user_id,
+              targetBodyFatPct: p.target_body_fat_pct ? Number(p.target_body_fat_pct) : updatedProfiles[slug].targetBodyFatPct,
+              targetWeightKg: p.target_weight_kg ? Number(p.target_weight_kg) : updatedProfiles[slug].targetWeightKg,
+            };
+          }
+        });
+
+        // 2. Identificar el perfil que pertenece al usuario logueado
+        const myDbProfile = dbProfiles.find((p: any) => p.user_id === user.id);
+        const mySlug: ProfileSlug = myDbProfile
+          ? (myDbProfile.slug as ProfileSlug)
+          : user.email?.includes("girl")
+          ? "hoplita_girl"
+          : "hoplita";
+
+        const myProfile = updatedProfiles[mySlug];
+
+        set({
+          profiles: updatedProfiles,
+          myProfileSlug: mySlug,
+          activeProfile: myProfile,
+          isConsultationMode: false,
+        });
+
+        if (typeof document !== "undefined") {
+          document.documentElement.setAttribute("data-theme", mySlug);
+        }
+
+        // 3. Cargar estadísticas para ambos perfiles (para el widget de pareja)
+        for (const slug of ["hoplita", "hoplita_girl"] as ProfileSlug[]) {
+          const profileItem = updatedProfiles[slug];
+          if (profileItem) {
+            try {
+              const stats = await fetchUserActivityStats(profileItem.id, profileItem.weeklyTarget);
+              set((state) => {
+                const nextP = {
+                  ...state.profiles[slug],
+                  streakDays: stats.streakDays,
+                  weeklyCompleted: stats.weeklyCompleted,
+                  weeklyTarget: stats.weeklyTarget,
+                };
+                return {
+                  profiles: {
+                    ...state.profiles,
+                    [slug]: nextP,
+                  },
+                  activeProfile: state.activeProfile.slug === slug ? nextP : state.activeProfile,
+                };
+              });
+            } catch (err) {
+              console.error(`Error loading stats for ${slug}:`, err);
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Error al inicializar sesión de autenticación:", err);
+    }
+  },
+
+  toggleConsultationProfile: (targetSlug: ProfileSlug) => {
+    const { myProfileSlug, profiles } = get();
+    const isConsultation = targetSlug !== myProfileSlug;
+    const targetProfile = profiles[targetSlug] || profiles[myProfileSlug];
+
+    set({
+      isConsultationMode: isConsultation,
+      activeProfile: targetProfile,
+    });
+
+    if (typeof document !== "undefined") {
+      document.documentElement.setAttribute("data-theme", targetSlug);
+    }
+  },
 
   updateActivityStats: (streakDays: number, weeklyCompleted: number, weeklyTarget: number) => {
     set((state) => {
@@ -138,17 +249,25 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   },
 
   setActiveProfile: (slug: ProfileSlug) => {
-    set((state) => {
-      const nextProfile = state.profiles[slug] || state.profiles.hoplita;
-      if (typeof document !== "undefined") {
-        document.documentElement.setAttribute("data-theme", slug);
-      }
-      return { activeProfile: nextProfile };
-    });
+    get().toggleConsultationProfile(slug);
+  },
 
-    // Cargar inmediatamente estadísticas reales de Supabase para el perfil seleccionado
-    setTimeout(() => {
-      get().refreshStats();
-    }, 0);
+  signOut: async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error("Error al cerrar sesión:", err);
+    } finally {
+      set({
+        authUserId: null,
+        authUserEmail: null,
+        isConsultationMode: false,
+        activeProfile: defaultProfiles.hoplita,
+        myProfileSlug: "hoplita",
+      });
+      if (typeof window !== "undefined") {
+        window.location.href = "/login";
+      }
+    }
   },
 }));

@@ -2,6 +2,7 @@ export type ProfileSlug = "hoplita" | "hoplita_girl";
 
 export interface Profile {
   id: string;
+  userId?: string;
   slug: ProfileSlug;
   displayName: string;
   gender: "male" | "female";
@@ -11,6 +12,7 @@ export interface Profile {
   streakDays: number;
   weeklyCompleted: number;
   weeklyTarget: number;
+  avatarUrl?: string;
 }
 
 export interface Exercise {
