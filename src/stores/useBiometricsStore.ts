@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { supabase } from "@/lib/supabase";
 
 export interface BiometricEntry {
   id: string;
@@ -18,6 +19,11 @@ export interface BiometricEntry {
   bmrKcal: number;
   metabolicAge: number;
   waistCircumferenceCm?: number;
+  neckCm?: number;
+  chestCm?: number;
+  armCm?: number;
+  thighCm?: number;
+  hipCm?: number;
 }
 
 export interface DailyHabitEntry {
@@ -164,16 +170,44 @@ export const useBiometricsStore = create<BiometricsState>((set) => ({
   dailyHabits: initialHabits,
   recoveryCheckins: initialRecoveryCheckin,
 
-  addBiometricEntry: (entry) => {
+  addBiometricEntry: async (entry) => {
+    const newEntry = {
+      ...entry,
+      id: `bio-${Date.now()}`,
+    };
+
     set((state) => ({
-      entries: [
-        ...state.entries,
-        {
-          ...entry,
-          id: `bio-${Date.now()}`,
-        },
-      ],
+      entries: [...state.entries, newEntry],
     }));
+
+    try {
+      await supabase.from("biometric_logs").insert({
+        profile_id: entry.profileId,
+        measured_at: new Date().toISOString().split("T")[0],
+        is_fasting: true,
+        weight_kg: entry.weightKg,
+        bmi: entry.bmi,
+        body_fat_pct: entry.bodyFatPct,
+        subcutaneous_fat_pct: entry.subcutaneousFatPct,
+        visceral_fat_rating: entry.visceralFatRating,
+        fat_free_mass_kg: entry.fatFreeMassKg,
+        muscle_mass_kg: entry.muscleMassKg,
+        bone_mass_kg: entry.boneMassKg,
+        skeletal_muscle_pct: entry.skeletalMusclePct,
+        body_water_pct: entry.bodyWaterPct,
+        protein_pct: entry.proteinPct,
+        bmr_kcal: entry.bmrKcal,
+        metabolic_age: entry.metabolicAge,
+        waist_cm: entry.waistCircumferenceCm,
+        neck_cm: entry.neckCm,
+        chest_cm: entry.chestCm,
+        arm_cm: entry.armCm,
+        thigh_cm: entry.thighCm,
+        hip_cm: entry.hipCm,
+      });
+    } catch (err) {
+      console.warn("Aviso al guardar biometric_logs en Supabase:", err);
+    }
   },
 
   addDailyHabit: (habit) => {

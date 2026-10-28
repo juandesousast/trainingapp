@@ -16,7 +16,9 @@ import {
 import { useBiometricsStore } from "@/stores/useBiometricsStore";
 import { useProfileStore } from "@/stores/useProfileStore";
 import { BiometricsDrawer } from "@/components/BiometricsDrawer";
-import { Plus, TrendingDown, Dumbbell, Target } from "lucide-react";
+import { getBMIBadge, getBodyFatBadge, getVisceralFatBadge } from "@/lib/healthBadges";
+import { Plus, TrendingDown, Dumbbell, Target, Activity, Ruler } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export const RecompCharts: React.FC = () => {
   const { entries } = useBiometricsStore();
@@ -43,6 +45,9 @@ export const RecompCharts: React.FC = () => {
   ];
 
   const latest = entries[entries.length - 1] || entries[0];
+  const bmiBadge = getBMIBadge(latest.bmi);
+  const fatBadge = getBodyFatBadge(latest.bodyFatPct, activeProfile.gender);
+  const viscBadge = getVisceralFatBadge(latest.visceralFatRating);
 
   return (
     <div className="space-y-6 pb-28 pt-2 max-w-md mx-auto px-4">
@@ -108,6 +113,102 @@ export const RecompCharts: React.FC = () => {
           </span>
         </div>
       </div>
+
+      {/* Indicadores Clínicos de Salud (Badges de Estado) */}
+      <div className="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-3 flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <Activity className="w-4 h-4 text-zinc-400" />
+          <span className="text-[10px] font-mono font-bold text-zinc-300 uppercase">
+            Estado Clínico:
+          </span>
+        </div>
+
+        <div className="flex items-center gap-1.5 flex-wrap justify-end">
+          <div
+            className={cn(
+              "text-[9px] font-mono font-bold px-2 py-0.5 rounded-full border flex items-center gap-1",
+              fatBadge.bgClass,
+              fatBadge.textClass,
+              fatBadge.borderClass
+            )}
+          >
+            <span>Grasa:</span>
+            <span className="font-black">{fatBadge.label}</span>
+          </div>
+
+          <div
+            className={cn(
+              "text-[9px] font-mono font-bold px-2 py-0.5 rounded-full border flex items-center gap-1",
+              bmiBadge.bgClass,
+              bmiBadge.textClass,
+              bmiBadge.borderClass
+            )}
+          >
+            <span>IMC:</span>
+            <span className="font-black">{bmiBadge.label}</span>
+          </div>
+
+          <div
+            className={cn(
+              "text-[9px] font-mono font-bold px-2 py-0.5 rounded-full border flex items-center gap-1",
+              viscBadge.bgClass,
+              viscBadge.textClass,
+              viscBadge.borderClass
+            )}
+          >
+            <span>Visceral:</span>
+            <span className="font-black">{viscBadge.label}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Perímetros Corporales Registrados (si existen) */}
+      {(latest.waistCircumferenceCm || latest.hipCm || latest.armCm || latest.chestCm) && (
+        <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-3">
+          <span className="text-[10px] font-mono font-bold text-zinc-400 uppercase tracking-wider block mb-2 flex items-center gap-1.5">
+            <Ruler className="w-3.5 h-3.5" style={{ color: accentColor }} />
+            <span>Últimos Perímetros Corporales (cm)</span>
+          </span>
+          <div className="grid grid-cols-3 gap-2 text-center text-xs font-mono">
+            {latest.waistCircumferenceCm && (
+              <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-2">
+                <span className="text-[9px] text-zinc-500 block uppercase">Cintura</span>
+                <span className="font-black text-zinc-200">{latest.waistCircumferenceCm} cm</span>
+              </div>
+            )}
+            {latest.hipCm && (
+              <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-2">
+                <span className="text-[9px] text-zinc-500 block uppercase">Cadera</span>
+                <span className="font-black text-zinc-200">{latest.hipCm} cm</span>
+              </div>
+            )}
+            {latest.armCm && (
+              <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-2">
+                <span className="text-[9px] text-zinc-500 block uppercase">Brazo</span>
+                <span className="font-black text-zinc-200">{latest.armCm} cm</span>
+              </div>
+            )}
+            {latest.thighCm && (
+              <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-2">
+                <span className="text-[9px] text-zinc-500 block uppercase">Muslo</span>
+                <span className="font-black text-zinc-200">{latest.thighCm} cm</span>
+              </div>
+            )}
+            {latest.chestCm && (
+              <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-2">
+                <span className="text-[9px] text-zinc-500 block uppercase">Pecho</span>
+                <span className="font-black text-zinc-200">{latest.chestCm} cm</span>
+              </div>
+            )}
+            {latest.neckCm && (
+              <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-2">
+                <span className="text-[9px] text-zinc-500 block uppercase">Cuello</span>
+                <span className="font-black text-zinc-200">{latest.neckCm} cm</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* GRÁFICA 1: RECOMPOSICIÓN CORPORAL (Doble Eje: Grasa % vs Masa Muscular kg) */}
       <div className="bg-zinc-900/70 border border-zinc-800 rounded-3xl p-4 shadow-xl">
