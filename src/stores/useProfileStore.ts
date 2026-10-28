@@ -6,41 +6,57 @@ import { supabase } from "@/lib/supabase";
 interface ProfileState {
   authUserId: string | null;
   authUserEmail: string | null;
-  myProfileSlug: ProfileSlug;
+  myProfileSlug: string;
   isConsultationMode: boolean;
   activeProfile: Profile;
-  profiles: Record<ProfileSlug, Profile>;
+  profiles: Record<string, Profile>;
+  allProfiles: Profile[];
   isLoadingStats: boolean;
   initAuthSession: () => Promise<void>;
-  setActiveProfile: (slug: ProfileSlug) => void;
-  toggleConsultationProfile: (slug: ProfileSlug) => void;
+  setActiveProfile: (slug: string) => void;
+  toggleConsultationProfile: (slug: string) => void;
   updateActivityStats: (streakDays: number, weeklyCompleted: number, weeklyTarget: number) => void;
   updateProfileGoals: (targetBodyFatPct: number, targetWeightKg?: number) => Promise<void>;
   refreshStats: () => Promise<void>;
   signOut: () => Promise<void>;
 }
 
-const defaultProfiles: Record<ProfileSlug, Profile> = {
-  hoplita: {
+const defaultProfiles: Record<string, Profile> = {
+  juan: {
     id: "11111111-1111-1111-1111-111111111111",
-    slug: "hoplita",
-    displayName: "Él · Hoplita",
+    slug: "juan",
+    displayName: "Juan",
+    role: "hoplita",
     gender: "male",
     themeAccent: "#CCFF00",
     targetBodyFatPct: 16.0,
-    targetWeightKg: 78.0,
-    streakDays: 0,
-    weeklyCompleted: 0,
+    targetWeightKg: 72.8,
+    streakDays: 1,
+    weeklyCompleted: 1,
     weeklyTarget: 3,
   },
-  hoplita_girl: {
+  wendy: {
     id: "22222222-2222-2222-2222-222222222222",
-    slug: "hoplita_girl",
-    displayName: "Ella · Hoplita Girl",
+    slug: "wendy",
+    displayName: "Wendy",
+    role: "hoplita_girl",
     gender: "female",
     themeAccent: "#F43F5E",
     targetBodyFatPct: 21.0,
     targetWeightKg: 60.0,
+    streakDays: 1,
+    weeklyCompleted: 0,
+    weeklyTarget: 3,
+  },
+  nato: {
+    id: "33333333-3333-3333-3333-333333333333",
+    slug: "nato",
+    displayName: "Nato",
+    role: "hoplita",
+    gender: "male",
+    themeAccent: "#CCFF00",
+    targetBodyFatPct: 15.0,
+    targetWeightKg: 75.0,
     streakDays: 0,
     weeklyCompleted: 0,
     weeklyTarget: 3,
@@ -50,10 +66,11 @@ const defaultProfiles: Record<ProfileSlug, Profile> = {
 export const useProfileStore = create<ProfileState>((set, get) => ({
   authUserId: null,
   authUserEmail: null,
-  myProfileSlug: "hoplita",
+  myProfileSlug: "juan",
   isConsultationMode: false,
-  activeProfile: defaultProfiles.hoplita,
+  activeProfile: defaultProfiles.juan,
   profiles: defaultProfiles,
+  allProfiles: Object.values(defaultProfiles),
   isLoadingStats: false,
 
   initAuthSession: async () => {
@@ -73,66 +90,72 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       const { data: dbProfiles } = await supabase.from("profiles").select("*");
 
       if (dbProfiles && dbProfiles.length > 0) {
-        const updatedProfiles = { ...get().profiles };
+        const updatedProfiles: Record<string, Profile> = { ...get().profiles };
 
         dbProfiles.forEach((p: any) => {
-          const slug = p.slug as ProfileSlug;
-          if (updatedProfiles[slug]) {
-            updatedProfiles[slug] = {
-              ...updatedProfiles[slug],
-              id: p.id,
-              userId: p.user_id,
-              targetBodyFatPct: p.target_body_fat_pct ? Number(p.target_body_fat_pct) : updatedProfiles[slug].targetBodyFatPct,
-              targetWeightKg: p.target_weight_kg ? Number(p.target_weight_kg) : updatedProfiles[slug].targetWeightKg,
-            };
-          }
+          const slug = p.slug;
+          updatedProfiles[slug] = {
+            id: p.id,
+            userId: p.user_id,
+            slug: p.slug,
+            displayName: p.display_name,
+            role: p.role || (p.gender === "female" ? "hoplita_girl" : "hoplita"),
+            gender: p.gender,
+            themeAccent: p.theme_accent || (p.gender === "female" ? "#F43F5E" : "#CCFF00"),
+            targetBodyFatPct: p.target_body_fat_pct ? Number(p.target_body_fat_pct) : 16.0,
+            targetWeightKg: p.target_weight_kg ? Number(p.target_weight_kg) : 75.0,
+            streakDays: p.streak_days || 0,
+            weeklyCompleted: p.weekly_completed || 0,
+            weeklyTarget: p.weekly_target || 3,
+            avatarUrl: p.avatar_url,
+          };
         });
 
         // 2. Identificar el perfil que pertenece al usuario logueado
         const myDbProfile = dbProfiles.find((p: any) => p.user_id === user.id);
-        const mySlug: ProfileSlug = myDbProfile
-          ? (myDbProfile.slug as ProfileSlug)
-          : user.email?.includes("girl")
-          ? "hoplita_girl"
-          : "hoplita";
+        const mySlug = myDbProfile ? myDbProfile.slug : "juan";
+        const myProfile = updatedProfiles[mySlug] || Object.values(updatedProfiles)[0];
 
-        const myProfile = updatedProfiles[mySlug];
+        const themeAttribute =
+          myProfile.role === "hoplita_girl" || myProfile.gender === "female"
+            ? "hoplita_girl"
+            : "hoplita";
+
+        if (typeof document !== "undefined") {
+          document.documentElement.setAttribute("data-theme", themeAttribute);
+        }
 
         set({
           profiles: updatedProfiles,
+          allProfiles: Object.values(updatedProfiles),
           myProfileSlug: mySlug,
           activeProfile: myProfile,
           isConsultationMode: false,
         });
 
-        if (typeof document !== "undefined") {
-          document.documentElement.setAttribute("data-theme", mySlug);
-        }
-
-        // 3. Cargar estadísticas para ambos perfiles (para el widget de pareja)
-        for (const slug of ["hoplita", "hoplita_girl"] as ProfileSlug[]) {
-          const profileItem = updatedProfiles[slug];
-          if (profileItem) {
-            try {
-              const stats = await fetchUserActivityStats(profileItem.id, profileItem.weeklyTarget);
-              set((state) => {
-                const nextP = {
-                  ...state.profiles[slug],
-                  streakDays: stats.streakDays,
-                  weeklyCompleted: stats.weeklyCompleted,
-                  weeklyTarget: stats.weeklyTarget,
-                };
-                return {
-                  profiles: {
-                    ...state.profiles,
-                    [slug]: nextP,
-                  },
-                  activeProfile: state.activeProfile.slug === slug ? nextP : state.activeProfile,
-                };
-              });
-            } catch (err) {
-              console.error(`Error loading stats for ${slug}:`, err);
-            }
+        // 3. Cargar estadísticas para cada perfil
+        for (const p of Object.values(updatedProfiles)) {
+          try {
+            const stats = await fetchUserActivityStats(p.id, p.weeklyTarget);
+            set((state) => {
+              const nextP = {
+                ...state.profiles[p.slug],
+                streakDays: stats.streakDays,
+                weeklyCompleted: stats.weeklyCompleted,
+                weeklyTarget: stats.weeklyTarget,
+              };
+              const newProfiles = {
+                ...state.profiles,
+                [p.slug]: nextP,
+              };
+              return {
+                profiles: newProfiles,
+                allProfiles: Object.values(newProfiles),
+                activeProfile: state.activeProfile.slug === p.slug ? nextP : state.activeProfile,
+              };
+            });
+          } catch (err) {
+            console.error(`Error loading stats for ${p.slug}:`, err);
           }
         }
       }
@@ -141,19 +164,24 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     }
   },
 
-  toggleConsultationProfile: (targetSlug: ProfileSlug) => {
+  toggleConsultationProfile: (targetSlug: string) => {
     const { myProfileSlug, profiles } = get();
     const isConsultation = targetSlug !== myProfileSlug;
     const targetProfile = profiles[targetSlug] || profiles[myProfileSlug];
+
+    const themeAttribute =
+      targetProfile.role === "hoplita_girl" || targetProfile.gender === "female"
+        ? "hoplita_girl"
+        : "hoplita";
+
+    if (typeof document !== "undefined") {
+      document.documentElement.setAttribute("data-theme", themeAttribute);
+    }
 
     set({
       isConsultationMode: isConsultation,
       activeProfile: targetProfile,
     });
-
-    if (typeof document !== "undefined") {
-      document.documentElement.setAttribute("data-theme", targetSlug);
-    }
   },
 
   updateActivityStats: (streakDays: number, weeklyCompleted: number, weeklyTarget: number) => {
@@ -166,12 +194,15 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
         weeklyTarget,
       };
 
+      const newProfiles = {
+        ...state.profiles,
+        [activeSlug]: updatedActive,
+      };
+
       return {
         activeProfile: updatedActive,
-        profiles: {
-          ...state.profiles,
-          [activeSlug]: updatedActive,
-        },
+        profiles: newProfiles,
+        allProfiles: Object.values(newProfiles),
       };
     });
   },
@@ -187,13 +218,17 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       targetWeightKg,
     };
 
-    set((state) => ({
-      activeProfile: updatedActive,
-      profiles: {
+    set((state) => {
+      const newProfiles = {
         ...state.profiles,
         [activeSlug]: updatedActive,
-      },
-    }));
+      };
+      return {
+        activeProfile: updatedActive,
+        profiles: newProfiles,
+        allProfiles: Object.values(newProfiles),
+      };
+    });
 
     // Persistir en Supabase
     try {
@@ -228,12 +263,14 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
             targetBodyFatPct: dbProfile.target_body_fat_pct ? Number(dbProfile.target_body_fat_pct) : state.activeProfile.targetBodyFatPct,
             targetWeightKg: dbProfile.target_weight_kg ? Number(dbProfile.target_weight_kg) : state.activeProfile.targetWeightKg,
           };
+          const newProfiles = {
+            ...state.profiles,
+            [state.activeProfile.slug]: updated,
+          };
           return {
             activeProfile: updated,
-            profiles: {
-              ...state.profiles,
-              [state.activeProfile.slug]: updated,
-            },
+            profiles: newProfiles,
+            allProfiles: Object.values(newProfiles),
           };
         });
       }
@@ -248,7 +285,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     }
   },
 
-  setActiveProfile: (slug: ProfileSlug) => {
+  setActiveProfile: (slug: string) => {
     get().toggleConsultationProfile(slug);
   },
 
@@ -262,8 +299,8 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
         authUserId: null,
         authUserEmail: null,
         isConsultationMode: false,
-        activeProfile: defaultProfiles.hoplita,
-        myProfileSlug: "hoplita",
+        activeProfile: defaultProfiles.juan,
+        myProfileSlug: "juan",
       });
       if (typeof window !== "undefined") {
         window.location.href = "/login";

@@ -1,7 +1,8 @@
 import { Mesocycle, ProfileSlug, Workout } from "@/lib/types";
 
-export const getMesocyclesForProfile = (slug: ProfileSlug): Mesocycle[] => {
-  const isMale = slug === "hoplita";
+export const getMesocyclesForProfile = (slugOrRole: ProfileSlug): Mesocycle[] => {
+  const isFemale = slugOrRole === "hoplita_girl" || slugOrRole === "wendy";
+  const isMale = !isFemale;
   const profileId = isMale
     ? "11111111-1111-1111-1111-111111111111"
     : "22222222-2222-2222-2222-222222222222";

@@ -4,33 +4,76 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useProfileStore } from "@/stores/useProfileStore";
-import { Lock, Mail, ArrowRight, ShieldCheck, Eye, EyeOff, Sparkles } from "lucide-react";
+import { Lock, Mail, ArrowRight, ShieldCheck, Eye, EyeOff, Sparkles, User } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+
+interface AccountPreset {
+  id: "juan" | "wendy" | "nato";
+  name: string;
+  email: string;
+  role: "hoplita" | "hoplita_girl";
+  gender: "male" | "female";
+  color: string;
+  tag: string;
+}
+
+const PRESET_ACCOUNTS: AccountPreset[] = [
+  {
+    id: "juan",
+    name: "Juan",
+    email: "juan@hoplita.app",
+    role: "hoplita",
+    gender: "male",
+    color: "#CCFF00",
+    tag: "Él · Hoplita",
+  },
+  {
+    id: "wendy",
+    name: "Wendy",
+    email: "wendy@hoplita.app",
+    role: "hoplita_girl",
+    gender: "female",
+    color: "#F43F5E",
+    tag: "Ella · Girl",
+  },
+  {
+    id: "nato",
+    name: "Nato",
+    email: "nato@hoplita.app",
+    role: "hoplita",
+    gender: "male",
+    color: "#CCFF00",
+    tag: "Él · Hoplita",
+  },
+];
 
 export default function LoginPage() {
   const router = useRouter();
   const { initAuthSession } = useProfileStore();
 
   const [mode, setMode] = useState<"login" | "register">("login");
-  const [selectedRole, setSelectedRole] = useState<"hoplita" | "hoplita_girl">("hoplita");
-  const [email, setEmail] = useState("hoplita@biio.app");
-  const [password, setPassword] = useState("Hoplita2026!");
+  const [selectedPreset, setSelectedPreset] = useState<"juan" | "wendy" | "nato">("juan");
+  const [email, setEmail] = useState("juan@hoplita.app");
+  const [password, setPassword] = useState("Juan2026$");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const isHoplita = selectedRole === "hoplita";
-  const accentColor = isHoplita ? "#CCFF00" : "#F43F5E";
+  const currentPreset = PRESET_ACCOUNTS.find((p) => p.id === selectedPreset) || PRESET_ACCOUNTS[0];
+  const accentColor = currentPreset.color;
 
-  const handleSelectRole = (role: "hoplita" | "hoplita_girl") => {
-    setSelectedRole(role);
+  const handleSelectPreset = (presetId: "juan" | "wendy" | "nato") => {
+    setSelectedPreset(presetId);
     setErrorMessage(null);
-    if (role === "hoplita") {
-      setEmail("hoplita@biio.app");
-      setPassword("Hoplita2026!");
-    } else {
-      setEmail("hoplitagirl@biio.app");
-      setPassword("Hoplita2026!");
+    if (presetId === "juan") {
+      setEmail("juan@hoplita.app");
+      setPassword("Juan2026$");
+    } else if (presetId === "wendy") {
+      setEmail("wendy@hoplita.app");
+      setPassword("Wendy2026$");
+    } else if (presetId === "nato") {
+      setEmail("nato@hoplita.app");
+      setPassword("Nato2026$");
     }
   };
 
@@ -61,9 +104,9 @@ export default function LoginPage() {
           password: password,
           options: {
             data: {
-              role: selectedRole,
-              gender: selectedRole === "hoplita_girl" ? "female" : "male",
-              name: selectedRole === "hoplita_girl" ? "Ella · Hoplita Girl" : "Él · Hoplita",
+              role: currentPreset.role,
+              gender: currentPreset.gender,
+              name: currentPreset.name,
             },
           },
         });
@@ -122,31 +165,34 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Selector de Perfil Rápido */}
+        {/* Selector de Cuentas Iniciales (Juan / Wendy / Nato) */}
         <div className="bg-zinc-900/90 border border-zinc-800/80 rounded-2xl p-1.5 flex gap-1.5">
-          <button
-            type="button"
-            onClick={() => handleSelectRole("hoplita")}
-            className={`flex-1 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-1.5 ${
-              isHoplita
-                ? "bg-[#CCFF00] text-black shadow-lg shadow-[#CCFF00]/20"
-                : "text-zinc-400 hover:text-white"
-            }`}
-          >
-            <span>Él · Hoplita</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleSelectRole("hoplita_girl")}
-            className={`flex-1 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-1.5 ${
-              !isHoplita
-                ? "bg-[#F43F5E] text-white shadow-lg shadow-[#F43F5E]/20"
-                : "text-zinc-400 hover:text-white"
-            }`}
-          >
-            <span>Ella · Hoplita Girl</span>
-          </button>
+          {PRESET_ACCOUNTS.map((preset) => {
+            const isSelected = selectedPreset === preset.id;
+            return (
+              <button
+                key={preset.id}
+                type="button"
+                onClick={() => handleSelectPreset(preset.id)}
+                className={`flex-1 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 flex flex-col items-center justify-center ${
+                  isSelected
+                    ? "shadow-lg text-black"
+                    : "text-zinc-400 hover:text-white"
+                }`}
+                style={{
+                  backgroundColor: isSelected ? preset.color : "transparent",
+                  color: isSelected
+                    ? preset.id === "wendy"
+                      ? "#ffffff"
+                      : "#000000"
+                    : undefined,
+                }}
+              >
+                <span className="font-black text-sm">{preset.name}</span>
+                <span className="text-[9px] font-mono opacity-80">{preset.tag}</span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Formulario */}
@@ -162,7 +208,7 @@ export default function LoginPage() {
                 color: accentColor,
               }}
             >
-              {isHoplita ? "Volt 01" : "Hyper 02"}
+              {currentPreset.name} · {currentPreset.role}
             </span>
           </div>
 
@@ -179,7 +225,7 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="usuario@biio.app"
+                  placeholder="usuario@hoplita.app"
                   className="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-10 pr-4 py-3 text-sm text-zinc-100 font-medium placeholder-zinc-600 focus:outline-none focus:border-zinc-600 transition-colors"
                 />
               </div>
@@ -254,7 +300,7 @@ export default function LoginPage() {
             >
               {mode === "login" ? (
                 <>
-                  ¿Primera vez?{" "}
+                  ¿Crear nueva cuenta?{" "}
                   <span className="font-bold underline" style={{ color: accentColor }}>
                     Regístrate aquí
                   </span>

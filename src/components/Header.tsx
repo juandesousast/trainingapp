@@ -3,13 +3,14 @@
 import React, { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useProfileStore } from "@/stores/useProfileStore";
-import { Flame, CheckCircle2, LogOut, Eye, UserCheck } from "lucide-react";
+import { Flame, CheckCircle2, LogOut, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const Header: React.FC = () => {
   const pathname = usePathname();
   const {
     activeProfile,
+    allProfiles,
     myProfileSlug,
     isConsultationMode,
     toggleConsultationProfile,
@@ -32,7 +33,6 @@ export const Header: React.FC = () => {
     return null;
   }
 
-  const isHoplita = activeProfile.slug === "hoplita";
   const accentColor = activeProfile.themeAccent;
 
   const handleLogout = async () => {
@@ -44,21 +44,21 @@ export const Header: React.FC = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full bg-zinc-950/80 backdrop-blur-md border-b border-zinc-800/80 px-4 py-3">
-        <div className="max-w-md mx-auto flex items-center justify-between">
+      <header className="sticky top-0 z-40 w-full bg-zinc-950/80 backdrop-blur-md border-b border-zinc-800/80 px-3 py-2.5 sm:px-4 sm:py-3">
+        <div className="max-w-md mx-auto flex items-center justify-between gap-2">
           {/* Logo & Marca */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center font-black text-black text-sm tracking-tighter shadow-lg transition-colors duration-300"
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center font-black text-black text-xs sm:text-sm tracking-tighter shadow-lg transition-colors duration-300"
               style={{ backgroundColor: accentColor }}
             >
               HOS
             </div>
             <div>
-              <h1 className="text-xs font-black tracking-widest text-zinc-400 uppercase">
+              <h1 className="text-[11px] sm:text-xs font-black tracking-widest text-zinc-400 uppercase">
                 HOPLITA OS
               </h1>
-              <p className="text-[11px] font-semibold text-zinc-200 tracking-tight">
+              <p className="text-[10px] sm:text-[11px] font-semibold text-zinc-200 tracking-tight">
                 DARK KINETIC BIIO
               </p>
             </div>
@@ -66,14 +66,14 @@ export const Header: React.FC = () => {
 
           {/* Selector de Perfil, Racha y Controles */}
           <div className="flex items-center gap-1.5 sm:gap-2">
-            {/* Racha dinámica (Streak en días consecutivos) */}
+            {/* Racha dinámica (Streak en días) */}
             <div
-              className="flex items-center gap-1 bg-zinc-900 border border-zinc-800 rounded-full px-2 py-1 text-xs font-mono font-bold text-zinc-300 transition-all"
+              className="flex items-center gap-1 bg-zinc-900 border border-zinc-800 rounded-full px-2 py-0.5 text-xs font-mono font-bold text-zinc-300 transition-all"
               title={`Racha: ${activeProfile.streakDays} días consecutivos de actividad`}
             >
               <Flame
                 className={cn(
-                  "w-3.5 h-3.5 transition-colors",
+                  "w-3 h-3 transition-colors",
                   activeProfile.streakDays > 0
                     ? "text-amber-500 fill-amber-500 animate-pulse"
                     : "text-zinc-500"
@@ -84,11 +84,11 @@ export const Header: React.FC = () => {
 
             {/* Progreso Semanal dinámico (X/Y) */}
             <div
-              className="flex items-center gap-1 bg-zinc-900 border border-zinc-800 rounded-full px-2 py-1 text-xs font-mono font-bold text-zinc-300 transition-all"
+              className="flex items-center gap-1 bg-zinc-900 border border-zinc-800 rounded-full px-2 py-0.5 text-xs font-mono font-bold text-zinc-300 transition-all"
               title={`Progreso semanal: ${activeProfile.weeklyCompleted} de ${activeProfile.weeklyTarget}`}
             >
               <CheckCircle2
-                className="w-3.5 h-3.5 transition-colors"
+                className="w-3 h-3 transition-colors"
                 style={{
                   color:
                     activeProfile.weeklyCompleted >= activeProfile.weeklyTarget
@@ -101,47 +101,47 @@ export const Header: React.FC = () => {
               </span>
             </div>
 
-            {/* Switcher Pareja: ÉL / ELLA */}
+            {/* Switcher de Usuarios (Juan / Wendy / Nato) */}
             <div className="relative flex bg-zinc-900 border border-zinc-800 rounded-full p-0.5">
-              <button
-                onClick={() => toggleConsultationProfile("hoplita")}
-                className={cn(
-                  "px-2.5 py-1 text-xs font-bold rounded-full transition-all duration-200 flex items-center gap-1",
-                  isHoplita
-                    ? "bg-[#CCFF00] text-black shadow-md font-extrabold"
-                    : "text-zinc-400 hover:text-white"
-                )}
-                title={
-                  myProfileSlug === "hoplita"
-                    ? "Mi perfil activo"
-                    : "Consultar progreso de Hoplita"
-                }
-              >
-                <span>Él</span>
-                {myProfileSlug === "hoplita" && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-black/60 inline-block" />
-                )}
-              </button>
+              {allProfiles.map((p) => {
+                const isActive = activeProfile.slug === p.slug;
+                const isMe = myProfileSlug === p.slug;
+                const isGirl = p.role === "hoplita_girl" || p.gender === "female";
 
-              <button
-                onClick={() => toggleConsultationProfile("hoplita_girl")}
-                className={cn(
-                  "px-2.5 py-1 text-xs font-bold rounded-full transition-all duration-200 flex items-center gap-1",
-                  !isHoplita
-                    ? "bg-[#F43F5E] text-white shadow-md font-extrabold"
-                    : "text-zinc-400 hover:text-white"
-                )}
-                title={
-                  myProfileSlug === "hoplita_girl"
-                    ? "Mi perfil activo"
-                    : "Consultar progreso de Hoplita Girl"
-                }
-              >
-                <span>Ella</span>
-                {myProfileSlug === "hoplita_girl" && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-white/60 inline-block" />
-                )}
-              </button>
+                return (
+                  <button
+                    key={p.slug}
+                    onClick={() => toggleConsultationProfile(p.slug)}
+                    className={cn(
+                      "px-2 py-0.5 text-xs font-bold rounded-full transition-all duration-200 flex items-center gap-1",
+                      isActive
+                        ? isGirl
+                          ? "bg-[#F43F5E] text-white shadow-md font-extrabold"
+                          : "bg-[#CCFF00] text-black shadow-md font-extrabold"
+                        : "text-zinc-400 hover:text-white"
+                    )}
+                    title={
+                      isMe
+                        ? `Mi perfil (${p.displayName})`
+                        : `Consultar progreso de ${p.displayName}`
+                    }
+                  >
+                    <span>{p.displayName}</span>
+                    {isMe && (
+                      <span
+                        className={cn(
+                          "w-1.5 h-1.5 rounded-full inline-block",
+                          isActive
+                            ? isGirl
+                              ? "bg-white"
+                              : "bg-black"
+                            : "bg-[#CCFF00]"
+                        )}
+                      />
+                    )}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Botón Logout */}
@@ -158,7 +158,7 @@ export const Header: React.FC = () => {
         </div>
       </header>
 
-      {/* Banner de Modo Consulta si está viendo a la pareja */}
+      {/* Banner de Modo Consulta si está viendo a otro compañero */}
       {isConsultationMode && (
         <div className="w-full bg-zinc-900/95 border-b border-zinc-800 py-1 px-4 text-center text-[11px] font-mono flex items-center justify-center gap-2 text-zinc-300">
           <Eye className="w-3.5 h-3.5" style={{ color: accentColor }} />

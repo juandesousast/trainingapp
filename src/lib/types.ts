@@ -1,10 +1,11 @@
-export type ProfileSlug = "hoplita" | "hoplita_girl";
+export type ProfileSlug = "hoplita" | "hoplita_girl" | "juan" | "wendy" | "nato" | string;
 
 export interface Profile {
   id: string;
   userId?: string;
-  slug: ProfileSlug;
+  slug: string;
   displayName: string;
+  role?: "hoplita" | "hoplita_girl";
   gender: "male" | "female";
   themeAccent: string; // '#CCFF00' o '#F43F5E'
   targetBodyFatPct: number;
