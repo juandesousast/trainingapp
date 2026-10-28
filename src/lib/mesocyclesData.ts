@@ -1,0 +1,272 @@
+import { Mesocycle, ProfileSlug } from "@/lib/types";
+
+export const getMesocyclesForProfile = (slug: ProfileSlug): Mesocycle[] => {
+  const isMale = slug === "hoplita";
+
+  return [
+    {
+      id: isMale ? "m1-hoplita" : "m1-girl",
+      profileId: isMale ? "11111111-1111-1111-1111-111111111111" : "22222222-2222-2222-2222-222222222222",
+      number: 1,
+      name: "Reacondicionamiento",
+      code: "M1",
+      splitStructure: "Split A + B (12 Sesiones)",
+      targetGoal: "Adaptación anatómica, hipertrofia base y pirámide inversa (15-12-10).",
+      totalExposures: 12,
+      currentExposure: 1,
+      isUnlocked: true,
+      isActive: true,
+      workouts: [
+        {
+          id: "m1-w-a",
+          mesocycleId: isMale ? "m1-hoplita" : "m1-girl",
+          letter: "A",
+          name: isMale
+            ? "Box Squat, Press Banca, Remo y Tri-Set"
+            : "Box Squat, Militar Sentada, Remo Landmine y Tri-Set",
+          orderIndex: 1,
+          exercises: [
+            {
+              id: "m1-a-1",
+              workoutId: "m1-w-a",
+              orderIndex: 1,
+              blockType: "main_progression",
+              technicalNotes: '1" Pausa en Box · Controlar Butt Wink',
+              tempo: "3-1-X-1",
+              restSeconds: 90,
+              schemeConfig: {
+                target: "3 x 15 / 12 / 10",
+                restDesc: 'Pausa 1\'30"',
+              },
+              exercise: {
+                id: "e-box-squat",
+                slug: "box_squat",
+                name: "Box Squat",
+                muscleGroup: "Piernas / Glúteos",
+                equipment: "Barra olímpica y cajón",
+              },
+            },
+            {
+              id: "m1-a-2",
+              workoutId: "m1-w-a",
+              orderIndex: 2,
+              blockType: "main_progression",
+              technicalNotes: isMale ? '1" Pausa al Pecho' : "Hasta las Clavículas",
+              tempo: "3-1-X-1",
+              restSeconds: 90,
+              schemeConfig: {
+                target: "3 x 15 / 12 / 10",
+                restDesc: 'Pausa 1\'30"',
+              },
+              exercise: isMale
+                ? {
+                    id: "e-bench",
+                    slug: "bench_press",
+                    name: "Press de Banca Plano",
+                    muscleGroup: "Pectoral / Tríceps",
+                  }
+                : {
+                    id: "e-seated-mil",
+                    slug: "seated_military_press",
+                    name: "Press Militar Sentada",
+                    muscleGroup: "Hombros",
+                  },
+            },
+            {
+              id: "m1-a-3",
+              workoutId: "m1-w-a",
+              orderIndex: 3,
+              blockType: "main_progression",
+              technicalNotes: "Espalda Recta · Tracción con codos",
+              tempo: "3-0-X-1",
+              restSeconds: 90,
+              schemeConfig: {
+                target: "3 x 15 / 12 / 10",
+                restDesc: 'Pausa 1\'30"',
+              },
+              exercise: isMale
+                ? {
+                    id: "e-row",
+                    slug: "barbell_row",
+                    name: "Remo con Barra / Seal Row",
+                    muscleGroup: "Espalda",
+                  }
+                : {
+                    id: "e-landmine",
+                    slug: "landmine_row",
+                    name: "Remo Landmine",
+                    muscleGroup: "Espalda",
+                  },
+            },
+            {
+              id: "m1-a-4",
+              workoutId: "m1-w-a",
+              orderIndex: 4,
+              blockType: "tri_set",
+              groupTag: "TRI1",
+              technicalNotes: "Tri-Set 1 · Sin balanceo",
+              tempo: "2-0-2-0",
+              restSeconds: 30,
+              schemeConfig: {
+                target: "2 x 12 (Exp 1º) / 3 x 12 (Exp 2º a 6º)",
+                restDesc: 'Pausa 30"',
+              },
+              exercise: {
+                id: "e-curl",
+                slug: "biceps_curl",
+                name: "Curl con Barra",
+                muscleGroup: "Bíceps",
+              },
+            },
+            {
+              id: "m1-a-5",
+              workoutId: "m1-w-a",
+              orderIndex: 5,
+              blockType: "tri_set",
+              groupTag: "TRI1",
+              technicalNotes: "Tri-Set 2 · Cadena posterior",
+              tempo: "2-1-2-1",
+              restSeconds: 30,
+              schemeConfig: {
+                target: "2 x 12 (Exp 1º) / 3 x 12 (Exp 2º a 6º)",
+                restDesc: 'Pausa 30"',
+              },
+              exercise: {
+                id: "e-hyper",
+                slug: "hyperextension_45",
+                name: "Hiperextensiones 45º",
+                muscleGroup: "Glúteos / Lumbares",
+              },
+            },
+            {
+              id: "m1-a-6",
+              workoutId: "m1-w-a",
+              orderIndex: 6,
+              blockType: "tri_set",
+              groupTag: "TRI1",
+              technicalNotes: "Tri-Set 3 · Rango completo",
+              tempo: "2-2-X-2",
+              restSeconds: 30,
+              schemeConfig: {
+                target: "2 x 12 (Exp 1º) / 3 x 12 (Exp 2º a 6º)",
+                restDesc: 'Pausa 30"',
+              },
+              exercise: {
+                id: "e-calf",
+                slug: "calf_machine",
+                name: "Gemelos en Máquina",
+                muscleGroup: "Gemelos",
+              },
+            },
+          ],
+        },
+        {
+          id: "m1-w-b",
+          mesocycleId: isMale ? "m1-hoplita" : "m1-girl",
+          letter: "B",
+          name: isMale
+            ? "Peso Muerto, Militar, Dominadas y Tri-Set"
+            : "Peso Muerto, Hip Thrust, Dominadas y Tri-Set",
+          orderIndex: 2,
+          exercises: [
+            {
+              id: "m1-b-1",
+              workoutId: "m1-w-b",
+              orderIndex: 1,
+              blockType: "main_progression",
+              technicalNotes: "Espalda Neutra · Sin rebote abajo",
+              tempo: "X-1-X-0",
+              restSeconds: 90,
+              schemeConfig: { target: "3 x 15 / 12 / 10", restDesc: 'Pausa 1\'30"' },
+              exercise: {
+                id: "e-deadlift",
+                slug: "deadlift",
+                name: "Peso Muerto Convencional",
+                muscleGroup: "Cadena Posterior",
+              },
+            },
+            {
+              id: "m1-b-2",
+              workoutId: "m1-w-b",
+              orderIndex: 2,
+              blockType: "main_progression",
+              technicalNotes: isMale ? "Hasta las Clavículas" : 'Pausa 1" arriba en pico',
+              tempo: "3-0-X-1",
+              restSeconds: 90,
+              schemeConfig: { target: "3 x 15 / 12 / 10", restDesc: 'Pausa 1\'30"' },
+              exercise: isMale
+                ? {
+                    id: "e-mil",
+                    slug: "military_press",
+                    name: "Press Militar",
+                    muscleGroup: "Hombros",
+                  }
+                : {
+                    id: "e-hip",
+                    slug: "hip_thrust",
+                    name: "Hip Thrust",
+                    muscleGroup: "Glúteos",
+                  },
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: isMale ? "m2-hoplita" : "m2-girl",
+      profileId: isMale ? "11111111-1111-1111-1111-111111111111" : "22222222-2222-2222-2222-222222222222",
+      number: 2,
+      name: "Preparación Fuerza",
+      code: "M2",
+      splitStructure: "Split A + B + C (9 Sesiones)",
+      targetGoal: "Sobrecarga progresiva: 3 microciclos (8/6/4 al fallo y descarga técnica).",
+      totalExposures: 9,
+      currentExposure: 0,
+      isUnlocked: true,
+      isActive: false,
+      workouts: [],
+    },
+    {
+      id: isMale ? "m3-hoplita" : "m3-girl",
+      profileId: isMale ? "11111111-1111-1111-1111-111111111111" : "22222222-2222-2222-2222-222222222222",
+      number: 3,
+      name: "Especialización Técnica",
+      code: "M3",
+      splitStructure: "Split A + B (14 Sesiones)",
+      targetGoal: "Entrenamiento por % de 1RM (75% a 85%) y cadencia de Tempo Remotion estricta.",
+      totalExposures: 14,
+      currentExposure: 0,
+      isUnlocked: true,
+      isActive: false,
+      workouts: [],
+    },
+    {
+      id: isMale ? "m4-hoplita" : "m4-girl",
+      profileId: isMale ? "11111111-1111-1111-1111-111111111111" : "22222222-2222-2222-2222-222222222222",
+      number: 4,
+      name: "Fuerza 1",
+      code: "M4",
+      splitStructure: "Split A + B (10 Sesiones)",
+      targetGoal: "Cargas submáximas 4x4 (80% al 87.5% de 1RM) y descarga 8x3 @ 75%.",
+      totalExposures: 10,
+      currentExposure: 0,
+      isUnlocked: true,
+      isActive: false,
+      workouts: [],
+    },
+    {
+      id: isMale ? "m5-hoplita" : "m5-girl",
+      profileId: isMale ? "11111111-1111-1111-1111-111111111111" : "22222222-2222-2222-2222-222222222222",
+      number: 5,
+      name: "Fuerza 2 + Maximales",
+      code: "M5",
+      splitStructure: "Split A + B + C + Test 1RM",
+      targetGoal: "Cluster Sets (1 rep cada 15\"/20\"/25\") al 87.5-92.5% y sesiones de test 1RM.",
+      totalExposures: 12,
+      currentExposure: 0,
+      isUnlocked: true,
+      isActive: false,
+      workouts: [],
+    },
+  ];
+};
