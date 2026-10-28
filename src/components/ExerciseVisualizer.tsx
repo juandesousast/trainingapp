@@ -77,6 +77,7 @@ export const ExerciseVisualizer: React.FC<ExerciseVisualizerProps> = ({
         autoPlay
         loop
         controls={false}
+        acknowledgeRemotionLicense={true}
       />
     </div>
   );
