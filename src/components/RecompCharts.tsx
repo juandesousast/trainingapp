@@ -44,25 +44,22 @@ export const RecompCharts: React.FC = () => {
     { name: "M5 (Target)", squat: 135, bench: 105, deadlift: 165, military: 67.5, hipThrust: 145 },
   ];
 
-  const latest = entries[entries.length - 1] || {
-    weightKg: activeProfile.targetWeightKg || 75,
-    bodyFatPct: activeProfile.targetBodyFatPct || 16,
-    muscleMassKg: 58,
-    bmi: 24.5,
-    visceralFatRating: 6,
-    subcutaneousFatPct: 18,
-    fatFreeMassKg: 61,
-    boneMassKg: 3.1,
-    skeletalMusclePct: 47,
-    bodyWaterPct: 54,
-    proteinPct: 17,
-    bmrKcal: 1680,
-    metabolicAge: 30,
-    waistCircumferenceCm: 85,
-  };
-  const bmiBadge = getBMIBadge(latest.bmi);
-  const fatBadge = getBodyFatBadge(latest.bodyFatPct, activeProfile.gender);
-  const viscBadge = getVisceralFatBadge(latest.visceralFatRating);
+  const hasEntries = Boolean(entries && entries.length > 0);
+  const latest = hasEntries ? entries[entries.length - 1] : null;
+  const first = hasEntries ? entries[0] : null;
+  const isGirl = activeProfile.role === "hoplita_girl" || activeProfile.gender === "female";
+
+  const deltaWeight = hasEntries && entries.length >= 2 && latest && first
+    ? (latest.weightKg - first.weightKg).toFixed(1)
+    : null;
+  const deltaMuscle = hasEntries && entries.length >= 2 && latest && first
+    ? (latest.muscleMassKg - first.muscleMassKg).toFixed(1)
+    : null;
+
+  // Badges clínicos si hay medición activa
+  const bmiBadge = latest ? getBMIBadge(latest.bmi) : null;
+  const fatBadge = latest ? getBodyFatBadge(latest.bodyFatPct, activeProfile.gender) : null;
+  const viscBadge = latest ? getVisceralFatBadge(latest.visceralFatRating) : null;
 
   return (
     <div className="space-y-6 pb-28 pt-2 max-w-md mx-auto px-4">
@@ -94,11 +91,23 @@ export const RecompCharts: React.FC = () => {
             Peso Actual
           </span>
           <span className="text-lg font-mono font-black text-white">
-            {latest.weightKg} <span className="text-xs font-normal text-zinc-400">kg</span>
+            {latest ? latest.weightKg : "--"}{" "}
+            <span className="text-xs font-normal text-zinc-400">kg</span>
           </span>
-          <span className="text-[9px] text-emerald-400 font-mono block mt-0.5">
-            -1.35 kg total
-          </span>
+          {deltaWeight !== null ? (
+            <span
+              className={cn(
+                "text-[9px] font-mono block mt-0.5",
+                Number(deltaWeight) <= 0 ? "text-emerald-400" : "text-amber-400"
+              )}
+            >
+              {Number(deltaWeight) > 0 ? `+${deltaWeight}` : deltaWeight} kg total
+            </span>
+          ) : (
+            <span className="text-[9px] text-zinc-500 font-mono block mt-0.5">
+              {hasEntries ? "Línea base" : "Sin registros"}
+            </span>
+          )}
         </div>
 
         <div className="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-3 text-center">
@@ -106,10 +115,10 @@ export const RecompCharts: React.FC = () => {
             % Grasa
           </span>
           <span className="text-lg font-mono font-black text-amber-400">
-            {latest.bodyFatPct}%
+            {latest ? `${latest.bodyFatPct}%` : "-- %"}
           </span>
           <span className="text-[9px] text-zinc-400 font-mono block mt-0.5">
-            Meta: {activeProfile.targetBodyFatPct || (activeProfile.slug === "hoplita" ? 16 : 21)}%
+            Meta: {activeProfile.targetBodyFatPct || (isGirl ? 21 : 16)}%
           </span>
         </div>
 
@@ -121,11 +130,23 @@ export const RecompCharts: React.FC = () => {
             className="text-lg font-mono font-black"
             style={{ color: accentColor }}
           >
-            {latest.muscleMassKg} <span className="text-xs font-normal text-zinc-400">kg</span>
+            {latest ? latest.muscleMassKg : "--"}{" "}
+            <span className="text-xs font-normal text-zinc-400">kg</span>
           </span>
-          <span className="text-[9px] text-emerald-400 font-mono block mt-0.5">
-            +0.72 kg magro
-          </span>
+          {deltaMuscle !== null ? (
+            <span
+              className={cn(
+                "text-[9px] font-mono block mt-0.5",
+                Number(deltaMuscle) >= 0 ? "text-emerald-400" : "text-amber-400"
+              )}
+            >
+              {Number(deltaMuscle) > 0 ? `+${deltaMuscle}` : deltaMuscle} kg magro
+            </span>
+          ) : (
+            <span className="text-[9px] text-zinc-500 font-mono block mt-0.5">
+              {hasEntries ? "Línea base" : "Sin registros"}
+            </span>
+          )}
         </div>
       </div>
 
@@ -138,47 +159,53 @@ export const RecompCharts: React.FC = () => {
           </span>
         </div>
 
-        <div className="flex items-center gap-1.5 flex-wrap justify-end">
-          <div
-            className={cn(
-              "text-[9px] font-mono font-bold px-2 py-0.5 rounded-full border flex items-center gap-1",
-              fatBadge.bgClass,
-              fatBadge.textClass,
-              fatBadge.borderClass
-            )}
-          >
-            <span>Grasa:</span>
-            <span className="font-black">{fatBadge.label}</span>
-          </div>
+        {fatBadge && bmiBadge && viscBadge ? (
+          <div className="flex items-center gap-1.5 flex-wrap justify-end">
+            <div
+              className={cn(
+                "text-[9px] font-mono font-bold px-2 py-0.5 rounded-full border flex items-center gap-1",
+                fatBadge.bgClass,
+                fatBadge.textClass,
+                fatBadge.borderClass
+              )}
+            >
+              <span>Grasa:</span>
+              <span className="font-black">{fatBadge.label}</span>
+            </div>
 
-          <div
-            className={cn(
-              "text-[9px] font-mono font-bold px-2 py-0.5 rounded-full border flex items-center gap-1",
-              bmiBadge.bgClass,
-              bmiBadge.textClass,
-              bmiBadge.borderClass
-            )}
-          >
-            <span>IMC:</span>
-            <span className="font-black">{bmiBadge.label}</span>
-          </div>
+            <div
+              className={cn(
+                "text-[9px] font-mono font-bold px-2 py-0.5 rounded-full border flex items-center gap-1",
+                bmiBadge.bgClass,
+                bmiBadge.textClass,
+                bmiBadge.borderClass
+              )}
+            >
+              <span>IMC:</span>
+              <span className="font-black">{bmiBadge.label}</span>
+            </div>
 
-          <div
-            className={cn(
-              "text-[9px] font-mono font-bold px-2 py-0.5 rounded-full border flex items-center gap-1",
-              viscBadge.bgClass,
-              viscBadge.textClass,
-              viscBadge.borderClass
-            )}
-          >
-            <span>Visceral:</span>
-            <span className="font-black">{viscBadge.label}</span>
+            <div
+              className={cn(
+                "text-[9px] font-mono font-bold px-2 py-0.5 rounded-full border flex items-center gap-1",
+                viscBadge.bgClass,
+                viscBadge.textClass,
+                viscBadge.borderClass
+              )}
+            >
+              <span>Visceral:</span>
+              <span className="font-black">{viscBadge.label}</span>
+            </div>
           </div>
-        </div>
+        ) : (
+          <span className="text-[10px] font-mono text-zinc-500 italic">
+            Pendiente de primer pesaje
+          </span>
+        )}
       </div>
 
       {/* Perímetros Corporales Registrados (si existen) */}
-      {(latest.waistCircumferenceCm || latest.hipCm || latest.armCm || latest.chestCm) && (
+      {latest && (latest.waistCircumferenceCm || latest.hipCm || latest.armCm || latest.chestCm) && (
         <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-3">
           <span className="text-[10px] font-mono font-bold text-zinc-400 uppercase tracking-wider block mb-2 flex items-center gap-1.5">
             <Ruler className="w-3.5 h-3.5" style={{ color: accentColor }} />
@@ -249,68 +276,91 @@ export const RecompCharts: React.FC = () => {
           </div>
         </div>
 
-        <div className="h-56 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={recompData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-              <defs>
-                <linearGradient id="colorMuscle" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={accentColor} stopOpacity={0.4} />
-                  <stop offset="95%" stopColor={accentColor} stopOpacity={0.0} />
-                </linearGradient>
-                <linearGradient id="colorFat" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.4} />
-                  <stop offset="95%" stopColor="#F59E0B" stopOpacity={0.0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#27272A" />
-              <XAxis dataKey="date" stroke="#71717A" fontSize={10} fontVariant="mono" />
-              <YAxis
-                yAxisId="left"
-                stroke="#F59E0B"
-                fontSize={10}
-                domain={[15, 30]}
-                unit="%"
-              />
-              <YAxis
-                yAxisId="right"
-                orientation="right"
-                stroke={accentColor}
-                fontSize={10}
-                domain={[55, 65]}
-                unit="kg"
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#09090B",
-                  borderColor: "#3F3F46",
-                  borderRadius: 16,
-                  fontSize: 11,
-                  fontFamily: "monospace",
-                }}
-              />
-              <Area
-                yAxisId="left"
-                type="monotone"
-                dataKey="bodyFatPct"
-                stroke="#F59E0B"
-                strokeWidth={3}
-                fillOpacity={1}
-                fill="url(#colorFat)"
-                name="% Grasa"
-              />
-              <Area
-                yAxisId="right"
-                type="monotone"
-                dataKey="muscleMassKg"
-                stroke={accentColor}
-                strokeWidth={3}
-                fillOpacity={1}
-                fill="url(#colorMuscle)"
-                name="Músculo kg"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
+        {hasEntries ? (
+          <div className="h-56 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={recompData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorMuscle" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={accentColor} stopOpacity={0.4} />
+                    <stop offset="95%" stopColor={accentColor} stopOpacity={0.0} />
+                  </linearGradient>
+                  <linearGradient id="colorFat" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="#F59E0B" stopOpacity={0.0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#27272A" />
+                <XAxis dataKey="date" stroke="#71717A" fontSize={10} fontVariant="mono" />
+                <YAxis
+                  yAxisId="left"
+                  stroke="#F59E0B"
+                  fontSize={10}
+                  domain={[(dataMin: number) => Math.max(0, Math.floor(dataMin - 2)), (dataMax: number) => Math.ceil(dataMax + 2)]}
+                  unit="%"
+                />
+                <YAxis
+                  yAxisId="right"
+                  orientation="right"
+                  stroke={accentColor}
+                  fontSize={10}
+                  domain={[(dataMin: number) => Math.max(0, Math.floor(dataMin - 2)), (dataMax: number) => Math.ceil(dataMax + 2)]}
+                  unit="kg"
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#09090B",
+                    borderColor: "#3F3F46",
+                    borderRadius: 16,
+                    fontSize: 11,
+                    fontFamily: "monospace",
+                  }}
+                />
+                <Area
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="bodyFatPct"
+                  stroke="#F59E0B"
+                  strokeWidth={3}
+                  fillOpacity={1}
+                  fill="url(#colorFat)"
+                  name="% Grasa"
+                />
+                <Area
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="muscleMassKg"
+                  stroke={accentColor}
+                  strokeWidth={3}
+                  fillOpacity={1}
+                  fill="url(#colorMuscle)"
+                  name="Músculo kg"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <div className="h-56 w-full flex flex-col items-center justify-center text-center p-6 bg-zinc-950/40 rounded-2xl border border-dashed border-zinc-800">
+            <div className="w-10 h-10 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 mb-2.5">
+              <Activity className="w-5 h-5" style={{ color: accentColor }} />
+            </div>
+            <p className="text-xs font-mono font-bold text-zinc-200 uppercase tracking-wide">
+              Sin mediciones registradas
+            </p>
+            <p className="text-[11px] font-mono text-zinc-500 max-w-xs mt-1 mb-3">
+              Registra tu primer pesaje en ayunas para visualizar la evolución del % graso y masa muscular.
+            </p>
+            <button
+              type="button"
+              onClick={() => setIsDrawerOpen(true)}
+              className="px-3 py-1.5 rounded-xl text-[11px] font-mono font-bold uppercase text-black flex items-center gap-1 shadow-md hover:opacity-90 active:scale-95 transition-all"
+              style={{ backgroundColor: accentColor }}
+            >
+              <Plus className="w-3.5 h-3.5 stroke-[3]" />
+              <span>Iniciar primer pesaje</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* GRÁFICA 2: FUERZA TOTAL (Evolución 1RM) */}

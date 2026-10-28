@@ -8,6 +8,7 @@ import { getMesocyclesForProfile } from "@/lib/mesocyclesData";
 import { BentoMesocycleCard } from "@/components/BentoMesocycleCard";
 import { RecoveryCheckinDrawer } from "@/components/RecoveryCheckinDrawer";
 import { TargetGoalDialog } from "@/components/TargetGoalDialog";
+import { BiometricsDrawer } from "@/components/BiometricsDrawer";
 import { useBiometricsStore } from "@/stores/useBiometricsStore";
 import { Mesocycle, Workout } from "@/lib/types";
 import { Play, Sparkles, Scale, HeartPulse, Check, Eye } from "lucide-react";
@@ -30,8 +31,10 @@ export const MesocyclesDashboard: React.FC = () => {
   const [selectedWorkoutIndex, setSelectedWorkoutIndex] = useState<number>(0);
   const [isRecoveryOpen, setIsRecoveryOpen] = useState(false);
   const [isGoalOpen, setIsGoalOpen] = useState(false);
-  const { recoveryCheckins } = useBiometricsStore();
+  const [isBiometricsOpen, setIsBiometricsOpen] = useState(false);
+  const { entries, recoveryCheckins } = useBiometricsStore();
   const latestRecovery = recoveryCheckins[0];
+  const latestBiometric = entries && entries.length > 0 ? entries[entries.length - 1] : null;
 
   // Cuando cambie el perfil activo o el mesociclo activo, actualizar la selección
   useEffect(() => {
@@ -195,18 +198,31 @@ export const MesocyclesDashboard: React.FC = () => {
       {/* Fila de Accesos Rápidos: Báscula & Check-in de Recuperación */}
       <div className="grid grid-cols-1 gap-2.5">
         {/* Pill de Línea Base Biométrica y Meta Personalizada Clicable */}
-        <div className="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-3.5 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-zinc-800 flex items-center justify-center text-zinc-300">
+        <div className="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-3.5 flex items-center justify-between gap-3">
+          <div
+            onClick={() => setIsBiometricsOpen(true)}
+            className="flex items-center gap-2.5 flex-1 min-w-0 cursor-pointer group"
+            title="Pulsar para registrar pesaje matutino"
+          >
+            <div
+              className="w-8 h-8 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 shrink-0"
+              style={{ backgroundColor: `${accentColor}18`, color: accentColor }}
+            >
               <Scale className="w-4 h-4" />
             </div>
-            <div>
-              <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider block">
+            <div className="min-w-0">
+              <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider block truncate">
                 Báscula en Ayunas ({activeProfile.displayName})
               </span>
-              <span className="text-xs font-mono font-bold text-zinc-200">
-                82.15 kg · 25.6% Grasa · 58.08 kg Músculo
-              </span>
+              {latestBiometric ? (
+                <span className="text-xs font-mono font-bold text-zinc-200 block truncate">
+                  {latestBiometric.weightKg} kg · {latestBiometric.bodyFatPct}% Grasa · {latestBiometric.muscleMassKg} kg Músculo
+                </span>
+              ) : (
+                <span className="text-[11px] font-mono text-zinc-400 group-hover:text-zinc-200 transition-colors block">
+                  Sin mediciones registradas · Pulsa para iniciar tu primer pesaje
+                </span>
+              )}
             </div>
           </div>
 
@@ -215,10 +231,10 @@ export const MesocyclesDashboard: React.FC = () => {
             type="button"
             onClick={() => setIsGoalOpen(true)}
             title="Pulsar para personalizar meta corporal"
-            className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full text-black hover:opacity-90 active:scale-95 transition-all shadow-md flex items-center gap-1 cursor-pointer"
+            className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full text-black hover:opacity-90 active:scale-95 transition-all shadow-md flex items-center gap-1 cursor-pointer shrink-0"
             style={{ backgroundColor: accentColor }}
           >
-            <span>Meta: {activeProfile.targetBodyFatPct || (activeProfile.slug === "hoplita" ? 16 : 21)}%</span>
+            <span>Meta: {activeProfile.targetBodyFatPct || (activeProfile.role === "hoplita_girl" ? 21 : 16)}%</span>
           </button>
         </div>
 
@@ -301,6 +317,12 @@ export const MesocyclesDashboard: React.FC = () => {
       <RecoveryCheckinDrawer
         isOpen={isRecoveryOpen}
         onClose={() => setIsRecoveryOpen(false)}
+      />
+
+      {/* Drawer de Pesaje Matutino en Ayunas */}
+      <BiometricsDrawer
+        isOpen={isBiometricsOpen}
+        onClose={() => setIsBiometricsOpen(false)}
       />
     </div>
   );

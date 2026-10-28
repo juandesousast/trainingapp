@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Drawer } from "vaul";
 import { useBiometricsStore } from "@/stores/useBiometricsStore";
 import { useProfileStore } from "@/stores/useProfileStore";
@@ -17,33 +17,101 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
   isOpen,
   onClose,
 }) => {
-  const { addBiometricEntry } = useBiometricsStore();
+  const { entries, addBiometricEntry } = useBiometricsStore();
   const { activeProfile } = useProfileStore();
   const accentColor = activeProfile.themeAccent;
-  const isFemale = activeProfile.gender === "female";
+  const isFemale = activeProfile.gender === "female" || activeProfile.role === "hoplita_girl";
 
-  // Valores iniciales basados en la medición en ayunas
-  const [weightKg, setWeightKg] = useState("82.15");
-  const [bmi, setBmi] = useState("25.4");
-  const [bodyFatPct, setBodyFatPct] = useState("25.6");
-  const [subcutaneousFatPct, setSubcutaneousFatPct] = useState("22.8");
-  const [visceralFatRating, setVisceralFatRating] = useState("8");
-  const [muscleMassKg, setMuscleMassKg] = useState("58.08");
-  const [skeletalMusclePct, setSkeletalMusclePct] = useState("47.9");
-  const [fatFreeMassKg, setFatFreeMassKg] = useState("61.12");
-  const [boneMassKg, setBoneMassKg] = useState("3.04");
-  const [bmrKcal, setBmrKcal] = useState("1683");
-  const [bodyWaterPct, setBodyWaterPct] = useState("53.7");
-  const [proteinPct, setProteinPct] = useState("17.0");
+  const latest = entries && entries.length > 0 ? entries[entries.length - 1] : null;
+
+  // Valores iniciales
+  const [weightKg, setWeightKg] = useState(isFemale ? "60.0" : "82.15");
+  const [bmi, setBmi] = useState(isFemale ? "22.0" : "25.4");
+  const [bodyFatPct, setBodyFatPct] = useState(isFemale ? "22.0" : "25.6");
+  const [subcutaneousFatPct, setSubcutaneousFatPct] = useState(isFemale ? "19.5" : "22.8");
+  const [visceralFatRating, setVisceralFatRating] = useState(isFemale ? "4" : "8");
+  const [muscleMassKg, setMuscleMassKg] = useState(isFemale ? "44.0" : "58.08");
+  const [skeletalMusclePct, setSkeletalMusclePct] = useState(isFemale ? "42.0" : "47.9");
+  const [fatFreeMassKg, setFatFreeMassKg] = useState(isFemale ? "46.8" : "61.12");
+  const [boneMassKg, setBoneMassKg] = useState(isFemale ? "2.5" : "3.04");
+  const [bmrKcal, setBmrKcal] = useState(isFemale ? "1350" : "1683");
+  const [bodyWaterPct, setBodyWaterPct] = useState(isFemale ? "55.0" : "53.7");
+  const [proteinPct, setProteinPct] = useState(isFemale ? "16.5" : "17.0");
 
   // Perímetros corporales (antropometría)
   const [showPerimeters, setShowPerimeters] = useState(false);
-  const [waistCm, setWaistCm] = useState("89");
-  const [neckCm, setNeckCm] = useState("39");
-  const [chestCm, setChestCm] = useState("104");
-  const [armCm, setArmCm] = useState("37");
-  const [thighCm, setThighCm] = useState("59");
-  const [hipCm, setHipCm] = useState(isFemale ? "98" : "101");
+  const [waistCm, setWaistCm] = useState(isFemale ? "68" : "89");
+  const [neckCm, setNeckCm] = useState(isFemale ? "33" : "39");
+  const [chestCm, setChestCm] = useState(isFemale ? "88" : "104");
+  const [armCm, setArmCm] = useState(isFemale ? "27" : "37");
+  const [thighCm, setThighCm] = useState(isFemale ? "54" : "59");
+  const [hipCm, setHipCm] = useState(isFemale ? "96" : "101");
+
+  // Sincronizar con el último registro existente o baseline del usuario al abrir
+  useEffect(() => {
+    if (isOpen) {
+      if (latest) {
+        setWeightKg(String(latest.weightKg));
+        setBmi(String(latest.bmi));
+        setBodyFatPct(String(latest.bodyFatPct));
+        setSubcutaneousFatPct(String(latest.subcutaneousFatPct));
+        setVisceralFatRating(String(latest.visceralFatRating));
+        setMuscleMassKg(String(latest.muscleMassKg));
+        setSkeletalMusclePct(String(latest.skeletalMusclePct));
+        setFatFreeMassKg(String(latest.fatFreeMassKg));
+        setBoneMassKg(String(latest.boneMassKg));
+        setBmrKcal(String(latest.bmrKcal));
+        setBodyWaterPct(String(latest.bodyWaterPct));
+        setProteinPct(String(latest.proteinPct));
+        if (latest.waistCircumferenceCm) setWaistCm(String(latest.waistCircumferenceCm));
+        if (latest.neckCm) setNeckCm(String(latest.neckCm));
+        if (latest.chestCm) setChestCm(String(latest.chestCm));
+        if (latest.armCm) setArmCm(String(latest.armCm));
+        if (latest.thighCm) setThighCm(String(latest.thighCm));
+        if (latest.hipCm) setHipCm(String(latest.hipCm));
+      } else {
+        if (isFemale) {
+          setWeightKg("60.0");
+          setBmi("22.0");
+          setBodyFatPct("22.0");
+          setSubcutaneousFatPct("19.5");
+          setVisceralFatRating("4");
+          setMuscleMassKg("44.0");
+          setSkeletalMusclePct("42.0");
+          setFatFreeMassKg("46.8");
+          setBoneMassKg("2.5");
+          setBmrKcal("1350");
+          setBodyWaterPct("55.0");
+          setProteinPct("16.5");
+          setWaistCm("68");
+          setNeckCm("33");
+          setChestCm("88");
+          setArmCm("27");
+          setThighCm("54");
+          setHipCm("96");
+        } else {
+          setWeightKg("82.15");
+          setBmi("25.4");
+          setBodyFatPct("25.6");
+          setSubcutaneousFatPct("22.8");
+          setVisceralFatRating("8");
+          setMuscleMassKg("58.08");
+          setSkeletalMusclePct("47.9");
+          setFatFreeMassKg("61.12");
+          setBoneMassKg("3.04");
+          setBmrKcal("1683");
+          setBodyWaterPct("53.7");
+          setProteinPct("17.0");
+          setWaistCm("89");
+          setNeckCm("39");
+          setChestCm("104");
+          setArmCm("37");
+          setThighCm("59");
+          setHipCm("101");
+        }
+      }
+    }
+  }, [isOpen, latest, isFemale]);
 
   // Badges clínicos de salud en tiempo real
   const bmiBadge = getBMIBadge(parseFloat(bmi) || 0);
