@@ -5,8 +5,10 @@ import { useProfileStore } from "@/stores/useProfileStore";
 import { useWorkoutSessionStore } from "@/stores/useWorkoutSessionStore";
 import { getMesocyclesForProfile } from "@/lib/mesocyclesData";
 import { BentoMesocycleCard } from "@/components/BentoMesocycleCard";
+import { RecoveryCheckinDrawer } from "@/components/RecoveryCheckinDrawer";
+import { useBiometricsStore } from "@/stores/useBiometricsStore";
 import { Mesocycle, Workout } from "@/lib/types";
-import { Play, Sparkles, Scale, Activity, Dumbbell, ShieldAlert } from "lucide-react";
+import { Play, Sparkles, Scale, HeartPulse } from "lucide-react";
 import { motion } from "framer-motion";
 
 export const MesocyclesDashboard: React.FC = () => {
@@ -18,6 +20,9 @@ export const MesocyclesDashboard: React.FC = () => {
   const activeMeso = mesocycles.find((m) => m.isActive) || mesocycles[0];
 
   const [selectedMesocycle, setSelectedMesocycle] = useState<Mesocycle>(activeMeso);
+  const [isRecoveryOpen, setIsRecoveryOpen] = useState(false);
+  const { recoveryCheckins } = useBiometricsStore();
+  const latestRecovery = recoveryCheckins[0];
 
   const workouts = selectedMesocycle.workouts || [];
   const nextWorkout: Workout =
@@ -92,28 +97,76 @@ export const MesocyclesDashboard: React.FC = () => {
         </div>
       </motion.div>
 
-      {/* Pill de Línea Base Biométrica */}
-      <div className="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-3.5 flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-zinc-800 flex items-center justify-center text-zinc-300">
-            <Scale className="w-4 h-4" />
+      {/* Fila de Accesos Rápidos: Báscula & Check-in de Recuperación */}
+      <div className="grid grid-cols-1 gap-2.5">
+        {/* Pill de Línea Base Biométrica */}
+        <div className="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-3.5 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-zinc-800 flex items-center justify-center text-zinc-300">
+              <Scale className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider block">
+                Báscula en Ayunas (Baseline)
+              </span>
+              <span className="text-xs font-mono font-bold text-zinc-200">
+                82.15 kg · 25.6% Grasa · 58.08 kg Músculo
+              </span>
+            </div>
           </div>
-          <div>
-            <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider block">
-              Báscula en Ayunas (Baseline)
-            </span>
-            <span className="text-xs font-mono font-bold text-zinc-200">
-              82.15 kg · 25.6% Grasa · 58.08 kg Músculo
-            </span>
-          </div>
+          <span
+            className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full text-black"
+            style={{ backgroundColor: accentColor }}
+          >
+            Meta: 16%
+          </span>
         </div>
-        <span
-          className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full text-black"
-          style={{ backgroundColor: accentColor }}
+
+        {/* Botón Trigger: Check-in Diario de Recuperación */}
+        <button
+          onClick={() => setIsRecoveryOpen(true)}
+          className="w-full bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800 hover:border-zinc-700 rounded-2xl p-3.5 flex items-center justify-between transition-all group text-left"
         >
-          Meta: 16%
-        </span>
+          <div className="flex items-center gap-2.5">
+            <div
+              className="w-8 h-8 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105"
+              style={{ backgroundColor: `${accentColor}20`, color: accentColor }}
+            >
+              <HeartPulse className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider block">
+                Check-in Diario de Recuperación
+              </span>
+              <span className="text-xs font-bold text-zinc-200 flex items-center gap-1.5">
+                {latestRecovery ? (
+                  <>
+                    <span className="text-zinc-300">Sueño: {latestRecovery.sleepQuality}</span>
+                    <span className="text-zinc-600">·</span>
+                    <span className="text-zinc-300">Agujetas: {latestRecovery.domsLevel}</span>
+                  </>
+                ) : (
+                  <span className="text-zinc-400">Registrar sueño, DOMS, agua, pasos...</span>
+                )}
+              </span>
+            </div>
+          </div>
+          <span
+            className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border transition-all"
+            style={{
+              borderColor: `${accentColor}55`,
+              color: accentColor,
+            }}
+          >
+            {latestRecovery ? "Actualizar" : "+ Check-in"}
+          </span>
+        </button>
       </div>
+
+      <RecoveryCheckinDrawer
+        isOpen={isRecoveryOpen}
+        onClose={() => setIsRecoveryOpen(false)}
+      />
 
       {/* Catálogo Bento de los 5 Mesociclos */}
       <div className="space-y-3">

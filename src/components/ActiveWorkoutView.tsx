@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import { useWorkoutSessionStore } from "@/stores/useWorkoutSessionStore";
 import { useProfileStore } from "@/stores/useProfileStore";
 import { MRCalculatorDrawer } from "@/components/MRCalculatorDrawer";
+import { PlateCalculatorDrawer } from "@/components/PlateCalculatorDrawer";
+import { CooldownModal } from "@/components/CooldownModal";
 import { ExerciseVisualizer } from "@/components/ExerciseVisualizer";
 import {
   Check,
@@ -16,6 +18,7 @@ import {
   Zap,
   Repeat,
   AlertCircle,
+  Disc,
 } from "lucide-react";
 import { cn, formatSecondsToMinutes } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -49,7 +52,18 @@ export const ActiveWorkoutView: React.FC = () => {
   const [drawerExercise, setDrawerExercise] = useState<{
     slug: string;
     name: string;
+    muscleGroup?: string;
+    initialWeight?: number;
   } | null>(null);
+
+  // Estado para abrir la calculadora de Discos & Calentamiento
+  const [plateDrawerData, setPlateDrawerData] = useState<{
+    exerciseName: string;
+    weightKg: number;
+  } | null>(null);
+
+  // Estado para el modal de Vuelta a la Calma
+  const [isCooldownOpen, setIsCooldownOpen] = useState(false);
 
   if (!activeWorkout || !activeMesocycle) return null;
 
@@ -101,6 +115,15 @@ export const ActiveWorkoutView: React.FC = () => {
 
   const isM5Cluster = activeMesocycle.number === 5;
 
+  // Estadísticas de la sesión actual
+  const allSets = Object.values(setsByExercise).flat();
+  const completedSets = allSets.filter((s) => s.isCompleted);
+  const completedSetsCount = completedSets.length;
+  const totalVolumeKg = completedSets.reduce(
+    (sum, s) => sum + s.actualWeightKg * s.actualReps,
+    0
+  );
+
   return (
     <div className="pb-36 pt-2 max-w-md mx-auto px-4">
       {/* Encabezado del Entreno Activo */}
@@ -123,7 +146,7 @@ export const ActiveWorkoutView: React.FC = () => {
         </div>
 
         <button
-          onClick={finishWorkout}
+          onClick={() => setIsCooldownOpen(true)}
           className="text-xs font-black uppercase px-2.5 py-1 rounded-full text-black font-mono transition-transform active:scale-95"
           style={{ backgroundColor: accentColor }}
         >
@@ -203,20 +226,38 @@ export const ActiveWorkoutView: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Botón rápido Calculadora 1RM */}
-                    <button
-                      onClick={() =>
-                        setDrawerExercise({
-                          slug: workoutExercise.exercise.slug,
-                          name: workoutExercise.exercise.name,
-                        })
-                      }
-                      className="p-2 rounded-xl bg-zinc-800 text-zinc-300 hover:text-white flex items-center gap-1 text-[11px] font-mono font-bold transition-colors"
-                      title="Calcular 1RM"
-                    >
-                      <Calculator className="w-3.5 h-3.5" style={{ color: accentColor }} />
-                      <span>1RM</span>
-                    </button>
+                    {/* Botones de Utilidad: Discos & Calculadora M&R */}
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() =>
+                          setPlateDrawerData({
+                            exerciseName: workoutExercise.exercise.name,
+                            weightKg: sets[0]?.actualWeightKg || 60,
+                          })
+                        }
+                        className="p-2 rounded-xl bg-zinc-800 text-zinc-300 hover:text-white flex items-center gap-1 text-[11px] font-mono font-bold transition-colors"
+                        title="Calculadora de Discos y Calentamiento"
+                      >
+                        <Disc className="w-3.5 h-3.5" style={{ color: accentColor }} />
+                        <span>Discos</span>
+                      </button>
+
+                      <button
+                        onClick={() =>
+                          setDrawerExercise({
+                            slug: workoutExercise.exercise.slug,
+                            name: workoutExercise.exercise.name,
+                            muscleGroup: workoutExercise.exercise.muscleGroup,
+                            initialWeight: sets[0]?.actualWeightKg,
+                          })
+                        }
+                        className="p-2 rounded-xl bg-zinc-800 text-zinc-300 hover:text-white flex items-center gap-1 text-[11px] font-mono font-bold transition-colors"
+                        title="Calcular 1RM y Tablas M&R"
+                      >
+                        <Calculator className="w-3.5 h-3.5" style={{ color: accentColor }} />
+                        <span>M&R</span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Visualizador Biomecánico Remotion con HUD y Tempo */}
@@ -267,7 +308,16 @@ export const ActiveWorkoutView: React.FC = () => {
                               -
                             </button>
 
-                            <div className="text-center px-1">
+                            <div
+                              onClick={() =>
+                                setPlateDrawerData({
+                                  exerciseName: workoutExercise.exercise.name,
+                                  weightKg: set.actualWeightKg,
+                                })
+                              }
+                              className="text-center px-1 cursor-pointer hover:opacity-80 transition-opacity active:scale-95"
+                              title="Pulsar para calcular discos y ver aproximación"
+                            >
                               <span className="text-sm font-mono font-black text-white block">
                                 {set.actualWeightKg}
                                 <span className="text-[10px] text-zinc-400 ml-0.5">kg</span>
@@ -448,8 +498,34 @@ export const ActiveWorkoutView: React.FC = () => {
           onClose={() => setDrawerExercise(null)}
           exerciseSlug={drawerExercise.slug}
           exerciseName={drawerExercise.name}
+          muscleGroup={drawerExercise.muscleGroup}
+          initialWeight={drawerExercise.initialWeight}
         />
       )}
+
+      {/* Drawer Calculadora de Discos & Series de Calentamiento */}
+      {plateDrawerData && (
+        <PlateCalculatorDrawer
+          isOpen={Boolean(plateDrawerData)}
+          onClose={() => setPlateDrawerData(null)}
+          exerciseName={plateDrawerData.exerciseName}
+          initialWeightKg={plateDrawerData.weightKg}
+        />
+      )}
+
+      {/* Modal / Drawer de Vuelta a la Calma */}
+      <CooldownModal
+        isOpen={isCooldownOpen}
+        onClose={() => setIsCooldownOpen(false)}
+        onConfirmFinish={({ cooldownType, durationMinutes }) => {
+          setIsCooldownOpen(false);
+          finishWorkout();
+        }}
+        workoutName={`${activeMesocycle.name} · ${activeWorkout.name}`}
+        elapsedSeconds={60 * 45} // Duración estimada estándar
+        totalVolumeKg={totalVolumeKg}
+        completedSetsCount={completedSetsCount}
+      />
     </div>
   );
 };
