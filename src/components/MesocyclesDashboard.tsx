@@ -34,7 +34,7 @@ export const MesocyclesDashboard: React.FC = () => {
 
   return (
     <div className="max-w-md mx-auto px-4 pb-28 pt-4 space-y-6">
-      {/* Hero Banner Estilo Nike Training Club */}
+      {/* Hero Banner Dark Kinetic */}
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
@@ -76,7 +76,7 @@ export const MesocyclesDashboard: React.FC = () => {
             Exposición {selectedMesocycle.currentExposure}º de {selectedMesocycle.totalExposures}º · {selectedMesocycle.splitStructure}
           </p>
 
-          {/* Botón Gigante Estilo Nike */}
+          {/* Botón Principal Cinético */}
           <motion.button
             whileTap={{ scale: 0.96 }}
             onClick={() => startWorkout(selectedMesocycle, nextWorkout)}

@@ -38,7 +38,7 @@ class SoundEngine {
     osc.stop(ctx.currentTime + 0.15);
   }
 
-  // Tono de fin de descanso (Doble tono estilo Nike Training Club)
+  // Tono de fin de descanso (Doble tono atlético)
   playRestFinished() {
     const ctx = this.initCtx();
     if (!ctx) return;

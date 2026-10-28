@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Hoplita OS · Nike Kinetic Training",
+    name: "Hoplita OS · Dark Kinetic Training",
     short_name: "Hoplita OS",
     description: "Sistema de entrenamiento de fuerza y recomposición corporal BIIO",
     start_url: "/",

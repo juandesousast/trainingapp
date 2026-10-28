@@ -19,12 +19,12 @@ Este documento define la estructura y responsabilidades de los 4 subagentes espe
 
 ---
 
-## 2. Subagente 2: `Nike Kinetic UI & Workout Engine`
-- **Identificador:** `nike-ui-workout-engine`
+## 2. Subagente 2: `Dark Kinetic UI & Workout Engine`
+- **Identificador:** `dark-kinetic-ui-workout-engine`
 - **Herramientas:** shadcn/ui MCP (`shadcn`), Context7 MCP (`context7`).
 - **Rol:** Especialista en Frontend Next.js (App Router), Tailwind CSS, Framer Motion y Zustand.
 - **Responsabilidades:**
-  - Maquetación PWA con estética **Nike Training Club Dark Kinetic** (`bg-zinc-950`, tarjetas Bento `bg-zinc-900/80`, bordes `border-zinc-800/80`).
+  - Maquetación PWA con estética **Dark Kinetic** (`bg-zinc-950`, tarjetas Bento `bg-zinc-900/80`, bordes `border-zinc-800/80`).
   - Inyección dinámica de temas por usuario (Volt `#CCFF00` vs Hyper Pink `#F43F5E`).
   - Motor de ejecución en directo **"Cero-Teclado"**: botones táctiles ergonómicos `+` / `-` para pulgar.
   - Soporte de mecánicas:

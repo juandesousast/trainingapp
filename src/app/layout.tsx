@@ -3,7 +3,7 @@ import "./globals.css";
 import { Header } from "@/components/Header";
 
 export const metadata: Metadata = {
-  title: "Hoplita OS · Nike Kinetic Training",
+  title: "Hoplita OS · Dark Kinetic Training",
   description: "Plataforma Mobile-First de entrenamiento de fuerza de alta intensidad BIIO",
   manifest: "/manifest.webmanifest",
   appleWebApp: {

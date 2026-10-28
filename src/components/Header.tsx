@@ -27,7 +27,7 @@ export const Header: React.FC = () => {
               HOPLITA OS
             </h1>
             <p className="text-[11px] font-semibold text-zinc-200 tracking-tight">
-              NIKE KINETIC BIIO
+              DARK KINETIC BIIO
             </p>
           </div>
         </div>
