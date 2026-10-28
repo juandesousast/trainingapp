@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useWorkoutSessionStore } from "@/stores/useWorkoutSessionStore";
 import { useProfileStore } from "@/stores/useProfileStore";
 import { MRCalculatorDrawer } from "@/components/MRCalculatorDrawer";
+import { ExerciseVisualizer } from "@/components/ExerciseVisualizer";
 import {
   Check,
   RotateCcw,
@@ -216,6 +217,19 @@ export const ActiveWorkoutView: React.FC = () => {
                       <Calculator className="w-3.5 h-3.5" style={{ color: accentColor }} />
                       <span>1RM</span>
                     </button>
+                  </div>
+
+                  {/* Visualizador Biomecánico Remotion con HUD y Tempo */}
+                  <div className="mb-4">
+                    <ExerciseVisualizer
+                      exerciseName={workoutExercise.exercise.name}
+                      muscleGroup={workoutExercise.exercise.muscleGroup}
+                      videoUrl={workoutExercise.exercise.videoPath}
+                      tempo={workoutExercise.tempo || "3-1-X-1"}
+                      notes={workoutExercise.technicalNotes}
+                      isCluster={isClusterExercise}
+                      themeAccent={accentColor}
+                    />
                   </div>
 
                   {/* Tabla de Series Cero-Teclado */}
