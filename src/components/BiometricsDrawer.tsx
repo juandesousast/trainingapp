@@ -84,30 +84,33 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
     <Drawer.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50" />
-        <Drawer.Content className="bg-zinc-950 border-t border-zinc-800 fixed bottom-0 left-0 right-0 z-50 rounded-t-[32px] px-6 pt-5 pb-6 max-w-md mx-auto outline-none max-h-[85vh] overflow-y-auto">
-          <div className="w-12 h-1.5 bg-zinc-700 rounded-full mx-auto mb-4" />
+        <Drawer.Content className="max-h-[88vh] flex flex-col rounded-t-[28px] border-t border-zinc-800 bg-zinc-950 p-0 fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto outline-none">
+          {/* Header fijo superior */}
+          <div className="px-5 pt-4 pb-2 shrink-0">
+            <div className="w-12 h-1.5 bg-zinc-700 rounded-full mx-auto mb-3" />
 
-          {/* Encabezado */}
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <Scale className="w-5 h-5" style={{ color: accentColor }} />
-              <h2 className="text-lg font-black uppercase tracking-tight text-white">
-                Pesaje Matutino en Ayunas
-              </h2>
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-2">
+                <Scale className="w-5 h-5" style={{ color: accentColor }} />
+                <h2 className="text-lg font-black uppercase tracking-tight text-white">
+                  Pesaje Matutino en Ayunas
+                </h2>
+              </div>
+              <button
+                onClick={onClose}
+                className="p-1 rounded-full text-zinc-400 hover:text-white transition-colors"
+                aria-label="Cerrar modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
-            <button
-              onClick={onClose}
-              className="p-1 rounded-full text-zinc-400 hover:text-white"
-            >
-              <X className="w-5 h-5" />
-            </button>
+
+            <p className="text-xs text-zinc-400">
+              Registra los parámetros de la báscula y perímetros corporales para <strong className="text-zinc-200">{activeProfile.displayName}</strong>.
+            </p>
           </div>
 
-          <p className="text-xs text-zinc-400 mb-5">
-            Registra los parámetros de la báscula y perímetros corporales para <strong className="text-zinc-200">{activeProfile.displayName}</strong>.
-          </p>
-
-          <form onSubmit={handleSubmit} className="space-y-3.5">
+          <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-5 pt-2 pb-6 space-y-3.5">
             {/* BLOQUE PRINCIPAL: Parámetros Clave con Badges de Salud */}
             <div className="grid grid-cols-2 gap-2.5">
               {/* Peso Total */}
@@ -457,16 +460,14 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
               )}
             </div>
 
-            <div className="sticky bottom-0 pt-2 pb-1 bg-zinc-950/95 backdrop-blur-md">
-              <button
-                type="submit"
-                className="w-full py-3.5 rounded-2xl font-black text-sm uppercase tracking-wider text-black flex items-center justify-center gap-2 shadow-xl transition-transform active:scale-95"
-                style={{ backgroundColor: accentColor }}
-              >
-                <Check className="w-5 h-5 stroke-[3]" />
-                <span>Guardar Medición Matutina</span>
-              </button>
-            </div>
+            <button
+              type="submit"
+              className="w-full mt-6 mb-2 py-3.5 rounded-2xl font-black text-sm uppercase tracking-wider text-black flex items-center justify-center gap-2 shadow-xl transition-transform active:scale-95 shrink-0"
+              style={{ backgroundColor: accentColor }}
+            >
+              <Check className="w-5 h-5 stroke-[3]" />
+              <span>Guardar Medición Matutina</span>
+            </button>
           </form>
         </Drawer.Content>
       </Drawer.Portal>
