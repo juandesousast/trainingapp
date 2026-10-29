@@ -131,7 +131,8 @@ export const MRCalculatorDrawer: React.FC<MRCalculatorDrawerProps> = ({
             </div>
             <button
               onClick={onClose}
-              className="p-1 rounded-full text-zinc-400 hover:text-white"
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white transition-all duration-200 active:scale-95"
+              aria-label="Cerrar modal"
             >
               <X className="w-5 h-5" />
             </button>
@@ -147,7 +148,7 @@ export const MRCalculatorDrawer: React.FC<MRCalculatorDrawerProps> = ({
               type="button"
               onClick={() => setBodyPart("upper")}
               className={cn(
-                "py-2.5 rounded-xl text-xs font-mono font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5",
+                "min-h-[44px] py-2.5 rounded-xl text-xs font-mono font-black uppercase tracking-wider transition-all duration-200 active:scale-95 flex items-center justify-center gap-1.5",
                 bodyPart === "upper"
                   ? "text-black shadow-lg"
                   : "text-zinc-400 hover:text-white"
@@ -164,7 +165,7 @@ export const MRCalculatorDrawer: React.FC<MRCalculatorDrawerProps> = ({
               type="button"
               onClick={() => setBodyPart("lower")}
               className={cn(
-                "py-2.5 rounded-xl text-xs font-mono font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5",
+                "min-h-[44px] py-2.5 rounded-xl text-xs font-mono font-black uppercase tracking-wider transition-all duration-200 active:scale-95 flex items-center justify-center gap-1.5",
                 bodyPart === "lower"
                   ? "text-black shadow-lg"
                   : "text-zinc-400 hover:text-white"
@@ -181,29 +182,29 @@ export const MRCalculatorDrawer: React.FC<MRCalculatorDrawerProps> = ({
           {/* Parámetros de Entrada: Rendimiento Actual vs Repeticiones Deseadas */}
           <div className="space-y-3 mb-5">
             <div className="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-3.5">
-              <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider block mb-2 font-bold">
+              <span className="text-[10px] font-mono font-bold text-zinc-400 uppercase tracking-wider block mb-2 font-bold">
                 1. Rendimiento Actual (Hecho en Sesión)
               </span>
 
               <div className="grid grid-cols-2 gap-3">
                 {/* Kilos actuales */}
                 <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-2.5">
-                  <span className="text-[10px] font-mono text-zinc-400 uppercase block mb-1">
+                  <span className="text-[10px] font-mono font-bold text-zinc-400 uppercase block mb-1">
                     Carga
                   </span>
                   <div className="flex items-center justify-between">
                     <button
                       onClick={() => setCurrentWeight((w) => Math.max(2.5, w - 2.5))}
-                      className="w-7 h-7 rounded-lg bg-zinc-800 font-bold text-white flex items-center justify-center active:scale-95"
+                      className="min-w-[44px] min-h-[44px] rounded-lg bg-zinc-800 hover:bg-zinc-700 font-bold text-white flex items-center justify-center transition-all duration-200 active:scale-95"
                     >
                       -
                     </button>
-                    <span className="font-mono font-black text-sm text-zinc-100">
+                    <span className="font-mono tabular-nums font-black text-sm text-zinc-100">
                       {currentWeight} <span className="text-[10px] text-zinc-400">kg</span>
                     </span>
                     <button
                       onClick={() => setCurrentWeight((w) => w + 2.5)}
-                      className="w-7 h-7 rounded-lg bg-zinc-800 font-bold text-white flex items-center justify-center active:scale-95"
+                      className="min-w-[44px] min-h-[44px] rounded-lg bg-zinc-800 hover:bg-zinc-700 font-bold text-white flex items-center justify-center transition-all duration-200 active:scale-95"
                     >
                       +
                     </button>
@@ -212,22 +213,22 @@ export const MRCalculatorDrawer: React.FC<MRCalculatorDrawerProps> = ({
 
                 {/* Reps actuales */}
                 <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-2.5">
-                  <span className="text-[10px] font-mono text-zinc-400 uppercase block mb-1">
+                  <span className="text-[10px] font-mono font-bold text-zinc-400 uppercase block mb-1">
                     Repeticiones ({currentPct}%)
                   </span>
                   <div className="flex items-center justify-between">
                     <button
                       onClick={() => setCurrentReps((r) => Math.max(1, r - 1))}
-                      className="w-7 h-7 rounded-lg bg-zinc-800 font-bold text-white flex items-center justify-center active:scale-95"
+                      className="min-w-[44px] min-h-[44px] rounded-lg bg-zinc-800 hover:bg-zinc-700 font-bold text-white flex items-center justify-center transition-all duration-200 active:scale-95"
                     >
                       -
                     </button>
-                    <span className="font-mono font-black text-sm text-zinc-100">
+                    <span className="font-mono tabular-nums font-black text-sm text-zinc-100">
                       {currentReps} <span className="text-[10px] text-zinc-400">reps</span>
                     </span>
                     <button
                       onClick={() => setCurrentReps((r) => Math.min(12, r + 1))}
-                      className="w-7 h-7 rounded-lg bg-zinc-800 font-bold text-white flex items-center justify-center active:scale-95"
+                      className="min-w-[44px] min-h-[44px] rounded-lg bg-zinc-800 hover:bg-zinc-700 font-bold text-white flex items-center justify-center transition-all duration-200 active:scale-95"
                     >
                       +
                     </button>
@@ -237,16 +238,16 @@ export const MRCalculatorDrawer: React.FC<MRCalculatorDrawerProps> = ({
             </div>
 
             <div className="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-3.5">
-              <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider block mb-2 font-bold">
+              <span className="text-[10px] font-mono font-bold text-zinc-400 uppercase tracking-wider block mb-2 font-bold">
                 2. Objetivo M&R (Repeticiones que buscas)
               </span>
 
               <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-2.5 flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] font-mono text-zinc-400 uppercase block">
+                  <span className="text-[10px] font-mono font-bold text-zinc-400 uppercase block">
                     Repeticiones Deseadas
                   </span>
-                  <span className="text-xs font-mono text-zinc-400">
+                  <span className="text-xs font-mono tabular-nums text-zinc-400">
                     Equivale al {targetPct}% de 1RM
                   </span>
                 </div>
@@ -254,16 +255,16 @@ export const MRCalculatorDrawer: React.FC<MRCalculatorDrawerProps> = ({
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setTargetReps((r) => Math.max(1, r - 1))}
-                    className="w-8 h-8 rounded-lg bg-zinc-800 font-bold text-white flex items-center justify-center active:scale-95"
+                    className="min-w-[44px] min-h-[44px] rounded-lg bg-zinc-800 hover:bg-zinc-700 font-bold text-white flex items-center justify-center transition-all duration-200 active:scale-95"
                   >
                     -
                   </button>
-                  <span className="w-12 text-center font-mono font-black text-base text-zinc-100">
+                  <span className="w-12 text-center font-mono tabular-nums font-black text-base text-zinc-100">
                     {targetReps} r
                   </span>
                   <button
                     onClick={() => setTargetReps((r) => Math.min(12, r + 1))}
-                    className="w-8 h-8 rounded-lg bg-zinc-800 font-bold text-white flex items-center justify-center active:scale-95"
+                    className="min-w-[44px] min-h-[44px] rounded-lg bg-zinc-800 hover:bg-zinc-700 font-bold text-white flex items-center justify-center transition-all duration-200 active:scale-95"
                   >
                     +
                   </button>

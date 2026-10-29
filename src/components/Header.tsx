@@ -65,27 +65,27 @@ export const Header: React.FC = () => {
           <div className="flex items-center gap-1.5 sm:gap-2">
             {/* Racha dinámica (Streak en días) */}
             <div
-              className="flex items-center gap-1 bg-zinc-900 border border-zinc-800 rounded-full px-2 py-0.5 text-xs font-mono font-bold text-zinc-300 transition-all"
+              className="flex items-center gap-1 bg-zinc-900 border border-zinc-800 rounded-full px-2.5 py-1 text-xs font-mono tabular-nums font-bold text-zinc-300 transition-all shadow-sm"
               title={`Racha: ${activeProfile.streakDays} días consecutivos de actividad`}
             >
               <Flame
                 className={cn(
-                  "w-3 h-3 transition-colors",
+                  "w-3.5 h-3.5 transition-colors",
                   activeProfile.streakDays > 0
                     ? "text-amber-500 fill-amber-500 animate-pulse"
                     : "text-zinc-500"
                 )}
               />
-              <span>{activeProfile.streakDays}d</span>
+              <span className="font-mono tabular-nums">{activeProfile.streakDays}d</span>
             </div>
 
             {/* Progreso Semanal dinámico (X/Y) */}
             <div
-              className="flex items-center gap-1 bg-zinc-900 border border-zinc-800 rounded-full px-2 py-0.5 text-xs font-mono font-bold text-zinc-300 transition-all"
+              className="flex items-center gap-1 bg-zinc-900 border border-zinc-800 rounded-full px-2.5 py-1 text-xs font-mono tabular-nums font-bold text-zinc-300 transition-all shadow-sm"
               title={`Progreso semanal: ${activeProfile.weeklyCompleted} de ${activeProfile.weeklyTarget}`}
             >
               <CheckCircle2
-                className="w-3 h-3 transition-colors"
+                className="w-3.5 h-3.5 transition-colors"
                 style={{
                   color:
                     activeProfile.weeklyCompleted >= activeProfile.weeklyTarget
@@ -93,14 +93,14 @@ export const Header: React.FC = () => {
                       : accentColor,
                 }}
               />
-              <span>
+              <span className="font-mono tabular-nums">
                 {activeProfile.weeklyCompleted}/{activeProfile.weeklyTarget}
               </span>
             </div>
 
             {/* Badge único del Usuario Autenticado */}
             <div
-              className="px-2.5 py-1 text-xs font-black uppercase tracking-wider rounded-full shadow-md select-none transition-colors duration-300"
+              className="px-3 py-1.5 text-xs font-black uppercase tracking-wider rounded-full shadow-md select-none transition-colors duration-300"
               style={{
                 backgroundColor: accentColor,
                 color: isGirl ? "#ffffff" : "#000000",
@@ -115,9 +115,9 @@ export const Header: React.FC = () => {
               disabled={isLoggingOut}
               aria-label="Cerrar sesión"
               title="Cerrar sesión"
-              className="p-1.5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-red-400 hover:border-red-900/50 transition-colors"
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-red-400 hover:border-red-900/50 transition-all duration-200 active:scale-95 shrink-0"
             >
-              <LogOut className="w-3.5 h-3.5" />
+              <LogOut className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -153,7 +153,7 @@ export const Header: React.FC = () => {
                   type="button"
                   onClick={() => setShowLogoutDialog(false)}
                   disabled={isLoggingOut}
-                  className="flex-1 py-3 rounded-2xl text-xs font-bold uppercase tracking-wider bg-zinc-900 text-zinc-300 hover:bg-zinc-800 transition-colors"
+                  className="min-h-[48px] flex-1 py-3 rounded-2xl text-xs font-bold uppercase tracking-wider bg-zinc-900 text-zinc-300 hover:bg-zinc-800 transition-all duration-200 active:scale-95 flex items-center justify-center"
                 >
                   Cancelar
                 </button>
@@ -161,7 +161,7 @@ export const Header: React.FC = () => {
                   type="button"
                   onClick={handleConfirmLogout}
                   disabled={isLoggingOut}
-                  className="flex-1 py-3 rounded-2xl text-xs font-bold uppercase tracking-wider bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 transition-colors flex items-center justify-center gap-1.5"
+                  className="min-h-[48px] flex-1 py-3 rounded-2xl text-xs font-bold uppercase tracking-wider bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 transition-all duration-200 active:scale-95 flex items-center justify-center gap-1.5"
                 >
                   {isLoggingOut ? (
                     <div className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />

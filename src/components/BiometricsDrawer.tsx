@@ -166,7 +166,7 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
               </div>
               <button
                 onClick={onClose}
-                className="p-1 rounded-full text-zinc-400 hover:text-white transition-colors"
+                className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white transition-all duration-200 active:scale-95"
                 aria-label="Cerrar modal"
               >
                 <X className="w-5 h-5" />
@@ -530,7 +530,7 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
 
             <button
               type="submit"
-              className="w-full mt-6 mb-2 py-3.5 rounded-2xl font-black text-sm uppercase tracking-wider text-black flex items-center justify-center gap-2 shadow-xl transition-transform active:scale-95 shrink-0"
+              className="w-full mt-6 mb-2 min-h-[52px] py-3.5 rounded-2xl font-black text-sm uppercase tracking-wider text-black flex items-center justify-center gap-2 shadow-xl transition-all duration-200 active:scale-95 shrink-0"
               style={{ backgroundColor: accentColor }}
             >
               <Check className="w-5 h-5 stroke-[3]" />

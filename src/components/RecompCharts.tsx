@@ -62,7 +62,7 @@ export const RecompCharts: React.FC = () => {
   const viscBadge = latest ? getVisceralFatBadge(latest.visceralFatRating) : null;
 
   return (
-    <div className="space-y-6 pb-28 pt-2 max-w-md mx-auto px-4">
+    <div className="space-y-6 pb-44 pt-2 max-w-md mx-auto px-4 pb-[calc(11rem+env(safe-area-inset-bottom,0px))]">
       {/* Cabecera y Botón Nuevo Pesaje */}
       <div className="flex items-center justify-between">
         <div>
@@ -76,7 +76,7 @@ export const RecompCharts: React.FC = () => {
 
         <button
           onClick={() => setIsDrawerOpen(true)}
-          className="px-3.5 py-2 rounded-2xl text-xs font-black uppercase text-black font-mono flex items-center gap-1.5 shadow-lg active:scale-95 transition-transform"
+          className="min-h-[44px] px-4 py-2 rounded-2xl text-xs font-black uppercase text-black font-mono flex items-center justify-center gap-1.5 shadow-lg active:scale-95 transition-all duration-200"
           style={{ backgroundColor: accentColor }}
         >
           <Plus className="w-4 h-4 stroke-[3]" />
@@ -87,47 +87,47 @@ export const RecompCharts: React.FC = () => {
       {/* Tarjeta de Resumen Actual */}
       <div className="grid grid-cols-3 gap-2.5">
         <div className="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-3 text-center">
-          <span className="text-[10px] font-mono text-zinc-400 uppercase block">
+          <span className="text-[10px] font-mono font-bold text-zinc-400 uppercase block">
             Peso Actual
           </span>
-          <span className="text-lg font-mono font-black text-white">
+          <span className="text-lg font-mono tabular-nums font-black text-white">
             {latest ? latest.weightKg : "--"}{" "}
             <span className="text-xs font-normal text-zinc-400">kg</span>
           </span>
           {deltaWeight !== null ? (
             <span
               className={cn(
-                "text-[9px] font-mono block mt-0.5",
+                "text-[9px] font-mono tabular-nums block mt-0.5",
                 Number(deltaWeight) <= 0 ? "text-emerald-400" : "text-amber-400"
               )}
             >
               {Number(deltaWeight) > 0 ? `+${deltaWeight}` : deltaWeight} kg total
             </span>
           ) : (
-            <span className="text-[9px] text-zinc-500 font-mono block mt-0.5">
+            <span className="text-[9px] text-zinc-400 font-mono block mt-0.5">
               {hasEntries ? "Línea base" : "Sin registros"}
             </span>
           )}
         </div>
 
         <div className="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-3 text-center">
-          <span className="text-[10px] font-mono text-zinc-400 uppercase block">
+          <span className="text-[10px] font-mono font-bold text-zinc-400 uppercase block">
             % Grasa
           </span>
-          <span className="text-lg font-mono font-black text-amber-400">
+          <span className="text-lg font-mono tabular-nums font-black text-amber-400">
             {latest ? `${latest.bodyFatPct}%` : "-- %"}
           </span>
-          <span className="text-[9px] text-zinc-400 font-mono block mt-0.5">
+          <span className="text-[9px] text-zinc-400 font-mono tabular-nums block mt-0.5">
             Meta: {activeProfile.targetBodyFatPct || (isGirl ? 21 : 16)}%
           </span>
         </div>
 
         <div className="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-3 text-center">
-          <span className="text-[10px] font-mono text-zinc-400 uppercase block">
+          <span className="text-[10px] font-mono font-bold text-zinc-400 uppercase block">
             Masa Muscular
           </span>
           <span
-            className="text-lg font-mono font-black"
+            className="text-lg font-mono tabular-nums font-black"
             style={{ color: accentColor }}
           >
             {latest ? latest.muscleMassKg : "--"}{" "}
@@ -136,14 +136,14 @@ export const RecompCharts: React.FC = () => {
           {deltaMuscle !== null ? (
             <span
               className={cn(
-                "text-[9px] font-mono block mt-0.5",
+                "text-[9px] font-mono tabular-nums block mt-0.5",
                 Number(deltaMuscle) >= 0 ? "text-emerald-400" : "text-amber-400"
               )}
             >
               {Number(deltaMuscle) > 0 ? `+${deltaMuscle}` : deltaMuscle} kg magro
             </span>
           ) : (
-            <span className="text-[9px] text-zinc-500 font-mono block mt-0.5">
+            <span className="text-[9px] text-zinc-400 font-mono block mt-0.5">
               {hasEntries ? "Línea base" : "Sin registros"}
             </span>
           )}

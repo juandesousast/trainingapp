@@ -107,7 +107,8 @@ export const PlateCalculatorDrawer: React.FC<PlateCalculatorDrawerProps> = ({
             </div>
             <button
               onClick={onClose}
-              className="p-1 rounded-full text-zinc-400 hover:text-white"
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white transition-all duration-200 active:scale-95"
+              aria-label="Cerrar modal"
             >
               <X className="w-5 h-5" />
             </button>
@@ -121,10 +122,10 @@ export const PlateCalculatorDrawer: React.FC<PlateCalculatorDrawerProps> = ({
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 mb-5 space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider block">
+                <span className="text-[10px] font-mono font-bold text-zinc-400 uppercase tracking-wider block">
                   Carga Total Objetivo
                 </span>
-                <span className="text-3xl font-mono font-black text-white">
+                <span className="text-3xl font-mono tabular-nums font-black text-white">
                   {weightKg} <span className="text-sm font-normal text-zinc-400">kg</span>
                 </span>
               </div>
@@ -133,25 +134,25 @@ export const PlateCalculatorDrawer: React.FC<PlateCalculatorDrawerProps> = ({
               <div className="flex items-center gap-1.5">
                 <button
                   onClick={() => setWeightKg((w) => Math.max(barWeight, w - 5))}
-                  className="w-9 h-9 rounded-xl bg-zinc-800 font-bold text-white flex items-center justify-center active:scale-95 text-base"
+                  className="min-w-[44px] min-h-[44px] rounded-xl bg-zinc-800 hover:bg-zinc-700 font-bold text-white flex items-center justify-center transition-all duration-200 active:scale-95 text-xs font-mono tabular-nums"
                 >
                   -5
                 </button>
                 <button
                   onClick={() => setWeightKg((w) => Math.max(barWeight, w - 2.5))}
-                  className="w-9 h-9 rounded-xl bg-zinc-800 font-bold text-white flex items-center justify-center active:scale-95 text-sm"
+                  className="min-w-[44px] min-h-[44px] rounded-xl bg-zinc-800 hover:bg-zinc-700 font-bold text-white flex items-center justify-center transition-all duration-200 active:scale-95 text-xs font-mono tabular-nums"
                 >
                   -2.5
                 </button>
                 <button
                   onClick={() => setWeightKg((w) => w + 2.5)}
-                  className="w-9 h-9 rounded-xl bg-zinc-800 font-bold text-white flex items-center justify-center active:scale-95 text-sm"
+                  className="min-w-[44px] min-h-[44px] rounded-xl bg-zinc-800 hover:bg-zinc-700 font-bold text-white flex items-center justify-center transition-all duration-200 active:scale-95 text-xs font-mono tabular-nums"
                 >
                   +2.5
                 </button>
                 <button
                   onClick={() => setWeightKg((w) => w + 5)}
-                  className="w-9 h-9 rounded-xl bg-zinc-800 font-bold text-white flex items-center justify-center active:scale-95 text-base"
+                  className="min-w-[44px] min-h-[44px] rounded-xl bg-zinc-800 hover:bg-zinc-700 font-bold text-white flex items-center justify-center transition-all duration-200 active:scale-95 text-xs font-mono tabular-nums"
                 >
                   +5
                 </button>
@@ -160,7 +161,7 @@ export const PlateCalculatorDrawer: React.FC<PlateCalculatorDrawerProps> = ({
 
             {/* Selector de barra */}
             <div className="pt-2 border-t border-zinc-800/80 flex items-center justify-between">
-              <span className="text-xs font-mono text-zinc-400">Tipo de Barra:</span>
+              <span className="text-xs font-mono font-bold text-zinc-400">Tipo de Barra:</span>
               <div className="flex gap-1.5">
                 {[
                   { label: "Olímpica 20kg", weight: 20 },
@@ -171,10 +172,10 @@ export const PlateCalculatorDrawer: React.FC<PlateCalculatorDrawerProps> = ({
                     key={bar.weight}
                     onClick={() => setBarWeight(bar.weight)}
                     className={cn(
-                      "px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold transition-all",
+                      "min-h-[44px] px-3 py-1.5 rounded-xl text-xs font-mono tabular-nums font-bold transition-all duration-200 active:scale-95",
                       barWeight === bar.weight
                         ? "text-black font-extrabold shadow-sm"
-                        : "bg-zinc-800 text-zinc-400 hover:text-white"
+                        : "bg-zinc-800 text-zinc-300 hover:text-white"
                     )}
                     style={{
                       backgroundColor: barWeight === bar.weight ? accentColor : undefined,

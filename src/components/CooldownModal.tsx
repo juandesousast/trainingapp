@@ -99,29 +99,29 @@ export const CooldownModal: React.FC<CooldownModalProps> = ({
           {/* Resumen de la Sesión */}
           <div className="grid grid-cols-3 gap-2 bg-zinc-900 border border-zinc-800 rounded-2xl p-3.5 mb-6 text-center">
             <div>
-              <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider block">
+              <span className="text-[10px] font-mono font-bold text-zinc-400 uppercase tracking-wider block">
                 Tiempo
               </span>
-              <span className="text-sm font-mono font-black text-white">
+              <span className="text-sm font-mono tabular-nums font-black text-white">
                 {formatSecondsToMinutes(elapsedSeconds)}
               </span>
             </div>
             <div>
-              <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider block">
+              <span className="text-[10px] font-mono font-bold text-zinc-400 uppercase tracking-wider block">
                 Volumen Total
               </span>
               <span
-                className="text-sm font-mono font-black"
+                className="text-sm font-mono tabular-nums font-black"
                 style={{ color: accentColor }}
               >
                 {Math.round(totalVolumeKg)} kg
               </span>
             </div>
             <div>
-              <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider block">
+              <span className="text-[10px] font-mono font-bold text-zinc-400 uppercase tracking-wider block">
                 Series Hechas
               </span>
-              <span className="text-sm font-mono font-black text-white">
+              <span className="text-sm font-mono tabular-nums font-black text-white">
                 {completedSetsCount}
               </span>
             </div>
@@ -138,7 +138,7 @@ export const CooldownModal: React.FC<CooldownModalProps> = ({
               <button
                 type="button"
                 onClick={() => setSkipCooldown(!skipCooldown)}
-                className="text-[11px] font-mono text-zinc-400 hover:text-zinc-200 underline"
+                className="min-h-[44px] px-2 flex items-center text-[11px] font-mono font-bold text-zinc-400 hover:text-zinc-200 underline transition-colors"
               >
                 {skipCooldown ? "Incluir enfriamiento" : "Saltar enfriamiento"}
               </button>
@@ -156,7 +156,7 @@ export const CooldownModal: React.FC<CooldownModalProps> = ({
                         type="button"
                         onClick={() => setSelectedType(type.id)}
                         className={cn(
-                          "p-3 rounded-2xl border text-left transition-all",
+                          "min-h-[64px] p-3 rounded-2xl border text-left transition-all duration-200 active:scale-95",
                           isSelected
                             ? "bg-zinc-900 shadow-md border-white"
                             : "bg-zinc-950 border-zinc-800 hover:bg-zinc-900"
@@ -190,7 +190,7 @@ export const CooldownModal: React.FC<CooldownModalProps> = ({
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4 text-zinc-400" />
                     <span className="text-xs font-mono font-bold text-zinc-300">
-                      Duración del Enfriamiento:
+                      Duración:
                     </span>
                   </div>
 
@@ -201,7 +201,7 @@ export const CooldownModal: React.FC<CooldownModalProps> = ({
                         type="button"
                         onClick={() => setDurationMinutes(min)}
                         className={cn(
-                          "w-9 h-8 rounded-xl text-xs font-mono font-bold transition-all flex items-center justify-center",
+                          "min-w-[44px] min-h-[44px] rounded-xl text-xs font-mono tabular-nums font-bold transition-all duration-200 active:scale-95 flex items-center justify-center",
                           durationMinutes === min
                             ? "text-black font-extrabold shadow-sm"
                             : "bg-zinc-800 text-zinc-400 hover:text-white"
@@ -229,7 +229,7 @@ export const CooldownModal: React.FC<CooldownModalProps> = ({
           {/* Botón Guardar Sesión */}
           <button
             onClick={handleFinish}
-            className="w-full py-4 rounded-2xl font-black text-sm uppercase tracking-wider text-black flex items-center justify-center gap-2 shadow-2xl transition-all active:scale-98"
+            className="w-full min-h-[52px] py-4 rounded-2xl font-black text-sm uppercase tracking-wider text-black flex items-center justify-center gap-2 shadow-2xl transition-all duration-200 active:scale-95"
             style={{ backgroundColor: accentColor }}
           >
             <Check className="w-5 h-5 stroke-[3]" />

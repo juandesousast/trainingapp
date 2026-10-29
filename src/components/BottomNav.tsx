@@ -26,7 +26,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-zinc-950/90 backdrop-blur-xl border-t border-zinc-800/80 px-6 py-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-zinc-950/95 backdrop-blur-xl border-t border-zinc-800/90 px-6 py-2 pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))]">
       <div className="max-w-md mx-auto flex items-center justify-around">
         {tabs.map((tab) => {
           const Icon = tab.icon;
@@ -37,8 +37,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
               className={cn(
-                "flex flex-col items-center gap-1 py-1 px-4 rounded-2xl transition-all duration-200 active:scale-95",
-                isActive ? "text-white" : "text-zinc-500 hover:text-zinc-300"
+                "min-h-[48px] min-w-[72px] flex flex-col items-center justify-center gap-1 py-1 px-3 rounded-2xl transition-all duration-200 active:scale-95",
+                isActive ? "text-white" : "text-zinc-400 hover:text-zinc-200"
               )}
             >
               <div
@@ -55,7 +55,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
               <span
                 className={cn(
                   "text-[10px] font-mono tracking-tight font-bold",
-                  isActive ? "font-black" : "font-medium"
+                  isActive ? "font-black" : "font-medium text-zinc-400"
                 )}
                 style={{
                   color: isActive ? accentColor : undefined,

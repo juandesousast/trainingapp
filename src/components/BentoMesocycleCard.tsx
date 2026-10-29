@@ -63,7 +63,7 @@ export const BentoMesocycleCard: React.FC<BentoMesocycleCardProps> = ({
         <div className="flex items-center gap-1.5">
           {isActiveMeso ? (
             <span
-              className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full font-mono tracking-wider flex items-center gap-1 shadow-sm text-black"
+              className="text-[10px] font-black uppercase px-2.5 py-1 rounded-full font-mono tracking-wider flex items-center gap-1 shadow-sm text-black"
               style={{ backgroundColor: accentColor }}
             >
               <Sparkles className="w-2.5 h-2.5" />
@@ -76,14 +76,14 @@ export const BentoMesocycleCard: React.FC<BentoMesocycleCardProps> = ({
                 e.stopPropagation();
                 onActivate(mesocycle);
               }}
-              className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border border-zinc-700 hover:border-zinc-500 text-zinc-300 hover:text-white transition-all active:scale-95 flex items-center gap-1"
+              className="min-h-[44px] text-[10px] font-mono font-bold px-3 py-1.5 rounded-full border border-zinc-700 hover:border-zinc-500 text-zinc-300 hover:text-white transition-all duration-200 active:scale-95 flex items-center gap-1.5"
             >
-              <Check className="w-2.5 h-2.5" />
+              <Check className="w-3 h-3 text-emerald-400" />
               <span>Activar</span>
             </button>
           )}
 
-          <ChevronRight className="w-3.5 h-3.5 text-zinc-500" />
+          <ChevronRight className="w-4 h-4 text-zinc-500 shrink-0" />
         </div>
       </div>
 
@@ -101,7 +101,7 @@ export const BentoMesocycleCard: React.FC<BentoMesocycleCardProps> = ({
       <div className="pt-2 border-t border-zinc-800/80">
         <div className="flex justify-between items-center text-[11px] font-mono text-zinc-400 mb-1.5">
           <span>Progreso exposiciones</span>
-          <span className="font-bold text-zinc-200">
+          <span className="font-mono tabular-nums font-bold text-zinc-200">
             {mesocycle.currentExposure} / {mesocycle.totalExposures} ({progressPct}%)
           </span>
         </div>

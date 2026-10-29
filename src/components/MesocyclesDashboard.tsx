@@ -75,7 +75,7 @@ export const MesocyclesDashboard: React.FC = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto px-4 pb-28 pt-4 space-y-6">
+    <div className="max-w-md mx-auto px-4 pb-44 pt-4 space-y-6 pb-[calc(11rem+env(safe-area-inset-bottom,0px))]">
       {/* Hero Banner Dark Kinetic */}
       <motion.div
         initial={{ opacity: 0, y: 15 }}
@@ -113,7 +113,7 @@ export const MesocyclesDashboard: React.FC = () => {
                 </>
               )}
             </span>
-            <span className="text-xs font-mono font-bold text-zinc-400">
+            <span className="text-xs font-mono tabular-nums font-bold text-zinc-400">
               {selectedMesocycle.code}
             </span>
           </div>
@@ -124,7 +124,7 @@ export const MesocyclesDashboard: React.FC = () => {
                 {selectedMesocycle.name}
               </h2>
               <p className="text-xs text-zinc-400 mt-1 line-clamp-2">
-                Exposición {selectedMesocycle.currentExposure}º de {selectedMesocycle.totalExposures}º · {selectedMesocycle.splitStructure}
+                Exposición <span className="font-mono tabular-nums font-bold text-zinc-300">{selectedMesocycle.currentExposure}</span>º de <span className="font-mono tabular-nums font-bold text-zinc-300">{selectedMesocycle.totalExposures}</span>º · {selectedMesocycle.splitStructure}
               </p>
             </div>
 
@@ -133,9 +133,9 @@ export const MesocyclesDashboard: React.FC = () => {
               <button
                 type="button"
                 onClick={() => handleMarkAsActive(selectedMesocycle)}
-                className="shrink-0 text-[10px] font-mono font-black uppercase px-2.5 py-1.5 rounded-xl border border-zinc-700 hover:border-zinc-500 bg-zinc-900/90 text-zinc-200 hover:text-white transition-all flex items-center gap-1 shadow-md active:scale-95"
+                className="shrink-0 min-h-[44px] text-[10px] font-mono font-black uppercase px-3 py-1.5 rounded-xl border border-zinc-700 hover:border-zinc-500 bg-zinc-900/90 text-zinc-200 hover:text-white transition-all duration-200 active:scale-95 flex items-center gap-1.5 shadow-md"
               >
-                <Check className="w-3 h-3 text-emerald-400" />
+                <Check className="w-3.5 h-3.5 text-emerald-400" />
                 <span>Activar</span>
               </button>
             )}
@@ -156,9 +156,9 @@ export const MesocyclesDashboard: React.FC = () => {
                       type="button"
                       onClick={() => setSelectedWorkoutIndex(idx)}
                       className={cn(
-                        "px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all flex items-center gap-1.5 whitespace-nowrap",
+                        "min-h-[44px] px-4 py-2 rounded-xl text-xs font-mono font-bold transition-all duration-200 active:scale-95 flex items-center justify-center gap-1.5 whitespace-nowrap shadow-sm",
                         isSelectedW
-                          ? "bg-zinc-200 text-black shadow-md font-extrabold"
+                          ? "bg-zinc-100 text-black shadow-md font-black"
                           : "bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white"
                       )}
                     >
@@ -171,7 +171,7 @@ export const MesocyclesDashboard: React.FC = () => {
           )}
 
           <div className="mt-3 bg-zinc-950/60 border border-zinc-800/80 rounded-2xl p-3">
-            <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider block">
+            <span className="text-[10px] font-mono font-bold text-zinc-400 uppercase tracking-wider block">
               Sesión Seleccionada
             </span>
             <p className="text-xs font-bold text-zinc-100 mt-0.5">
@@ -183,7 +183,7 @@ export const MesocyclesDashboard: React.FC = () => {
           <motion.button
             whileTap={{ scale: 0.96 }}
             onClick={() => startWorkout(selectedMesocycle, currentWorkout)}
-            className="w-full mt-5 py-4 rounded-2xl font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 text-black shadow-xl transition-all duration-300"
+            className="w-full mt-5 min-h-[56px] py-4 rounded-2xl font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 text-black shadow-xl transition-all duration-200 active:scale-95"
             style={{
               backgroundColor: accentColor,
               boxShadow: `0 10px 25px -5px ${accentColor}66`,
@@ -205,17 +205,17 @@ export const MesocyclesDashboard: React.FC = () => {
             title="Pulsar para registrar pesaje matutino"
           >
             <div
-              className="w-8 h-8 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 shrink-0"
+              className="w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 shrink-0"
               style={{ backgroundColor: `${accentColor}18`, color: accentColor }}
             >
               <Scale className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider block truncate">
+              <span className="text-[10px] font-mono font-bold text-zinc-400 uppercase tracking-wider block truncate">
                 Báscula en Ayunas ({activeProfile.displayName})
               </span>
               {latestBiometric ? (
-                <span className="text-xs font-mono font-bold text-zinc-200 block truncate">
+                <span className="text-xs font-mono tabular-nums font-bold text-zinc-200 block truncate">
                   {latestBiometric.weightKg} kg · {latestBiometric.bodyFatPct}% Grasa · {latestBiometric.muscleMassKg} kg Músculo
                 </span>
               ) : (
@@ -231,7 +231,7 @@ export const MesocyclesDashboard: React.FC = () => {
             type="button"
             onClick={() => setIsGoalOpen(true)}
             title="Pulsar para personalizar meta corporal"
-            className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full text-black hover:opacity-90 active:scale-95 transition-all shadow-md flex items-center gap-1 cursor-pointer shrink-0"
+            className="min-h-[44px] text-[10px] font-mono tabular-nums font-black px-3.5 py-1.5 rounded-full text-black hover:opacity-90 active:scale-95 transition-all duration-200 shadow-md flex items-center justify-center gap-1 cursor-pointer shrink-0"
             style={{ backgroundColor: accentColor }}
           >
             <span>Meta: {activeProfile.targetBodyFatPct || (activeProfile.role === "hoplita_girl" ? 21 : 16)}%</span>
@@ -241,17 +241,17 @@ export const MesocyclesDashboard: React.FC = () => {
         {/* Botón Trigger: Check-in Diario de Recuperación */}
         <button
           onClick={() => setIsRecoveryOpen(true)}
-          className="w-full bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800 hover:border-zinc-700 rounded-2xl p-3.5 flex items-center justify-between transition-all group text-left"
+          className="w-full min-h-[64px] bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800 hover:border-zinc-700 rounded-2xl p-3.5 flex items-center justify-between transition-all duration-200 active:scale-95 group text-left"
         >
           <div className="flex items-center gap-2.5">
             <div
-              className="w-8 h-8 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105"
+              className="w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 shrink-0"
               style={{ backgroundColor: `${accentColor}20`, color: accentColor }}
             >
               <HeartPulse className="w-4 h-4" />
             </div>
             <div>
-              <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider block">
+              <span className="text-[10px] font-mono font-bold text-zinc-400 uppercase tracking-wider block">
                 Check-in Diario de Recuperación
               </span>
               <span className="text-xs font-bold text-zinc-200 flex items-center gap-1.5">
@@ -268,7 +268,7 @@ export const MesocyclesDashboard: React.FC = () => {
             </div>
           </div>
           <span
-            className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border transition-all"
+            className="min-h-[36px] text-[10px] font-mono font-bold px-3 py-1.5 rounded-full border transition-all flex items-center justify-center shrink-0"
             style={{
               borderColor: `${accentColor}55`,
               color: accentColor,

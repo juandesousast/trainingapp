@@ -98,20 +98,20 @@ export const TargetGoalDialog: React.FC<TargetGoalDialogProps> = ({
                   <button
                     type="button"
                     onClick={() => setTargetFat((v) => Math.max(8, Math.round((v - 1) * 10) / 10))}
-                    className="w-10 h-10 rounded-xl bg-zinc-800 font-bold text-white text-base active:scale-95"
+                    className="min-w-[44px] min-h-[44px] rounded-xl bg-zinc-800 hover:bg-zinc-700 font-bold text-white text-xs font-mono tabular-nums transition-all duration-200 active:scale-95 flex items-center justify-center"
                   >
                     -1%
                   </button>
                   <button
                     type="button"
                     onClick={() => setTargetFat((v) => Math.max(8, Math.round((v - 0.5) * 10) / 10))}
-                    className="w-10 h-10 rounded-xl bg-zinc-800 font-bold text-white text-xs active:scale-95"
+                    className="min-w-[44px] min-h-[44px] rounded-xl bg-zinc-800 hover:bg-zinc-700 font-bold text-white text-[11px] font-mono tabular-nums transition-all duration-200 active:scale-95 flex items-center justify-center"
                   >
                     -0.5
                   </button>
                 </div>
 
-                <div className="text-center font-mono font-black text-2xl text-white">
+                <div className="text-center font-mono tabular-nums font-black text-2xl text-white">
                   {targetFat} <span className="text-xs font-normal text-zinc-400">%</span>
                 </div>
 
@@ -119,14 +119,14 @@ export const TargetGoalDialog: React.FC<TargetGoalDialogProps> = ({
                   <button
                     type="button"
                     onClick={() => setTargetFat((v) => Math.min(35, Math.round((v + 0.5) * 10) / 10))}
-                    className="w-10 h-10 rounded-xl bg-zinc-800 font-bold text-white text-xs active:scale-95"
+                    className="min-w-[44px] min-h-[44px] rounded-xl bg-zinc-800 hover:bg-zinc-700 font-bold text-white text-[11px] font-mono tabular-nums transition-all duration-200 active:scale-95 flex items-center justify-center"
                   >
                     +0.5
                   </button>
                   <button
                     type="button"
                     onClick={() => setTargetFat((v) => Math.min(35, Math.round((v + 1) * 10) / 10))}
-                    className="w-10 h-10 rounded-xl bg-zinc-800 font-bold text-white text-base active:scale-95"
+                    className="min-w-[44px] min-h-[44px] rounded-xl bg-zinc-800 hover:bg-zinc-700 font-bold text-white text-xs font-mono tabular-nums transition-all duration-200 active:scale-95 flex items-center justify-center"
                   >
                     +1%
                   </button>
@@ -142,7 +142,7 @@ export const TargetGoalDialog: React.FC<TargetGoalDialogProps> = ({
                   <span>Peso Objetivo en Báscula (kg)</span>
                 </span>
                 <span
-                  className="text-xs font-mono font-black px-2 py-0.5 rounded-full text-black"
+                  className="text-xs font-mono tabular-nums font-black px-2 py-0.5 rounded-full text-black"
                   style={{ backgroundColor: accentColor }}
                 >
                   {targetWeight} kg
@@ -154,20 +154,20 @@ export const TargetGoalDialog: React.FC<TargetGoalDialogProps> = ({
                   <button
                     type="button"
                     onClick={() => setTargetWeight((w) => Math.max(40, Math.round((w - 1) * 10) / 10))}
-                    className="w-10 h-10 rounded-xl bg-zinc-800 font-bold text-white text-base active:scale-95"
+                    className="min-w-[44px] min-h-[44px] rounded-xl bg-zinc-800 hover:bg-zinc-700 font-bold text-white text-xs font-mono tabular-nums transition-all duration-200 active:scale-95 flex items-center justify-center"
                   >
                     -1
                   </button>
                   <button
                     type="button"
                     onClick={() => setTargetWeight((w) => Math.max(40, Math.round((w - 0.5) * 10) / 10))}
-                    className="w-10 h-10 rounded-xl bg-zinc-800 font-bold text-white text-xs active:scale-95"
+                    className="min-w-[44px] min-h-[44px] rounded-xl bg-zinc-800 hover:bg-zinc-700 font-bold text-white text-[11px] font-mono tabular-nums transition-all duration-200 active:scale-95 flex items-center justify-center"
                   >
                     -0.5
                   </button>
                 </div>
 
-                <div className="text-center font-mono font-black text-2xl text-white">
+                <div className="text-center font-mono tabular-nums font-black text-2xl text-white">
                   {targetWeight} <span className="text-xs font-normal text-zinc-400">kg</span>
                 </div>
 
@@ -175,14 +175,14 @@ export const TargetGoalDialog: React.FC<TargetGoalDialogProps> = ({
                   <button
                     type="button"
                     onClick={() => setTargetWeight((w) => Math.min(130, Math.round((w + 0.5) * 10) / 10))}
-                    className="w-10 h-10 rounded-xl bg-zinc-800 font-bold text-white text-xs active:scale-95"
+                    className="min-w-[44px] min-h-[44px] rounded-xl bg-zinc-800 hover:bg-zinc-700 font-bold text-white text-[11px] font-mono tabular-nums transition-all duration-200 active:scale-95 flex items-center justify-center"
                   >
                     +0.5
                   </button>
                   <button
                     type="button"
                     onClick={() => setTargetWeight((w) => Math.min(130, Math.round((w + 1) * 10) / 10))}
-                    className="w-10 h-10 rounded-xl bg-zinc-800 font-bold text-white text-base active:scale-95"
+                    className="min-w-[44px] min-h-[44px] rounded-xl bg-zinc-800 hover:bg-zinc-700 font-bold text-white text-xs font-mono tabular-nums transition-all duration-200 active:scale-95 flex items-center justify-center"
                   >
                     +1
                   </button>
@@ -194,7 +194,7 @@ export const TargetGoalDialog: React.FC<TargetGoalDialogProps> = ({
             <button
               type="submit"
               disabled={isSaving}
-              className="w-full mt-4 py-3.5 rounded-2xl font-black text-sm uppercase tracking-wider text-black flex items-center justify-center gap-2 shadow-xl transition-all active:scale-95 disabled:opacity-50"
+              className="w-full mt-4 min-h-[52px] py-3.5 rounded-2xl font-black text-sm uppercase tracking-wider text-black flex items-center justify-center gap-2 shadow-xl transition-all duration-200 active:scale-95 disabled:opacity-50"
               style={{ backgroundColor: accentColor }}
             >
               <Check className="w-5 h-5 stroke-[3]" />

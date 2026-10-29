@@ -133,7 +133,8 @@ export const RecoveryCheckinDrawer: React.FC<RecoveryCheckinDrawerProps> = ({
             </div>
             <button
               onClick={onClose}
-              className="p-1 rounded-full text-zinc-400 hover:text-white"
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white transition-all duration-200 active:scale-95"
+              aria-label="Cerrar modal"
             >
               <X className="w-5 h-5" />
             </button>
@@ -157,7 +158,7 @@ export const RecoveryCheckinDrawer: React.FC<RecoveryCheckinDrawerProps> = ({
                     key={opt}
                     onClick={() => setSleepQuality(opt)}
                     className={cn(
-                      "py-2 px-1 rounded-xl text-[10px] font-mono font-black text-center truncate transition-all",
+                      "min-h-[44px] py-2 px-1 rounded-xl text-[10px] font-mono font-black text-center truncate transition-all duration-200 active:scale-95 flex items-center justify-center",
                       sleepQuality === opt
                         ? "text-black shadow-md font-extrabold"
                         : "bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white"
@@ -185,7 +186,7 @@ export const RecoveryCheckinDrawer: React.FC<RecoveryCheckinDrawerProps> = ({
                     key={opt}
                     onClick={() => setDomsLevel(opt)}
                     className={cn(
-                      "py-2 px-1 rounded-xl text-[10px] font-mono font-black text-center truncate transition-all",
+                      "min-h-[44px] py-2 px-1 rounded-xl text-[10px] font-mono font-black text-center truncate transition-all duration-200 active:scale-95 flex items-center justify-center",
                       domsLevel === opt
                         ? "text-black shadow-md font-extrabold"
                         : "bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white"
@@ -213,7 +214,7 @@ export const RecoveryCheckinDrawer: React.FC<RecoveryCheckinDrawerProps> = ({
                     key={opt}
                     onClick={() => setWaterIntake(opt)}
                     className={cn(
-                      "py-2 rounded-xl text-xs font-mono font-black text-center transition-all",
+                      "min-h-[44px] py-2 rounded-xl text-xs font-mono tabular-nums font-black text-center transition-all duration-200 active:scale-95 flex items-center justify-center",
                       waterIntake === opt
                         ? "text-black shadow-md font-extrabold"
                         : "bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white"
@@ -241,7 +242,7 @@ export const RecoveryCheckinDrawer: React.FC<RecoveryCheckinDrawerProps> = ({
                     key={opt}
                     onClick={() => setMotivation(opt)}
                     className={cn(
-                      "py-2 px-1 rounded-xl text-[10px] font-mono font-black text-center truncate transition-all",
+                      "min-h-[44px] py-2 px-1 rounded-xl text-[10px] font-mono font-black text-center truncate transition-all duration-200 active:scale-95 flex items-center justify-center",
                       motivation === opt
                         ? "text-black shadow-md font-extrabold"
                         : "bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white"
@@ -269,7 +270,7 @@ export const RecoveryCheckinDrawer: React.FC<RecoveryCheckinDrawerProps> = ({
                     key={opt}
                     onClick={() => setDailySteps(opt)}
                     className={cn(
-                      "py-2 rounded-xl text-[10px] font-mono font-black text-center transition-all",
+                      "min-h-[44px] py-2 rounded-xl text-[10px] font-mono tabular-nums font-black text-center transition-all duration-200 active:scale-95 flex items-center justify-center",
                       dailySteps === opt
                         ? "text-black shadow-md font-extrabold"
                         : "bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white"
@@ -286,7 +287,7 @@ export const RecoveryCheckinDrawer: React.FC<RecoveryCheckinDrawerProps> = ({
 
             <button
               type="submit"
-              className="w-full mt-6 py-3.5 rounded-2xl font-black text-sm uppercase tracking-wider text-black flex items-center justify-center gap-2 shadow-xl transition-all active:scale-95"
+              className="w-full mt-6 min-h-[52px] py-3.5 rounded-2xl font-black text-sm uppercase tracking-wider text-black flex items-center justify-center gap-2 shadow-xl transition-all duration-200 active:scale-95"
               style={{ backgroundColor: accentColor }}
             >
               <Check className="w-5 h-5 stroke-[3]" />

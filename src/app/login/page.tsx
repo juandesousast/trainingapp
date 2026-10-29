@@ -94,7 +94,7 @@ export default function LoginPage() {
                 Correo Electrónico
               </label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
                 <input
                   type="email"
                   required
@@ -102,7 +102,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="tu@correo.com"
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-10 pr-4 py-3 text-sm text-zinc-100 font-medium placeholder-zinc-600 focus:outline-none focus:border-[#CCFF00] transition-colors"
+                  className="w-full min-h-[48px] bg-zinc-950 border border-zinc-800 rounded-xl pl-10 pr-4 py-3 text-sm text-zinc-100 font-medium placeholder-zinc-500 focus:outline-none focus:border-[#CCFF00] transition-colors"
                 />
               </div>
             </div>
@@ -113,7 +113,7 @@ export default function LoginPage() {
                 Contraseña
               </label>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
                 <input
                   type={showPassword ? "text" : "password"}
                   required
@@ -121,12 +121,12 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••"
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-10 pr-11 py-3 text-sm text-zinc-100 font-mono tracking-wider placeholder-zinc-600 focus:outline-none focus:border-[#CCFF00] transition-colors"
+                  className="w-full min-h-[48px] bg-zinc-950 border border-zinc-800 rounded-xl pl-10 pr-12 py-3 text-sm text-zinc-100 font-mono tracking-wider placeholder-zinc-500 focus:outline-none focus:border-[#CCFF00] transition-colors"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 min-w-[44px] min-h-[44px] flex items-center justify-center text-zinc-400 hover:text-zinc-200 transition-colors"
                   aria-label={showPassword ? "Ocultar contraseña" : "Ver contraseña"}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -152,7 +152,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading || !email || !password}
-              className="w-full mt-2 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest text-black bg-[#CCFF00] flex items-center justify-center gap-2 shadow-xl shadow-[#CCFF00]/10 transition-all duration-200 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed hover:brightness-105"
+              className="w-full mt-2 min-h-[52px] py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest text-black bg-[#CCFF00] flex items-center justify-center gap-2 shadow-xl shadow-[#CCFF00]/10 transition-all duration-200 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed hover:brightness-105"
             >
               {isLoading ? (
                 <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
@@ -167,8 +167,8 @@ export default function LoginPage() {
         </div>
 
         {/* Footer Seguridad */}
-        <div className="flex items-center justify-center gap-2 text-zinc-500 text-[11px] font-mono text-center">
-          <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+        <div className="flex items-center justify-center gap-2 text-zinc-400 text-[11px] font-mono text-center">
+          <ShieldCheck className="w-3.5 h-3.5 shrink-0 text-emerald-400" />
           <span>Acceso privado · Aislamiento total de datos con RLS</span>
         </div>
       </motion.div>

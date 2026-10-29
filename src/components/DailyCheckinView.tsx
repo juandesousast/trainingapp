@@ -76,7 +76,7 @@ export const DailyCheckinView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 pb-28 pt-2 max-w-md mx-auto px-4">
+    <div className="space-y-6 pb-44 pt-2 max-w-md mx-auto px-4 pb-[calc(11rem+env(safe-area-inset-bottom,0px))]">
       {/* Cabecera */}
       <div>
         <span className="text-[10px] font-mono font-black text-zinc-400 uppercase tracking-widest block">
@@ -105,7 +105,7 @@ export const DailyCheckinView: React.FC = () => {
                 key={opt}
                 onClick={() => setSleepHours(opt)}
                 className={cn(
-                  "py-2 rounded-xl text-xs font-mono font-black transition-all",
+                  "min-h-[44px] py-2 rounded-xl text-xs font-mono tabular-nums font-black transition-all duration-200 active:scale-95 flex items-center justify-center",
                   sleepHours === opt
                     ? "text-black shadow-md"
                     : "bg-zinc-950 text-zinc-400 border border-zinc-800 hover:text-white"
@@ -133,7 +133,7 @@ export const DailyCheckinView: React.FC = () => {
                 key={opt.val}
                 onClick={() => setPsychologicalCondition(opt.val)}
                 className={cn(
-                  "py-2 px-1 rounded-xl text-[10px] font-mono font-black transition-all text-center leading-tight truncate",
+                  "min-h-[46px] py-1.5 px-1 rounded-xl text-[10px] font-mono tabular-nums font-black transition-all duration-200 active:scale-95 text-center leading-tight truncate flex flex-col items-center justify-center",
                   psychologicalCondition === opt.val
                     ? "text-black shadow-md"
                     : "bg-zinc-950 text-zinc-400 border border-zinc-800 hover:text-white"
@@ -143,8 +143,8 @@ export const DailyCheckinView: React.FC = () => {
                     psychologicalCondition === opt.val ? accentColor : undefined,
                 }}
               >
-                {opt.label.split(" · ")[0]}
-                <span className="block text-[8px] font-normal opacity-80">
+                <span className="font-mono tabular-nums font-black">{opt.label.split(" · ")[0]}</span>
+                <span className="block text-[8px] font-normal opacity-90 truncate max-w-full">
                   {opt.label.split(" · ")[1]}
                 </span>
               </button>
@@ -160,7 +160,7 @@ export const DailyCheckinView: React.FC = () => {
               <span>RPE de la Sesión (1 a 10)</span>
             </label>
             <span
-              className="text-xs font-mono font-black px-2 py-0.5 rounded-md text-black"
+              className="text-xs font-mono tabular-nums font-black px-2 py-0.5 rounded-md text-black"
               style={{ backgroundColor: accentColor }}
             >
               RPE {sessionRpe}
@@ -173,9 +173,9 @@ export const DailyCheckinView: React.FC = () => {
                 key={num}
                 onClick={() => setSessionRpe(num)}
                 className={cn(
-                  "py-2 rounded-lg text-xs font-mono font-black transition-all",
+                  "min-h-[44px] py-2 rounded-lg text-xs font-mono tabular-nums font-black transition-all duration-200 active:scale-95 flex items-center justify-center",
                   sessionRpe === num
-                    ? "text-black shadow-md"
+                    ? "text-black shadow-md font-extrabold"
                     : "bg-zinc-950 text-zinc-400 border border-zinc-800 hover:text-white"
                 )}
                 style={{
@@ -195,7 +195,7 @@ export const DailyCheckinView: React.FC = () => {
               <Star className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
               <span>Calidad del Entreno (1 a 10)</span>
             </label>
-            <span className="text-xs font-mono font-black px-2 py-0.5 rounded-md bg-zinc-800 text-zinc-200">
+            <span className="text-xs font-mono tabular-nums font-black px-2 py-0.5 rounded-md bg-zinc-800 text-zinc-200">
               {workoutQuality} / 10
             </span>
           </div>
@@ -206,9 +206,9 @@ export const DailyCheckinView: React.FC = () => {
                 key={num}
                 onClick={() => setWorkoutQuality(num)}
                 className={cn(
-                  "py-2 rounded-lg text-xs font-mono font-black transition-all",
+                  "min-h-[44px] py-2 rounded-lg text-xs font-mono tabular-nums font-black transition-all duration-200 active:scale-95 flex items-center justify-center",
                   workoutQuality === num
-                    ? "bg-zinc-200 text-black shadow-md font-extrabold"
+                    ? "bg-zinc-100 text-black shadow-md font-extrabold"
                     : "bg-zinc-950 text-zinc-400 border border-zinc-800 hover:text-white"
                 )}
               >
@@ -228,13 +228,13 @@ export const DailyCheckinView: React.FC = () => {
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Ej: Buena velocidad de barra en Box Squat. Recuperación rápida en el Tri-Set."
             rows={2}
-            className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl p-3 text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-zinc-700"
+            className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl p-3 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-700"
           />
         </div>
 
         <button
           type="submit"
-          className="w-full py-3.5 rounded-2xl font-black text-sm uppercase tracking-wider text-black flex items-center justify-center gap-2 shadow-xl transition-all active:scale-95"
+          className="w-full min-h-[52px] py-3.5 rounded-2xl font-black text-sm uppercase tracking-wider text-black flex items-center justify-center gap-2 shadow-xl transition-all duration-200 active:scale-95"
           style={{ backgroundColor: accentColor }}
         >
           {savedSuccess ? (
