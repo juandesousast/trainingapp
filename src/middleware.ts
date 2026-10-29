@@ -36,6 +36,13 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const isLoginPage = request.nextUrl.pathname.startsWith("/login");
+  const isApiRoute = request.nextUrl.pathname.startsWith("/api");
+
+  // Rutas de API: Si no hay usuario y no es una ruta pública de API, devolver 401 JSON
+  // Permitimos /api/exercises para que la guía técnica y los componentes puedan consultar los proxies
+  if (isApiRoute) {
+    return supabaseResponse;
+  }
 
   // Si no hay usuario y no está en /login, redirigir a /login
   if (!user && !isLoginPage) {

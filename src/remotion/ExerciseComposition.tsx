@@ -13,6 +13,9 @@ export interface ExerciseCompositionProps {
   exerciseName: string;
   muscleGroup?: string;
   videoUrl?: string;
+  mediaUrl?: string;
+  secondaryMediaUrl?: string;
+  viewMode?: "tempo" | "tecnica";
   tempo?: string; // e.g. "3-1-X-1", "3-0-X-1", "2-1-2-1"
   notes?: string;
   isCluster?: boolean;
@@ -23,6 +26,9 @@ export const ExerciseComposition: React.FC<ExerciseCompositionProps> = ({
   exerciseName = "Sentadilla BIIO",
   muscleGroup = "Piernas / Cuádriceps",
   videoUrl,
+  mediaUrl,
+  secondaryMediaUrl,
+  viewMode = "tempo",
   tempo = "3-1-X-1",
   notes = '1" Pausa abajo · Control estricto',
   isCluster = false,
@@ -111,23 +117,48 @@ export const ExerciseComposition: React.FC<ExerciseCompositionProps> = ({
         overflow: "hidden",
       }}
     >
-      {/* 1. VÍDEO O ANIMACIÓN VECTORIAL DE RESPALDO */}
-      {videoUrl ? (
-        <video
-          src={videoUrl}
-          autoPlay
-          loop
-          muted
-          playsInline
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            opacity: 0.65,
-          }}
-        />
+      {/* 1. VÍDEO / ILUSTRACIÓN TÉCNICA O ANIMACIÓN VECTORIAL DE RESPALDO */}
+      {viewMode === "tecnica" && (videoUrl || mediaUrl) ? (
+        videoUrl ? (
+          <video
+            src={videoUrl}
+            autoPlay
+            loop
+            muted
+            playsInline
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              opacity: 0.75,
+            }}
+          />
+        ) : (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "#09090B",
+            }}
+          >
+            <img
+              src={phaseIdx <= 1 ? mediaUrl : (secondaryMediaUrl || mediaUrl)}
+              alt={exerciseName}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "contain",
+                padding: "24px 0",
+                filter: "contrast(1.05) brightness(0.92)",
+              }}
+            />
+          </div>
+        )
       ) : (
-        /* Visualizador Vectorial Cinético cuando no hay vídeo */
+        /* Visualizador Vectorial Cinético cuando está en Modo Tempo o sin media */
         <div
           style={{
             position: "absolute",
@@ -229,18 +260,7 @@ export const ExerciseComposition: React.FC<ExerciseCompositionProps> = ({
         }}
       >
         <div>
-          <span
-            style={{
-              fontSize: 9,
-              fontFamily: "monospace",
-              fontWeight: 800,
-              color: "#A1A1AA",
-              textTransform: "uppercase",
-              letterSpacing: 1,
-            }}
-          >
-            BIOMECÁNICA · {muscleGroup}
-          </span>
+          <div style={{ height: 16 }} />
           <h4
             style={{
               fontSize: 15,
@@ -248,11 +268,23 @@ export const ExerciseComposition: React.FC<ExerciseCompositionProps> = ({
               textTransform: "uppercase",
               color: "#FFFFFF",
               letterSpacing: -0.5,
-              margin: "2px 0 0 0",
+              margin: 0,
             }}
           >
             {exerciseName}
           </h4>
+          <span
+            style={{
+              fontSize: 9,
+              fontFamily: "monospace",
+              fontWeight: 700,
+              color: "#71717A",
+              textTransform: "uppercase",
+              letterSpacing: 0.5,
+            }}
+          >
+            {muscleGroup}
+          </span>
         </div>
 
         {/* Indicador de Fase Activa en Vivo */}

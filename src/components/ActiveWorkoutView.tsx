@@ -5,6 +5,7 @@ import { useWorkoutSessionStore } from "@/stores/useWorkoutSessionStore";
 import { useProfileStore } from "@/stores/useProfileStore";
 import { MRCalculatorDrawer } from "@/components/MRCalculatorDrawer";
 import { PlateCalculatorDrawer } from "@/components/PlateCalculatorDrawer";
+import { ExerciseTechnicalGuideDrawer } from "@/components/ExerciseTechnicalGuideDrawer";
 import { CooldownModal } from "@/components/CooldownModal";
 import { ExerciseVisualizer } from "@/components/ExerciseVisualizer";
 import {
@@ -19,6 +20,7 @@ import {
   Repeat,
   AlertCircle,
   Disc,
+  BookOpen,
 } from "lucide-react";
 import { cn, formatSecondsToMinutes } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -54,6 +56,14 @@ export const ActiveWorkoutView: React.FC = () => {
     name: string;
     muscleGroup?: string;
     initialWeight?: number;
+  } | null>(null);
+
+  // Estado para abrir la Guía Técnica & Biomecánica en Drawer
+  const [guideDrawerData, setGuideDrawerData] = useState<{
+    name: string;
+    slug?: string;
+    muscleGroup?: string;
+    technicalNotes?: string;
   } | null>(null);
 
   // Estado para abrir la calculadora de Discos & Calentamiento
@@ -257,6 +267,22 @@ export const ActiveWorkoutView: React.FC = () => {
                         <Calculator className="w-3.5 h-3.5" style={{ color: accentColor }} />
                         <span>M&R</span>
                       </button>
+
+                      <button
+                        onClick={() =>
+                          setGuideDrawerData({
+                            name: workoutExercise.exercise.name,
+                            slug: workoutExercise.exercise.slug,
+                            muscleGroup: workoutExercise.exercise.muscleGroup,
+                            technicalNotes: workoutExercise.technicalNotes,
+                          })
+                        }
+                        className="min-h-[44px] px-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white flex items-center gap-1.5 text-[11px] font-mono font-bold transition-all duration-200 active:scale-95"
+                        title="Guía Técnica & Biomecánica"
+                      >
+                        <BookOpen className="w-3.5 h-3.5" style={{ color: accentColor }} />
+                        <span>Guía</span>
+                      </button>
                     </div>
                   </div>
 
@@ -264,6 +290,7 @@ export const ActiveWorkoutView: React.FC = () => {
                   <div className="mb-4">
                     <ExerciseVisualizer
                       exerciseName={workoutExercise.exercise.name}
+                      exerciseSlug={workoutExercise.exercise.slug}
                       muscleGroup={workoutExercise.exercise.muscleGroup}
                       videoUrl={workoutExercise.exercise.videoPath}
                       tempo={workoutExercise.tempo || "3-1-X-1"}
@@ -510,6 +537,19 @@ export const ActiveWorkoutView: React.FC = () => {
           onClose={() => setPlateDrawerData(null)}
           exerciseName={plateDrawerData.exerciseName}
           initialWeightKg={plateDrawerData.weightKg}
+        />
+      )}
+
+      {/* Drawer Guía Técnica & Biomecánica (ExerciseAPI.dev) */}
+      {guideDrawerData && (
+        <ExerciseTechnicalGuideDrawer
+          isOpen={Boolean(guideDrawerData)}
+          onClose={() => setGuideDrawerData(null)}
+          exerciseName={guideDrawerData.name}
+          exerciseSlug={guideDrawerData.slug}
+          muscleGroup={guideDrawerData.muscleGroup}
+          technicalNotes={guideDrawerData.technicalNotes}
+          themeAccent={accentColor}
         />
       )}
 
