@@ -4,6 +4,7 @@ export interface ExerciseVisual {
   target: string;
   mediaUrl: string;
   secondaryMediaUrl?: string;
+  videoUrl?: string;
 }
 
 export const EXERCISE_MEDIA: Record<string, ExerciseVisual> = {
@@ -12,7 +13,8 @@ export const EXERCISE_MEDIA: Record<string, ExerciseVisual> = {
     slug: "barbell-box-squat",
     target: "Cuádriceps / Glúteos",
     mediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Box_Squat/0.jpg",
-    secondaryMediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Box_Squat/1.jpg"
+    secondaryMediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Box_Squat/1.jpg",
+    videoUrl: "https://cdn.exerciseapi.dev/v1/Box_Squat.mp4"
   },
   "SQUAT": {
     name: "Barbell Squat",
@@ -33,7 +35,8 @@ export const EXERCISE_MEDIA: Record<string, ExerciseVisual> = {
     slug: "barbell-standing-overhead-press",
     target: "Hombros",
     mediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Military_Press/0.jpg",
-    secondaryMediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Military_Press/1.jpg"
+    secondaryMediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Military_Press/1.jpg",
+    videoUrl: "https://cdn.exerciseapi.dev/v1/Standing_Military_Press.mp4"
   },
   "PRESS MILITAR SENTADA": {
     name: "Seated Overhead Press",
@@ -47,21 +50,24 @@ export const EXERCISE_MEDIA: Record<string, ExerciseVisual> = {
     slug: "barbell-deadlift",
     target: "Cadena Posterior / Espalda",
     mediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Deadlift/0.jpg",
-    secondaryMediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Deadlift/1.jpg"
+    secondaryMediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Deadlift/1.jpg",
+    videoUrl: "https://cdn.exerciseapi.dev/v1/Barbell_Deadlift.mp4"
   },
   "HIP THRUST": {
     name: "Hip Thrust",
     slug: "barbell-hip-thrust",
     target: "Glúteos",
     mediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Glute_Bridge/0.jpg",
-    secondaryMediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Glute_Bridge/1.jpg"
+    secondaryMediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Glute_Bridge/1.jpg",
+    videoUrl: "https://cdn.exerciseapi.dev/v1/Barbell_Glute_Bridge.mp4"
   },
   "DOMINADAS": {
     name: "Pull Up",
     slug: "pull-up",
     target: "Dorsales",
     mediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Pullups/0.jpg",
-    secondaryMediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Pullups/1.jpg"
+    secondaryMediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Pullups/1.jpg",
+    videoUrl: "https://cdn.exerciseapi.dev/v1/Pull-Up.mp4"
   },
   "DOMINADAS SUPINAS": {
     name: "Chin Up",
@@ -96,14 +102,16 @@ export const EXERCISE_MEDIA: Record<string, ExerciseVisual> = {
     slug: "barbell-curl",
     target: "Bíceps",
     mediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Curl/0.jpg",
-    secondaryMediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Curl/1.jpg"
+    secondaryMediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Curl/1.jpg",
+    videoUrl: "https://cdn.exerciseapi.dev/v1/Barbell_Curl.mp4"
   },
   "DEAD CURL": {
     name: "Dead Curl",
     slug: "dead-curl",
     target: "Bíceps",
     mediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Curl/0.jpg",
-    secondaryMediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Curl/1.jpg"
+    secondaryMediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Curl/1.jpg",
+    videoUrl: "https://cdn.exerciseapi.dev/v1/Barbell_Curl.mp4"
   },
   "FONDOS TRICEPS": {
     name: "Chest Dips",
@@ -131,21 +139,24 @@ export const EXERCISE_MEDIA: Record<string, ExerciseVisual> = {
     slug: "leg-press-45",
     target: "Cuádriceps",
     mediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Leg_Press/0.jpg",
-    secondaryMediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Leg_Press/1.jpg"
+    secondaryMediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Leg_Press/1.jpg",
+    videoUrl: "https://cdn.exerciseapi.dev/v1/Leg_Press.mp4"
   },
   "LEG EXTENSION": {
     name: "Leg Extension",
     slug: "leg-extension",
     target: "Cuádriceps",
     mediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Leg_Extensions/0.jpg",
-    secondaryMediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Leg_Extensions/1.jpg"
+    secondaryMediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Leg_Extensions/1.jpg",
+    videoUrl: "https://cdn.exerciseapi.dev/v1/Leg_Extensions.mp4"
   },
   "LEG CURL": {
     name: "Leg Curl",
     slug: "leg-curl",
     target: "Isquiosurales",
     mediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Lying_Leg_Curls/0.jpg",
-    secondaryMediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Lying_Leg_Curls/1.jpg"
+    secondaryMediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Lying_Leg_Curls/1.jpg",
+    videoUrl: "https://cdn.exerciseapi.dev/v1/Lying_Leg_Curls.mp4"
   },
   "HIPEREXTENSION": {
     name: "Hyperextension",
@@ -173,28 +184,32 @@ export const EXERCISE_MEDIA: Record<string, ExerciseVisual> = {
     slug: "reverse-crunch",
     target: "Abdominales",
     mediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Reverse_Crunch/0.jpg",
-    secondaryMediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Reverse_Crunch/1.jpg"
+    secondaryMediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Reverse_Crunch/1.jpg",
+    videoUrl: "https://cdn.exerciseapi.dev/v1/Reverse_Crunch.mp4"
   },
   "CRUNCH INVERTIDO": {
     name: "Reverse Crunch",
     slug: "reverse-crunch",
     target: "Abdominales",
     mediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Reverse_Crunch/0.jpg",
-    secondaryMediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Reverse_Crunch/1.jpg"
+    secondaryMediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Reverse_Crunch/1.jpg",
+    videoUrl: "https://cdn.exerciseapi.dev/v1/Reverse_Crunch.mp4"
   },
   "ELEVACIONES LATERALES": {
     name: "Lateral Raise",
     slug: "dumbbell-lateral-raise",
     target: "Deltoides Lateral",
     mediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Side_Lateral_Raise/0.jpg",
-    secondaryMediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Side_Lateral_Raise/1.jpg"
+    secondaryMediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Side_Lateral_Raise/1.jpg",
+    videoUrl: "https://cdn.exerciseapi.dev/v1/Side_Lateral_Raise.mp4"
   },
   "PRESS con MANCUERNAS": {
     name: "Dumbbell Shoulder Press",
     slug: "dumbbell-shoulder-press",
     target: "Hombros",
     mediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Shoulder_Press/0.jpg",
-    secondaryMediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Shoulder_Press/1.jpg"
+    secondaryMediaUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Shoulder_Press/1.jpg",
+    videoUrl: "https://cdn.exerciseapi.dev/v1/Dumbbell_Shoulder_Press.mp4"
   }
 };
 
