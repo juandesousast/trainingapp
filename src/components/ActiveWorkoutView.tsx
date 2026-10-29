@@ -135,9 +135,9 @@ export const ActiveWorkoutView: React.FC = () => {
   );
 
   return (
-    <div className="pb-44 pt-2 max-w-md mx-auto px-4 pb-[calc(11rem+env(safe-area-inset-bottom,0px))]">
-      {/* Encabezado del Entreno Activo */}
-      <div className="sticky top-14 z-30 bg-zinc-950/95 backdrop-blur-md pt-2 pb-3 border-b border-zinc-800/80 mb-4 flex items-center justify-between">
+    <div className="pb-44 max-w-md mx-auto pb-[calc(11rem+env(safe-area-inset-bottom,0px))]">
+      {/* Encabezado Sticky del Entreno Activo */}
+      <div className="sticky top-0 z-40 w-full bg-zinc-950/95 backdrop-blur-md border-b border-zinc-900 py-3 px-4 mb-3 flex items-center justify-between">
         <button
           onClick={() => finishWorkout()}
           className="min-h-[44px] px-2 flex items-center gap-1 text-xs font-extrabold text-zinc-400 hover:text-white transition-colors active:scale-95 uppercase tracking-tight"
@@ -165,18 +165,18 @@ export const ActiveWorkoutView: React.FC = () => {
       </div>
 
       {/* Lista de Bloques y Ejercicios */}
-      <div className="space-y-6">
+      <div className="space-y-6 px-4 pt-2">
         {groupedExercises.map((group, groupIdx) => (
           <div
             key={groupIdx}
             className={cn(
               "rounded-3xl transition-all",
               group.isGroup
-                ? "bg-zinc-950 border-2 border-dashed p-3 space-y-4"
+                ? "bg-zinc-950/40 border border-zinc-800/80 p-3.5 space-y-4"
                 : "space-y-4"
             )}
             style={{
-              borderColor: group.isGroup ? `${accentColor}55` : undefined,
+              borderColor: group.isGroup ? `${accentColor}40` : undefined,
             }}
           >
             {/* Cabecera especial para Jump Set / Circuito */}
@@ -306,15 +306,15 @@ export const ActiveWorkoutView: React.FC = () => {
                       <div
                         key={set.id}
                         className={cn(
-                          "rounded-2xl p-3 border transition-all duration-300",
+                          "rounded-2xl p-2.5 sm:p-3 border transition-all duration-300",
                           set.isCompleted
                             ? "bg-zinc-950/90 border-emerald-500/60 shadow-[0_0_20px_-3px_rgba(16,185,129,0.3)] ring-1 ring-emerald-500/30"
                             : "bg-zinc-950 border-zinc-800 hover:border-zinc-700"
                         )}
                       >
-                        <div className="flex items-center justify-between gap-2">
+                        <div className="grid grid-cols-[36px_1fr_1fr_48px] items-center gap-2">
                           {/* Número de Serie */}
-                          <div className="flex flex-col items-center justify-center w-7">
+                          <div className="flex flex-col items-center justify-center">
                             <span className="text-xs font-mono tabular-nums font-black text-zinc-400">
                               S{set.setNumber}
                             </span>
@@ -324,13 +324,13 @@ export const ActiveWorkoutView: React.FC = () => {
                           </div>
 
                           {/* Control KILOS (Cero-Teclado) */}
-                          <div className="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl p-1 flex items-center justify-between gap-1">
+                          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-1 flex items-center justify-between gap-1 min-w-0">
                             <button
                               disabled={set.isCompleted}
                               onClick={() =>
                                 adjustWeight(workoutExercise.id, setIndex, -2.5)
                               }
-                              className="min-w-[44px] min-h-[44px] rounded-lg bg-zinc-800 hover:bg-zinc-700 font-black text-lg text-zinc-100 flex items-center justify-center transition-all duration-200 active:scale-95 disabled:opacity-30 shrink-0"
+                              className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-zinc-800 hover:bg-zinc-700 font-bold text-base text-zinc-100 flex items-center justify-center p-0 transition-all duration-200 active:scale-95 disabled:opacity-30 shrink-0"
                             >
                               -
                             </button>
@@ -342,18 +342,18 @@ export const ActiveWorkoutView: React.FC = () => {
                                   weightKg: set.actualWeightKg,
                                 })
                               }
-                              className="text-center px-1 cursor-pointer hover:opacity-80 transition-opacity active:scale-95 flex-1 min-w-0"
+                              className="text-center px-0.5 cursor-pointer hover:opacity-80 transition-opacity active:scale-95 flex-1 min-w-0"
                               title="Pulsar para calcular discos y ver aproximación"
                             >
-                              <span className="text-sm font-mono tabular-nums font-black text-white block">
-                                {set.actualWeightKg}
-                                <span className="text-[10px] text-zinc-400 ml-0.5">kg</span>
-                              </span>
-                              {set.historicalWeightKg && (
-                                <span className="text-[9px] font-mono tabular-nums text-zinc-400 block -mt-0.5 truncate">
+                              <div className="font-mono tabular-nums text-lg font-bold text-white whitespace-nowrap leading-none flex items-baseline justify-center gap-0.5">
+                                <span>{set.actualWeightKg}</span>
+                                <span className="text-[10px] text-zinc-400 font-normal">kg</span>
+                              </div>
+                              {set.historicalWeightKg ? (
+                                <span className="text-[11px] font-mono tabular-nums text-zinc-400 block mt-0.5 whitespace-nowrap truncate">
                                   ant: {set.historicalWeightKg}kg
                                 </span>
-                              )}
+                              ) : null}
                             </div>
 
                             <button
@@ -361,34 +361,34 @@ export const ActiveWorkoutView: React.FC = () => {
                               onClick={() =>
                                 adjustWeight(workoutExercise.id, setIndex, 2.5)
                               }
-                              className="min-w-[44px] min-h-[44px] rounded-lg bg-zinc-800 hover:bg-zinc-700 font-black text-lg text-zinc-100 flex items-center justify-center transition-all duration-200 active:scale-95 disabled:opacity-30 shrink-0"
+                              className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-zinc-800 hover:bg-zinc-700 font-bold text-base text-zinc-100 flex items-center justify-center p-0 transition-all duration-200 active:scale-95 disabled:opacity-30 shrink-0"
                             >
                               +
                             </button>
                           </div>
 
                           {/* Control REPS (Cero-Teclado) */}
-                          <div className="w-[116px] bg-zinc-900 border border-zinc-800 rounded-xl p-1 flex items-center justify-between gap-1 shrink-0">
+                          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-1 flex items-center justify-between gap-1 min-w-0">
                             <button
                               disabled={set.isCompleted}
                               onClick={() =>
                                 adjustReps(workoutExercise.id, setIndex, -1)
                               }
-                              className="min-w-[44px] min-h-[44px] rounded-lg bg-zinc-800 hover:bg-zinc-700 font-black text-lg text-zinc-100 flex items-center justify-center transition-all duration-200 active:scale-95 disabled:opacity-30 shrink-0"
+                              className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-zinc-800 hover:bg-zinc-700 font-bold text-base text-zinc-100 flex items-center justify-center p-0 transition-all duration-200 active:scale-95 disabled:opacity-30 shrink-0"
                             >
                               -
                             </button>
 
                             <div className="text-center px-0.5 flex-1 min-w-0">
-                              <span className="text-sm font-mono tabular-nums font-black text-white block">
-                                {set.actualReps}
-                                <span className="text-[10px] text-zinc-400 ml-0.5">rep</span>
-                              </span>
-                              {set.historicalReps && (
-                                <span className="text-[9px] font-mono tabular-nums text-zinc-400 block -mt-0.5 truncate">
+                              <div className="font-mono tabular-nums text-lg font-bold text-white whitespace-nowrap leading-none flex items-baseline justify-center gap-0.5">
+                                <span>{set.actualReps}</span>
+                                <span className="text-[10px] text-zinc-400 font-normal">rep</span>
+                              </div>
+                              {set.historicalReps ? (
+                                <span className="text-[11px] font-mono tabular-nums text-zinc-400 block mt-0.5 whitespace-nowrap truncate">
                                   ant: {set.historicalReps}r
                                 </span>
-                              )}
+                              ) : null}
                             </div>
 
                             <button
@@ -396,7 +396,7 @@ export const ActiveWorkoutView: React.FC = () => {
                               onClick={() =>
                                 adjustReps(workoutExercise.id, setIndex, 1)
                               }
-                              className="min-w-[44px] min-h-[44px] rounded-lg bg-zinc-800 hover:bg-zinc-700 font-black text-lg text-zinc-100 flex items-center justify-center transition-all duration-200 active:scale-95 disabled:opacity-30 shrink-0"
+                              className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-zinc-800 hover:bg-zinc-700 font-bold text-base text-zinc-100 flex items-center justify-center p-0 transition-all duration-200 active:scale-95 disabled:opacity-30 shrink-0"
                             >
                               +
                             </button>
@@ -414,7 +414,7 @@ export const ActiveWorkoutView: React.FC = () => {
                               )
                             }
                             className={cn(
-                              "min-w-[44px] min-h-[44px] rounded-xl flex items-center justify-center transition-all duration-200 active:scale-90 shrink-0",
+                              "w-11 h-11 min-w-[44px] rounded-xl flex items-center justify-center transition-all duration-200 active:scale-90 shrink-0 justify-self-center",
                               set.isCompleted
                                 ? "bg-emerald-400 text-black shadow-lg shadow-emerald-500/25 font-black"
                                 : "bg-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-700"

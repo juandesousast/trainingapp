@@ -82,13 +82,20 @@ export const ExerciseVisualizer: React.FC<ExerciseVisualizerProps> = ({
         className || ""
       }`}
     >
-      {/* Selector de Modo Superior: TEMPO vs TÉCNICA */}
-      <div className="absolute top-2.5 left-3.5 z-20 flex items-center gap-2 pointer-events-auto">
-        <span className="text-[9px] font-mono font-black text-zinc-400 tracking-wider uppercase">
-          BIOMECÁNICA
-        </span>
+      {/* Cabecera Interna Ordenada: Datos Biomecánicos + Selector TEMPO / TÉCNICA */}
+      <div className="absolute top-3 left-3.5 right-3.5 z-20 flex items-start justify-between gap-2 pointer-events-auto">
+        {/* Izquierda: Disposición vertical ordenada sin solapamientos */}
+        <div className="flex flex-col gap-0.5 min-w-0 pr-2">
+          <span className="text-[10px] font-mono tracking-wider uppercase text-zinc-500 truncate">
+            BIOMECÁNICA · {muscleGroup || "FUERZA BIIO"}
+          </span>
+          <h4 className="text-xs font-semibold text-zinc-300 uppercase tracking-tight truncate">
+            {exerciseName}
+          </h4>
+        </div>
 
-        <div className="inline-flex items-center rounded-full bg-zinc-950/85 p-0.5 border border-zinc-800 shadow-md backdrop-blur-md">
+        {/* Derecha: Píldoras Selectoras TEMPO / TÉCNICA */}
+        <div className="inline-flex items-center rounded-full bg-zinc-950/90 p-0.5 border border-zinc-800 shadow-md backdrop-blur-md shrink-0">
           <button
             type="button"
             onClick={(e) => {
@@ -96,7 +103,7 @@ export const ExerciseVisualizer: React.FC<ExerciseVisualizerProps> = ({
               handleModeChange("tempo");
             }}
             className={cn(
-              "px-2 py-0.5 rounded-full text-[9px] font-mono font-bold tracking-wider transition-all",
+              "px-2.5 py-1 rounded-full text-[9px] font-mono font-bold tracking-wider transition-all",
               viewMode === "tempo"
                 ? "bg-zinc-800 text-white shadow-sm"
                 : "text-zinc-500 hover:text-zinc-300"
@@ -112,7 +119,7 @@ export const ExerciseVisualizer: React.FC<ExerciseVisualizerProps> = ({
               handleModeChange("tecnica");
             }}
             className={cn(
-              "px-2 py-0.5 rounded-full text-[9px] font-mono font-bold tracking-wider transition-all",
+              "px-2.5 py-1 rounded-full text-[9px] font-mono font-bold tracking-wider transition-all",
               viewMode === "tecnica"
                 ? "bg-zinc-800 text-white shadow-sm"
                 : "text-zinc-500 hover:text-zinc-300"

@@ -247,44 +247,77 @@ export const ExerciseComposition: React.FC<ExerciseCompositionProps> = ({
         }}
       />
 
-      {/* 2. HUD SUPERIOR (Datos del Ejercicio y Fase) */}
+      {/* 2. GRADIENTE HUD OSCURO SUPERIOR E INFERIOR */}
       <div
         style={{
           position: "absolute",
-          top: 12,
+          inset: 0,
+          background:
+            "linear-gradient(180deg, rgba(9,9,11,0.85) 0%, rgba(9,9,11,0.05) 30%, rgba(9,9,11,0.1) 60%, rgba(9,9,11,0.95) 100%)",
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* 3. TELEMETRÍA INFERIOR: NOTAS TÉCNICAS Y FASE ACTIVA */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 38,
           left: 14,
           right: 14,
           display: "flex",
+          alignItems: "center",
           justifyContent: "space-between",
-          alignItems: "flex-start",
+          gap: 6,
+          transform: `translateY(${(1 - noteEntrance) * 8}px)`,
+          opacity: noteEntrance,
         }}
       >
-        <div>
-          <div style={{ height: 16 }} />
-          <h4
-            style={{
-              fontSize: 15,
-              fontWeight: 900,
-              textTransform: "uppercase",
-              color: "#FFFFFF",
-              letterSpacing: -0.5,
-              margin: 0,
-            }}
-          >
-            {exerciseName}
-          </h4>
-          <span
-            style={{
-              fontSize: 9,
-              fontFamily: "monospace",
-              fontWeight: 700,
-              color: "#71717A",
-              textTransform: "uppercase",
-              letterSpacing: 0.5,
-            }}
-          >
-            {muscleGroup}
-          </span>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
+          {notes && (
+            <div
+              style={{
+                backgroundColor: "rgba(24, 24, 27, 0.9)",
+                border: "1px solid rgba(251, 191, 36, 0.5)",
+                borderRadius: 10,
+                padding: "3px 8px",
+                display: "flex",
+                alignItems: "center",
+                gap: 5,
+                boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
+              }}
+            >
+              <span style={{ fontSize: 10 }}>⚠️</span>
+              <span
+                style={{
+                  fontSize: 9,
+                  fontWeight: 700,
+                  color: "#FDE68A",
+                  letterSpacing: -0.2,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {notes}
+              </span>
+            </div>
+          )}
+
+          {isCluster && (
+            <div
+              style={{
+                backgroundColor: themeAccent,
+                color: "#000000",
+                borderRadius: 10,
+                padding: "3px 6px",
+                fontSize: 8,
+                fontWeight: 900,
+                fontFamily: "monospace",
+                letterSpacing: 0.5,
+              }}
+            >
+              CLUSTER
+            </div>
+          )}
         </div>
 
         {/* Indicador de Fase Activa en Vivo */}
@@ -292,12 +325,13 @@ export const ExerciseComposition: React.FC<ExerciseCompositionProps> = ({
           style={{
             backgroundColor: "rgba(24, 24, 27, 0.9)",
             border: `1px solid ${themeAccent}55`,
-            borderRadius: 12,
-            padding: "4px 8px",
+            borderRadius: 10,
+            padding: "3px 8px",
             textAlign: "right",
+            flexShrink: 0,
           }}
         >
-          <div
+          <span
             style={{
               fontSize: 9,
               fontFamily: "monospace",
@@ -307,77 +341,9 @@ export const ExerciseComposition: React.FC<ExerciseCompositionProps> = ({
             }}
           >
             ● {currentPhaseName}
-          </div>
-          <div
-            style={{
-              fontSize: 8,
-              color: "#D4D4D8",
-              fontWeight: 600,
-            }}
-          >
-            {currentPhaseDesc}
-          </div>
+          </span>
         </div>
       </div>
-
-      {/* 3. BADGE DE NOTA TÉCNICA DINÁMICA DEL EXCEL */}
-      {notes && (
-        <div
-          style={{
-            position: "absolute",
-            bottom: 44,
-            left: 14,
-            right: 14,
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            transform: `translateY(${(1 - noteEntrance) * 8}px)`,
-            opacity: noteEntrance,
-          }}
-        >
-          <div
-            style={{
-              backgroundColor: "rgba(24, 24, 27, 0.9)",
-              border: "1px solid rgba(251, 191, 36, 0.5)",
-              borderRadius: 10,
-              padding: "4px 10px",
-              display: "flex",
-              alignItems: "center",
-              gap: 5,
-              boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
-            }}
-          >
-            <span style={{ fontSize: 11 }}>⚠️</span>
-            <span
-              style={{
-                fontSize: 10,
-                fontWeight: 700,
-                color: "#FDE68A",
-                letterSpacing: -0.2,
-              }}
-            >
-              {notes}
-            </span>
-          </div>
-
-          {isCluster && (
-            <div
-              style={{
-                backgroundColor: themeAccent,
-                color: "#000000",
-                borderRadius: 10,
-                padding: "4px 8px",
-                fontSize: 9,
-                fontWeight: 900,
-                fontFamily: "monospace",
-                letterSpacing: 0.5,
-              }}
-            >
-              CLUSTER SET
-            </div>
-          )}
-        </div>
-      )}
 
       {/* 4. BARRA DE TEMPO CINÉTICA EN 4 FASES */}
       <div

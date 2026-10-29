@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useProfileStore } from "@/stores/useProfileStore";
+import { useWorkoutSessionStore } from "@/stores/useWorkoutSessionStore";
 import { Flame, CheckCircle2, LogOut, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -26,8 +27,10 @@ export const Header: React.FC = () => {
     }
   }, [pathname, initAuthSession]);
 
-  // Si estamos en la página de login, no mostrar la cabecera
-  if (pathname === "/login") {
+  const { isLiveSession } = useWorkoutSessionStore();
+
+  // Si estamos en la página de login o en entrenamiento activo, no mostrar la cabecera global
+  if (pathname === "/login" || isLiveSession) {
     return null;
   }
 
