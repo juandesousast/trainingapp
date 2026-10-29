@@ -3,6 +3,7 @@ import { Workout, Mesocycle, LoggedSet } from "@/lib/types";
 import { soundEngine } from "@/lib/audio";
 import { supabase } from "@/lib/supabase";
 import { useProfileStore } from "@/stores/useProfileStore";
+import { useMesocyclesStore } from "@/stores/useMesocyclesStore";
 
 interface WorkoutSessionState {
   activeMesocycle: Mesocycle | null;
@@ -34,6 +35,7 @@ interface WorkoutSessionState {
   // Acciones
   startWorkout: (mesocycle: Mesocycle, workout: Workout) => void;
   finishWorkout: (cooldownInfo?: { cooldownType: string; durationMinutes: number }) => Promise<void>;
+  cancelWorkout: () => void;
   setCurrentExerciseIndex: (index: number) => void;
 
   // Cero-teclado
@@ -188,11 +190,21 @@ export const useWorkoutSessionStore = create<WorkoutSessionState>((set, get) => 
           exposure_number: activeMesocycle.currentExposure || 1,
           started_at: startedAt,
           completed_at: completedAt,
+          completed: true,
           session_rpe: 8.0,
           notes: cooldownInfo
             ? `Enfriamiento: ${cooldownInfo.cooldownType} (${cooldownInfo.durationMinutes} min)`
             : "Entrenamiento finalizado",
         });
+
+        // Avanzar la exposición del mesociclo activo (ej. 1º a 2º de 12)
+        useMesocyclesStore
+          .getState()
+          .advanceExposure(
+            profile.slug,
+            activeMesocycle.number,
+            activeMesocycle.totalExposures
+          );
 
         // Refrescar estadísticas reales en Supabase
         await useProfileStore.getState().refreshStats();
@@ -207,6 +219,20 @@ export const useWorkoutSessionStore = create<WorkoutSessionState>((set, get) => 
       activeMesocycle: null,
       isResting: false,
       isClusterActive: false,
+      setsByExercise: {},
+    });
+  },
+
+  cancelWorkout: () => {
+    get().stopRestTimer();
+    get().stopClusterTimer();
+    set({
+      isLiveSession: false,
+      activeWorkout: null,
+      activeMesocycle: null,
+      isResting: false,
+      isClusterActive: false,
+      setsByExercise: {},
     });
   },
 

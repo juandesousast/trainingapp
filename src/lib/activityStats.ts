@@ -97,8 +97,9 @@ export async function fetchUserActivityStats(
     // 1. Consultar sesiones completadas en Supabase con filtro estricto por user_id
     const { data: workoutsData, error: workoutsError } = await supabase
       .from("workout_sessions")
-      .select("id, completed_at, started_at")
+      .select("id, completed_at, started_at, completed")
       .eq("user_id", userId)
+      .eq("completed", true)
       .not("completed_at", "is", null);
 
     if (workoutsError) {

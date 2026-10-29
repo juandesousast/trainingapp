@@ -34,6 +34,7 @@ export const ActiveWorkoutView: React.FC = () => {
     adjustReps,
     toggleSetCompleted,
     finishWorkout,
+    cancelWorkout,
     isResting,
     restTimeRemaining,
     restTotalSeconds,
@@ -74,6 +75,10 @@ export const ActiveWorkoutView: React.FC = () => {
 
   // Estado para el modal de Vuelta a la Calma
   const [isCooldownOpen, setIsCooldownOpen] = useState(false);
+
+  // Estados para diálogos de confirmación de salida y alerta de series mínimas
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [showNoSetsAlert, setShowNoSetsAlert] = useState(false);
 
   if (!activeWorkout || !activeMesocycle) return null;
 
@@ -134,12 +139,28 @@ export const ActiveWorkoutView: React.FC = () => {
     0
   );
 
+  const handleVolverClick = () => {
+    if (completedSetsCount > 0) {
+      setShowExitConfirm(true);
+    } else {
+      cancelWorkout();
+    }
+  };
+
+  const handleTerminarClick = () => {
+    if (completedSetsCount === 0) {
+      setShowNoSetsAlert(true);
+      return;
+    }
+    setIsCooldownOpen(true);
+  };
+
   return (
     <div className="pb-44 max-w-md mx-auto pb-[calc(11rem+env(safe-area-inset-bottom,0px))]">
       {/* Encabezado Sticky del Entreno Activo */}
       <div className="sticky top-0 z-40 w-full bg-zinc-950/95 backdrop-blur-md border-b border-zinc-900 py-3 px-4 mb-3 flex items-center justify-between">
         <button
-          onClick={() => finishWorkout()}
+          onClick={handleVolverClick}
           className="min-h-[44px] px-2 flex items-center gap-1 text-xs font-extrabold text-zinc-400 hover:text-white transition-colors active:scale-95 uppercase tracking-tight"
         >
           <ChevronLeft className="w-4 h-4" />
@@ -156,7 +177,7 @@ export const ActiveWorkoutView: React.FC = () => {
         </div>
 
         <button
-          onClick={() => setIsCooldownOpen(true)}
+          onClick={handleTerminarClick}
           className="min-h-[44px] px-4 rounded-full text-xs font-black uppercase text-black font-mono transition-all duration-200 active:scale-95 shadow-md flex items-center justify-center"
           style={{ backgroundColor: accentColor }}
         >
@@ -570,6 +591,94 @@ export const ActiveWorkoutView: React.FC = () => {
         totalVolumeKg={totalVolumeKg}
         completedSetsCount={completedSetsCount}
       />
+
+      {/* Modal de confirmación al salir sin terminar con series marcadas */}
+      <AnimatePresence>
+        {showExitConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 8 }}
+              transition={{ duration: 0.2 }}
+              className="w-full max-w-sm bg-zinc-950 border border-zinc-800 rounded-3xl p-6 shadow-2xl space-y-4"
+            >
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
+                  <AlertCircle className="w-5 h-5" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-base font-black text-white uppercase tracking-tight">
+                    ¿Salir del entrenamiento?
+                  </h3>
+                  <p className="text-xs text-zinc-400 leading-relaxed">
+                    El progreso no completado no se guardará como sesión finalizada.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-2.5 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowExitConfirm(false)}
+                  className="min-h-[48px] flex-1 py-3 rounded-2xl text-xs font-bold uppercase tracking-wider bg-zinc-900 text-zinc-300 hover:bg-zinc-800 transition-all duration-200 active:scale-95 flex items-center justify-center"
+                >
+                  Continuar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowExitConfirm(false);
+                    cancelWorkout();
+                  }}
+                  className="min-h-[48px] flex-1 py-3 rounded-2xl text-xs font-bold uppercase tracking-wider bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 transition-all duration-200 active:scale-95 flex items-center justify-center"
+                >
+                  Salir sin guardar
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Modal aviso cuando se pulsa Terminar sin haber completado series */}
+      <AnimatePresence>
+        {showNoSetsAlert && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 8 }}
+              transition={{ duration: 0.2 }}
+              className="w-full max-w-sm bg-zinc-950 border border-zinc-800 rounded-3xl p-6 shadow-2xl space-y-4"
+            >
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
+                  <AlertCircle className="w-5 h-5" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-base font-black text-white uppercase tracking-tight">
+                    Sin series completadas
+                  </h3>
+                  <p className="text-xs text-zinc-400 leading-relaxed">
+                    Debes completar al menos una serie con el botón ✓ para guardar la sesión. Si deseas salir sin guardar, pulsa Volver.
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowNoSetsAlert(false)}
+                  className="w-full min-h-[48px] py-3 rounded-2xl text-xs font-bold uppercase tracking-wider bg-zinc-900 text-zinc-300 hover:bg-zinc-800 transition-all duration-200 active:scale-95 flex items-center justify-center"
+                >
+                  Entendido
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

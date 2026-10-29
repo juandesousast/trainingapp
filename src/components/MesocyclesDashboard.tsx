@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useProfileStore } from "@/stores/useProfileStore";
 import { useWorkoutSessionStore } from "@/stores/useWorkoutSessionStore";
 import { useMesocyclesStore } from "@/stores/useMesocyclesStore";
@@ -18,11 +18,16 @@ import { cn } from "@/lib/utils";
 export const MesocyclesDashboard: React.FC = () => {
   const { activeProfile } = useProfileStore();
   const { startWorkout } = useWorkoutSessionStore();
-  const { activeMesoNumberByProfile, setActiveMesoNumber } = useMesocyclesStore();
+  const { activeMesoNumberByProfile, setActiveMesoNumber, getExposure, exposuresByProfileAndMeso } = useMesocyclesStore();
   const accentColor = activeProfile.themeAccent;
 
   const activeMesoNumber = activeMesoNumberByProfile[activeProfile.slug] || 1;
-  const mesocycles = getMesocyclesForProfile(activeProfile.slug);
+  const mesocycles = useMemo(() => {
+    return getMesocyclesForProfile(activeProfile.slug).map((m) => ({
+      ...m,
+      currentExposure: getExposure(activeProfile.slug, m.number, m.currentExposure),
+    }));
+  }, [activeProfile.slug, getExposure, exposuresByProfileAndMeso]);
 
   const activeMeso =
     mesocycles.find((m) => m.number === activeMesoNumber) || mesocycles[0];
