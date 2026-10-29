@@ -208,36 +208,20 @@ export const ActiveWorkoutView: React.FC = () => {
                   key={workoutExercise.id}
                   className="bg-zinc-900/80 border border-zinc-800 rounded-3xl p-4 shadow-lg backdrop-blur-md"
                 >
-                  {/* Cabecera de Ejercicio */}
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-mono font-black text-zinc-400">
-                          #{workoutExercise.orderIndex}
-                        </span>
-                        <h3 className="text-base font-black text-white uppercase tracking-tight">
-                          {workoutExercise.exercise.name}
-                        </h3>
-                      </div>
-
-                      {/* Notas Técnicas BIIO */}
-                      {workoutExercise.technicalNotes && (
-                        <div className="mt-1 flex items-center gap-1.5 text-xs text-amber-400 font-medium">
-                          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                          <span>{workoutExercise.technicalNotes}</span>
-                        </div>
-                      )}
-
-                      {/* Tempo */}
-                      {workoutExercise.tempo && (
-                        <span className="inline-block mt-1 text-[11px] font-mono text-zinc-400">
-                          Tempo Cadencia: <strong className="text-zinc-200">{workoutExercise.tempo}</strong>
-                        </span>
-                      )}
+                  {/* Cabecera de Ejercicio Resistente a Nombres Largos */}
+                  <div className="mb-3">
+                    {/* Fila 1: Número y Nombre del Ejercicio con salto limpio */}
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-xs font-mono font-black text-zinc-400 shrink-0">
+                        #{workoutExercise.orderIndex}
+                      </span>
+                      <h3 className="text-lg font-black text-white uppercase tracking-tight leading-tight">
+                        {workoutExercise.exercise.name}
+                      </h3>
                     </div>
 
-                    {/* Botones de Utilidad: Discos & Calculadora M&R */}
-                    <div className="flex items-center gap-1.5">
+                    {/* Fila 2: Botones de Utilidad (Discos, M&R, Guía) */}
+                    <div className="flex items-center gap-1.5 mt-2">
                       <button
                         onClick={() =>
                           setPlateDrawerData({
@@ -245,7 +229,7 @@ export const ActiveWorkoutView: React.FC = () => {
                             weightKg: sets[0]?.actualWeightKg || 60,
                           })
                         }
-                        className="min-h-[44px] px-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white flex items-center gap-1.5 text-[11px] font-mono font-bold transition-all duration-200 active:scale-95"
+                        className="h-8 px-2.5 text-xs gap-1 rounded-lg bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white flex items-center font-mono font-bold transition-all duration-200 active:scale-95"
                         title="Calculadora de Discos y Calentamiento"
                       >
                         <Disc className="w-3.5 h-3.5" style={{ color: accentColor }} />
@@ -261,7 +245,7 @@ export const ActiveWorkoutView: React.FC = () => {
                             initialWeight: sets[0]?.actualWeightKg,
                           })
                         }
-                        className="min-h-[44px] px-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white flex items-center gap-1.5 text-[11px] font-mono font-bold transition-all duration-200 active:scale-95"
+                        className="h-8 px-2.5 text-xs gap-1 rounded-lg bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white flex items-center font-mono font-bold transition-all duration-200 active:scale-95"
                         title="Calcular 1RM y Tablas M&R"
                       >
                         <Calculator className="w-3.5 h-3.5" style={{ color: accentColor }} />
@@ -277,13 +261,27 @@ export const ActiveWorkoutView: React.FC = () => {
                             technicalNotes: workoutExercise.technicalNotes,
                           })
                         }
-                        className="min-h-[44px] px-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white flex items-center gap-1.5 text-[11px] font-mono font-bold transition-all duration-200 active:scale-95"
+                        className="h-8 px-2.5 text-xs gap-1 rounded-lg bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white flex items-center font-mono font-bold transition-all duration-200 active:scale-95"
                         title="Guía Técnica & Biomecánica"
                       >
                         <BookOpen className="w-3.5 h-3.5" style={{ color: accentColor }} />
                         <span>Guía</span>
                       </button>
                     </div>
+
+                    {/* Notas Técnicas BIIO y Tempo */}
+                    {workoutExercise.technicalNotes && (
+                      <div className="mt-2 flex items-center gap-1.5 text-xs text-amber-400 font-medium">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                        <span>{workoutExercise.technicalNotes}</span>
+                      </div>
+                    )}
+
+                    {workoutExercise.tempo && (
+                      <span className="inline-block mt-1 text-[11px] font-mono text-zinc-400">
+                        Tempo Cadencia: <strong className="text-zinc-200">{workoutExercise.tempo}</strong>
+                      </span>
+                    )}
                   </div>
 
                   {/* Visualizador Biomecánico Remotion con HUD y Tempo */}
@@ -301,128 +299,134 @@ export const ActiveWorkoutView: React.FC = () => {
                   </div>
 
                   {/* Tabla de Series Cero-Teclado */}
-                  <div className="space-y-2.5">
+                  <div className="space-y-2">
                     {sets.map((set, setIndex) => (
                       <div
                         key={set.id}
                         className={cn(
-                          "rounded-2xl p-2.5 sm:p-3 border transition-all duration-300",
+                          "grid grid-cols-[30px_1fr_1fr_42px] items-center gap-2 px-3 py-2.5 rounded-xl border transition-all duration-300",
                           set.isCompleted
                             ? "bg-zinc-950/90 border-emerald-500/60 shadow-[0_0_20px_-3px_rgba(16,185,129,0.3)] ring-1 ring-emerald-500/30"
-                            : "bg-zinc-950 border-zinc-800 hover:border-zinc-700"
+                            : "bg-zinc-900/60 border border-zinc-800/80 hover:border-zinc-700"
                         )}
                       >
-                        <div className="grid grid-cols-[36px_1fr_1fr_48px] items-center gap-2">
-                          {/* Número de Serie */}
-                          <div className="flex flex-col items-center justify-center">
-                            <span className="text-xs font-mono tabular-nums font-black text-zinc-400">
-                              S{set.setNumber}
-                            </span>
-                            {set.isCompleted && (
-                              <Check className="w-3.5 h-3.5 text-emerald-400 mt-0.5" />
-                            )}
-                          </div>
+                        {/* Columna 1: Label de Serie */}
+                        <div className="flex flex-col items-center justify-center">
+                          <span className="font-mono font-bold text-xs text-zinc-400">
+                            S{set.setNumber}
+                          </span>
+                          {set.isCompleted && (
+                            <Check className="w-3.5 h-3.5 text-emerald-400 mt-0.5" />
+                          )}
+                        </div>
 
-                          {/* Control KILOS (Cero-Teclado) */}
-                          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-1 flex items-center justify-between gap-1 min-w-0">
-                            <button
-                              disabled={set.isCompleted}
-                              onClick={() =>
-                                adjustWeight(workoutExercise.id, setIndex, -2.5)
-                              }
-                              className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-zinc-800 hover:bg-zinc-700 font-bold text-base text-zinc-100 flex items-center justify-center p-0 transition-all duration-200 active:scale-95 disabled:opacity-30 shrink-0"
-                            >
-                              -
-                            </button>
-
-                            <div
-                              onClick={() =>
-                                setPlateDrawerData({
-                                  exerciseName: workoutExercise.exercise.name,
-                                  weightKg: set.actualWeightKg,
-                                })
-                              }
-                              className="text-center px-0.5 cursor-pointer hover:opacity-80 transition-opacity active:scale-95 flex-1 min-w-0"
-                              title="Pulsar para calcular discos y ver aproximación"
-                            >
-                              <div className="font-mono tabular-nums text-lg font-bold text-white whitespace-nowrap leading-none flex items-baseline justify-center gap-0.5">
-                                <span>{set.actualWeightKg}</span>
-                                <span className="text-[10px] text-zinc-400 font-normal">kg</span>
-                              </div>
-                              {set.historicalWeightKg ? (
-                                <span className="text-[11px] font-mono tabular-nums text-zinc-400 block mt-0.5 whitespace-nowrap truncate">
-                                  ant: {set.historicalWeightKg}kg
-                                </span>
-                              ) : null}
-                            </div>
-
-                            <button
-                              disabled={set.isCompleted}
-                              onClick={() =>
-                                adjustWeight(workoutExercise.id, setIndex, 2.5)
-                              }
-                              className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-zinc-800 hover:bg-zinc-700 font-bold text-base text-zinc-100 flex items-center justify-center p-0 transition-all duration-200 active:scale-95 disabled:opacity-30 shrink-0"
-                            >
-                              +
-                            </button>
-                          </div>
-
-                          {/* Control REPS (Cero-Teclado) */}
-                          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-1 flex items-center justify-between gap-1 min-w-0">
-                            <button
-                              disabled={set.isCompleted}
-                              onClick={() =>
-                                adjustReps(workoutExercise.id, setIndex, -1)
-                              }
-                              className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-zinc-800 hover:bg-zinc-700 font-bold text-base text-zinc-100 flex items-center justify-center p-0 transition-all duration-200 active:scale-95 disabled:opacity-30 shrink-0"
-                            >
-                              -
-                            </button>
-
-                            <div className="text-center px-0.5 flex-1 min-w-0">
-                              <div className="font-mono tabular-nums text-lg font-bold text-white whitespace-nowrap leading-none flex items-baseline justify-center gap-0.5">
-                                <span>{set.actualReps}</span>
-                                <span className="text-[10px] text-zinc-400 font-normal">rep</span>
-                              </div>
-                              {set.historicalReps ? (
-                                <span className="text-[11px] font-mono tabular-nums text-zinc-400 block mt-0.5 whitespace-nowrap truncate">
-                                  ant: {set.historicalReps}r
-                                </span>
-                              ) : null}
-                            </div>
-
-                            <button
-                              disabled={set.isCompleted}
-                              onClick={() =>
-                                adjustReps(workoutExercise.id, setIndex, 1)
-                              }
-                              className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-zinc-800 hover:bg-zinc-700 font-bold text-base text-zinc-100 flex items-center justify-center p-0 transition-all duration-200 active:scale-95 disabled:opacity-30 shrink-0"
-                            >
-                              +
-                            </button>
-                          </div>
-
-                          {/* Botón de Check / Completar */}
+                        {/* Columna 2: Selector de Peso */}
+                        <div className="bg-zinc-950/80 border border-zinc-800/80 rounded-xl p-1 flex items-center justify-between gap-1 min-w-0">
                           <button
+                            disabled={set.isCompleted}
                             onClick={() =>
-                              toggleSetCompleted(
-                                workoutExercise.id,
-                                setIndex,
-                                workoutExercise.restSeconds,
-                                isClusterExercise,
-                                15
-                              )
+                              adjustWeight(workoutExercise.id, setIndex, -2.5)
                             }
-                            className={cn(
-                              "w-11 h-11 min-w-[44px] rounded-xl flex items-center justify-center transition-all duration-200 active:scale-90 shrink-0 justify-self-center",
-                              set.isCompleted
-                                ? "bg-emerald-400 text-black shadow-lg shadow-emerald-500/25 font-black"
-                                : "bg-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-700"
-                            )}
+                            className="w-8 h-8 rounded-lg bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center text-zinc-200 shrink-0 font-bold text-base transition-all active:scale-95 disabled:opacity-30 p-0"
                           >
-                            <Check className="w-5 h-5 stroke-[3]" />
+                            -
+                          </button>
+
+                          <div
+                            onClick={() =>
+                              setPlateDrawerData({
+                                exerciseName: workoutExercise.exercise.name,
+                                weightKg: set.actualWeightKg,
+                              })
+                            }
+                            className="flex flex-col items-center justify-center text-center px-1 min-w-[58px] cursor-pointer hover:opacity-80 transition-opacity active:scale-95"
+                            title="Pulsar para calcular discos"
+                          >
+                            <div className="flex items-baseline justify-center gap-0.5 leading-none">
+                              <span className="font-mono font-black text-lg text-white tabular-nums leading-none">
+                                {set.actualWeightKg}
+                              </span>
+                              <span className="text-[10px] uppercase font-bold text-zinc-400 ml-0.5">
+                                kg
+                              </span>
+                            </div>
+                            {set.historicalWeightKg != null ? (
+                              <span className="text-[10px] text-zinc-400 font-mono tracking-tight leading-tight mt-0.5 whitespace-nowrap">
+                                prev: {set.historicalWeightKg}
+                              </span>
+                            ) : null}
+                          </div>
+
+                          <button
+                            disabled={set.isCompleted}
+                            onClick={() =>
+                              adjustWeight(workoutExercise.id, setIndex, 2.5)
+                            }
+                            className="w-8 h-8 rounded-lg bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center text-zinc-200 shrink-0 font-bold text-base transition-all active:scale-95 disabled:opacity-30 p-0"
+                          >
+                            +
                           </button>
                         </div>
+
+                        {/* Columna 3: Selector de Reps */}
+                        <div className="bg-zinc-950/80 border border-zinc-800/80 rounded-xl p-1 flex items-center justify-between gap-1 min-w-0">
+                          <button
+                            disabled={set.isCompleted}
+                            onClick={() =>
+                              adjustReps(workoutExercise.id, setIndex, -1)
+                            }
+                            className="w-8 h-8 rounded-lg bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center text-zinc-200 shrink-0 font-bold text-base transition-all active:scale-95 disabled:opacity-30 p-0"
+                          >
+                            -
+                          </button>
+
+                          <div className="flex flex-col items-center justify-center text-center px-1 min-w-[58px]">
+                            <div className="flex items-baseline justify-center gap-0.5 leading-none">
+                              <span className="font-mono font-black text-lg text-white tabular-nums leading-none">
+                                {set.actualReps}
+                              </span>
+                              <span className="text-[10px] uppercase font-bold text-zinc-400 ml-0.5">
+                                reps
+                              </span>
+                            </div>
+                            {set.historicalReps != null ? (
+                              <span className="text-[10px] text-zinc-400 font-mono tracking-tight leading-tight mt-0.5 whitespace-nowrap">
+                                prev: {set.historicalReps}
+                              </span>
+                            ) : null}
+                          </div>
+
+                          <button
+                            disabled={set.isCompleted}
+                            onClick={() =>
+                              adjustReps(workoutExercise.id, setIndex, 1)
+                            }
+                            className="w-8 h-8 rounded-lg bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center text-zinc-200 shrink-0 font-bold text-base transition-all active:scale-95 disabled:opacity-30 p-0"
+                          >
+                            +
+                          </button>
+                        </div>
+
+                        {/* Columna 4: Botón de Check / Completar */}
+                        <button
+                          onClick={() =>
+                            toggleSetCompleted(
+                              workoutExercise.id,
+                              setIndex,
+                              workoutExercise.restSeconds,
+                              isClusterExercise,
+                              15
+                            )
+                          }
+                          className={cn(
+                            "w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 active:scale-90 shrink-0 justify-self-center",
+                            set.isCompleted
+                              ? "bg-emerald-400 text-black shadow-lg shadow-emerald-500/25 font-black"
+                              : "bg-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-700"
+                          )}
+                        >
+                          <Check className="w-5 h-5 stroke-[3]" />
+                        </button>
                       </div>
                     ))}
                   </div>
