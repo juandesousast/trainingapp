@@ -55,6 +55,8 @@ interface WorkoutSessionState {
 
   // 1RM
   update1RM: (exerciseSlug: string, new1RM: number) => void;
+  loadUserMaxes: (profileId: string) => Promise<void>;
+  setUserMaxes: (newMaxes: Record<string, number>) => void;
 }
 
 export const useWorkoutSessionStore = create<WorkoutSessionState>((set, get) => ({
@@ -427,5 +429,42 @@ export const useWorkoutSessionStore = create<WorkoutSessionState>((set, get) => 
         [exerciseSlug]: new1RM,
       },
     }));
+  },
+
+  setUserMaxes: (newMaxes: Record<string, number>) => {
+    set((state) => ({
+      userMaxes: {
+        ...state.userMaxes,
+        ...newMaxes,
+      },
+    }));
+  },
+
+  loadUserMaxes: async (profileId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("user_maxes")
+        .select("one_rm_kg, exercises(slug)")
+        .eq("profile_id", profileId);
+
+      if (error) {
+        console.warn("Could not load user_maxes from Supabase:", error.message);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        const loaded: Record<string, number> = { ...get().userMaxes };
+        data.forEach((row: any) => {
+          const slug = row.exercises?.slug;
+          const val = Number(row.one_rm_kg);
+          if (slug && !isNaN(val) && val > 0) {
+            loaded[slug] = val;
+          }
+        });
+        set({ userMaxes: loaded });
+      }
+    } catch (err) {
+      console.warn("Error loading user maxes:", err);
+    }
   },
 }));

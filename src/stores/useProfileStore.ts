@@ -11,7 +11,7 @@ interface ProfileState {
   isLoadingStats: boolean;
   initAuthSession: () => Promise<void>;
   updateActivityStats: (streakDays: number, weeklyCompleted: number, weeklyTarget: number) => void;
-  updateProfileGoals: (targetBodyFatPct: number, targetWeightKg?: number) => Promise<void>;
+  updateProfileGoals: (targetBodyFatPct: number, targetWeightKg?: number, heightCm?: number | null) => Promise<void>;
   refreshStats: () => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -125,7 +125,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     }));
   },
 
-  updateProfileGoals: async (targetBodyFatPct: number, targetWeightKg?: number) => {
+  updateProfileGoals: async (targetBodyFatPct: number, targetWeightKg?: number, heightCm?: number | null) => {
     const { authUserId, activeProfile } = get();
 
     // Actualización optimista local
@@ -133,20 +133,25 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       activeProfile: {
         ...state.activeProfile,
         targetBodyFatPct,
-        targetWeightKg,
+        targetWeightKg: targetWeightKg ?? state.activeProfile.targetWeightKg,
+        heightCm: heightCm !== undefined ? heightCm : state.activeProfile.heightCm,
       },
     }));
 
     // Persistir en Supabase con filtro estricto por user_id
     try {
       if (authUserId) {
+        const updatePayload: Record<string, any> = {
+          target_body_fat_pct: targetBodyFatPct,
+          target_weight_kg: targetWeightKg,
+          updated_at: new Date().toISOString(),
+        };
+        if (heightCm !== undefined) {
+          updatePayload.height_cm = heightCm;
+        }
         await supabase
           .from("profiles")
-          .update({
-            target_body_fat_pct: targetBodyFatPct,
-            target_weight_kg: targetWeightKg,
-            updated_at: new Date().toISOString(),
-          })
+          .update(updatePayload)
           .eq("user_id", authUserId);
       }
     } catch (err) {

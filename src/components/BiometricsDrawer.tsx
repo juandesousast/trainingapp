@@ -18,11 +18,17 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
   onClose,
 }) => {
   const { entries, addBiometricEntry } = useBiometricsStore();
-  const { activeProfile } = useProfileStore();
+  const { activeProfile, updateProfileGoals } = useProfileStore();
   const accentColor = activeProfile.themeAccent;
   const isFemale = activeProfile.gender === "female" || activeProfile.role === "hoplita_girl";
 
   const latest = entries && entries.length > 0 ? entries[entries.length - 1] : null;
+
+  // Altura requerida si no está configurada en perfil
+  const [heightCm, setHeightCm] = useState(
+    activeProfile.heightCm ? String(activeProfile.heightCm) : ""
+  );
+  const [heightError, setHeightError] = useState(false);
 
   // Valores iniciales
   const [weightKg, setWeightKg] = useState(isFemale ? "60.0" : "82.15");
@@ -110,16 +116,39 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
           setHipCm("101");
         }
       }
+
+      if (activeProfile.heightCm) {
+        setHeightCm(String(activeProfile.heightCm));
+      } else {
+        setHeightCm("");
+      }
+      setHeightError(false);
     }
-  }, [isOpen, latest, isFemale]);
+  }, [isOpen, latest, isFemale, activeProfile.heightCm]);
 
   // Badges clínicos de salud en tiempo real
   const bmiBadge = getBMIBadge(parseFloat(bmi) || 0);
   const fatBadge = getBodyFatBadge(parseFloat(bodyFatPct) || 0, activeProfile.gender);
   const visceralBadge = getVisceralFatBadge(parseFloat(visceralFatRating) || 0);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validar altura obligatoria si no existe previamente
+    const parsedHeight = parseFloat(heightCm);
+    if (!activeProfile.heightCm && (!parsedHeight || parsedHeight < 100 || parsedHeight > 250)) {
+      setHeightError(true);
+      return;
+    }
+
+    // Persistir altura en perfil si se ha ingresado/modificado
+    if (parsedHeight && parsedHeight !== activeProfile.heightCm) {
+      await updateProfileGoals(
+        activeProfile.targetBodyFatPct,
+        activeProfile.targetWeightKg,
+        parsedHeight
+      );
+    }
 
     addBiometricEntry({
       profileId: activeProfile.id,
@@ -181,6 +210,53 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
 
           <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0 overflow-hidden">
             <div className="flex-1 overflow-y-auto px-5 pt-3 pb-8 overscroll-contain touch-pan-y space-y-3.5">
+            {/* Si el usuario no tiene altura configurada: Input Obligatorio de Altura */}
+            {!activeProfile.heightCm && (
+              <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3.5 space-y-1.5 animate-in fade-in duration-300">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-mono font-bold text-amber-400 uppercase flex items-center gap-1.5">
+                    <Ruler className="w-4 h-4 text-amber-400" />
+                    Altura (cm) *
+                  </label>
+                  <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 uppercase">
+                    Obligatorio
+                  </span>
+                </div>
+                <input
+                  type="number"
+                  step="1"
+                  min="100"
+                  max="250"
+                  required
+                  placeholder="ej. 165"
+                  value={heightCm}
+                  onChange={(e) => {
+                    setHeightCm(e.target.value);
+                    if (heightError) setHeightError(false);
+                    const h = parseFloat(e.target.value);
+                    const w = parseFloat(weightKg);
+                    if (h > 100 && w > 30) {
+                      setBmi((w / ((h / 100) ** 2)).toFixed(1));
+                    }
+                  }}
+                  className={cn(
+                    "w-full bg-zinc-950 border rounded-xl px-3 py-2 text-white font-mono font-black text-base focus:outline-none transition-colors",
+                    heightError
+                      ? "border-red-500 ring-1 ring-red-500"
+                      : "border-amber-500/50 focus:border-amber-400"
+                  )}
+                />
+                <p className="text-[10px] text-zinc-400 leading-snug">
+                  Necesaria para calibrar tu IMC y composición corporal. Se guardará en tu perfil.
+                </p>
+                {heightError && (
+                  <p className="text-[10px] text-red-400 font-bold font-mono">
+                    Por favor introduce una altura válida (ej. 165 cm).
+                  </p>
+                )}
+              </div>
+            )}
+
             {/* BLOQUE PRINCIPAL: Parámetros Clave con Badges de Salud */}
             <div className="grid grid-cols-2 gap-2.5">
               {/* Peso Total */}

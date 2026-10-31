@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useProfileStore } from "@/stores/useProfileStore";
 import { useWorkoutSessionStore } from "@/stores/useWorkoutSessionStore";
+import { ProfileDrawer } from "@/components/ProfileDrawer";
 import { Flame, CheckCircle2, LogOut, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -19,6 +20,9 @@ export const Header: React.FC = () => {
 
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isProfileDrawerOpen, setIsProfileDrawerOpen] = useState(false);
+
+  const { isLiveSession, loadUserMaxes } = useWorkoutSessionStore();
 
   // Inicializar sesión de autenticación al montar
   useEffect(() => {
@@ -27,7 +31,12 @@ export const Header: React.FC = () => {
     }
   }, [pathname, initAuthSession]);
 
-  const { isLiveSession } = useWorkoutSessionStore();
+  // Cargar 1RMs del usuario cuando el perfil esté listo
+  useEffect(() => {
+    if (activeProfile?.id) {
+      loadUserMaxes(activeProfile.id);
+    }
+  }, [activeProfile?.id, loadUserMaxes]);
 
   // Si estamos en la página de login o en entrenamiento activo, no mostrar la cabecera global
   if (pathname === "/login" || isLiveSession) {
@@ -101,16 +110,19 @@ export const Header: React.FC = () => {
               </span>
             </div>
 
-            {/* Badge único del Usuario Autenticado */}
-            <div
-              className="px-3 py-1.5 text-xs font-black uppercase tracking-wider rounded-full shadow-md select-none transition-colors duration-300"
+            {/* Badge único del Usuario Autenticado (Abre Drawer de Perfil y 1RM) */}
+            <button
+              type="button"
+              onClick={() => setIsProfileDrawerOpen(true)}
+              className="px-3 py-1.5 text-xs font-black uppercase tracking-wider rounded-full shadow-md select-none transition-transform duration-200 active:scale-95 cursor-pointer flex items-center gap-1 focus:outline-none"
               style={{
                 backgroundColor: accentColor,
                 color: isGirl ? "#ffffff" : "#000000",
               }}
+              title="Ajustes de Perfil y 1RM"
             >
               {activeProfile.displayName}
-            </div>
+            </button>
 
             {/* Botón Logout */}
             <button
@@ -177,6 +189,11 @@ export const Header: React.FC = () => {
           </div>
         )}
       </AnimatePresence>
+      {/* Drawer Deslizante de Ajustes de Perfil y 1RM */}
+      <ProfileDrawer
+        isOpen={isProfileDrawerOpen}
+        onClose={() => setIsProfileDrawerOpen(false)}
+      />
     </>
   );
 };
