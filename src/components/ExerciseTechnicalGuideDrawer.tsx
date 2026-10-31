@@ -9,6 +9,7 @@ import {
   Dumbbell,
   CheckCircle2,
   Film,
+  Check,
 } from "lucide-react";
 import {
   fetchExerciseGuide,
@@ -102,42 +103,45 @@ export const ExerciseTechnicalGuideDrawer: React.FC<ExerciseTechnicalGuideDrawer
     <Drawer.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 transition-opacity" />
-        <Drawer.Content className="bg-zinc-950 border-t border-zinc-800 fixed bottom-0 left-0 right-0 z-50 rounded-t-[32px] p-5 sm:p-6 max-w-lg mx-auto outline-none max-h-[92vh] overflow-y-auto">
+        <Drawer.Content className="max-h-[90dvh] flex flex-col bg-zinc-950 border-t border-zinc-800 rounded-t-[28px] overflow-hidden fixed bottom-0 left-0 right-0 z-50 max-w-lg mx-auto outline-none">
           {/* Manija de arrastre */}
-          <div className="w-12 h-1.5 bg-zinc-800 rounded-full mx-auto mb-4 shrink-0" />
+          <div className="w-12 h-1.5 bg-zinc-700/80 rounded-full mx-auto my-3 shrink-0" />
 
-          {/* Cabecera del Drawer */}
-          <div className="flex items-center justify-between pb-3 border-b border-zinc-800/80 mb-4">
-            <div className="flex items-center gap-2">
-              <div
-                className="w-8 h-8 rounded-xl flex items-center justify-center border"
-                style={{
-                  backgroundColor: `${themeAccent}15`,
-                  borderColor: `${themeAccent}40`,
-                }}
+          {/* Cabecera Fija */}
+          <div className="px-5 pb-3 border-b border-zinc-800/80 shrink-0">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 min-w-0 pr-2">
+                <div
+                  className="w-8 h-8 rounded-xl flex items-center justify-center border shrink-0"
+                  style={{
+                    backgroundColor: `${themeAccent}15`,
+                    borderColor: `${themeAccent}40`,
+                  }}
+                >
+                  <BookOpen className="w-4 h-4" style={{ color: themeAccent }} />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[10px] font-mono font-bold tracking-widest text-zinc-400 uppercase block">
+                    GUÍA TÉCNICA & BIOMECÁNICA
+                  </span>
+                  <h3 className="text-sm sm:text-base font-black uppercase text-white tracking-tight leading-tight truncate">
+                    {exerciseName}
+                  </h3>
+                </div>
+              </div>
+
+              <button
+                onClick={onClose}
+                className="w-9 h-9 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors shrink-0"
+                aria-label="Cerrar guía técnica"
               >
-                <BookOpen className="w-4 h-4" style={{ color: themeAccent }} />
-              </div>
-              <div>
-                <span className="text-[10px] font-mono font-bold tracking-widest text-zinc-400 uppercase">
-                  GUÍA TÉCNICA & BIOMECÁNICA
-                </span>
-                <h3 className="text-base font-black uppercase text-white tracking-tight leading-tight">
-                  {exerciseName}
-                </h3>
-              </div>
+                <X className="w-4 h-4" />
+              </button>
             </div>
-
-            <button
-              onClick={onClose}
-              className="w-9 h-9 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
-              aria-label="Cerrar guía técnica"
-            >
-              <X className="w-4 h-4" />
-            </button>
           </div>
 
-          <div className="space-y-5">
+          {/* Cuerpo desplazable */}
+          <div className="flex-1 overflow-y-auto px-5 pt-3 pb-8 overscroll-contain touch-pan-y space-y-5">
             {/* 1. VISOR DE ANIMACIÓN EN BUCLE (ExerciseDB / Free-Exercise-DB) */}
             <div className="w-full aspect-video rounded-2xl overflow-hidden border border-zinc-800 bg-black relative shadow-2xl flex items-center justify-center">
               {videoUrl ? (
@@ -240,7 +244,7 @@ export const ExerciseTechnicalGuideDrawer: React.FC<ExerciseTechnicalGuideDrawer
               </ol>
             </div>
 
-            {/* 4. NOTAS DEL ENTRENADOR HOPLITA (Único bloque sin duplicados) */}
+            {/* 4. NOTAS DEL ENTRENADOR HOPLITA */}
             {technicalNotes && (
               <div className="bg-amber-950/20 border border-amber-500/30 rounded-2xl p-4">
                 <div className="flex items-center gap-1.5 mb-1.5 text-xs font-mono font-black text-amber-400 uppercase tracking-wider">
@@ -254,14 +258,15 @@ export const ExerciseTechnicalGuideDrawer: React.FC<ExerciseTechnicalGuideDrawer
             )}
           </div>
 
-          {/* BOTÓN CERRAR INFERIOR */}
-          <div className="mt-6 pt-4 border-t border-zinc-900 relative z-20 pointer-events-auto">
+          {/* Barra Inferior Fija de Acción (Sticky Bottom con Safe Area) */}
+          <div className="sticky bottom-0 bg-zinc-950/95 backdrop-blur-md px-5 pt-3 pb-[calc(env(safe-area-inset-bottom,16px)+12px)] border-t border-zinc-900 shrink-0">
             <button
               type="button"
               onClick={onClose}
-              className="w-full min-h-[44px] rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-200 text-xs font-mono font-black tracking-wider uppercase transition-colors active:scale-98"
+              className="w-full min-h-[48px] rounded-2xl bg-zinc-900 hover:bg-zinc-800 text-zinc-200 text-xs font-mono font-black tracking-wider uppercase transition-colors active:scale-95 flex items-center justify-center gap-2 border border-zinc-800"
             >
-              ENTENDIDO · VOLVER AL ENTRENO
+              <Check className="w-4 h-4 text-emerald-400" />
+              <span>Entendido · Volver al Entreno</span>
             </button>
           </div>
         </Drawer.Content>

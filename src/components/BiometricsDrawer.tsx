@@ -152,33 +152,35 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
     <Drawer.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50" />
-        <Drawer.Content className="max-h-[88vh] flex flex-col rounded-t-[28px] border-t border-zinc-800 bg-zinc-950 p-0 fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto outline-none">
-          {/* Header fijo superior */}
-          <div className="px-5 pt-4 pb-2 shrink-0">
-            <div className="w-12 h-1.5 bg-zinc-700 rounded-full mx-auto mb-3" />
+        <Drawer.Content className="max-h-[90dvh] flex flex-col rounded-t-[28px] border-t border-zinc-800 bg-zinc-950 p-0 fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto outline-none overflow-hidden">
+          {/* Handle superior visible */}
+          <div className="w-12 h-1.5 bg-zinc-700/80 rounded-full mx-auto my-3 shrink-0" />
 
+          {/* Header fijo superior */}
+          <div className="px-5 pb-3 border-b border-zinc-800/80 shrink-0">
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-2">
                 <Scale className="w-5 h-5" style={{ color: accentColor }} />
-                <h2 className="text-lg font-black uppercase tracking-tight text-white">
+                <h2 className="text-base sm:text-lg font-black uppercase tracking-tight text-white">
                   Pesaje Matutino en Ayunas
                 </h2>
               </div>
               <button
                 onClick={onClose}
-                className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white transition-all duration-200 active:scale-95"
+                className="min-w-[40px] min-h-[40px] flex items-center justify-center rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white transition-all duration-200 active:scale-95"
                 aria-label="Cerrar modal"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <p className="text-xs text-zinc-400">
+            <p className="text-[11px] text-zinc-400 leading-snug">
               Registra los parámetros de la báscula y perímetros corporales para <strong className="text-zinc-200">{activeProfile.displayName}</strong>.
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-5 pt-2 pb-6 space-y-3.5">
+          <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0 overflow-hidden">
+            <div className="flex-1 overflow-y-auto px-5 pt-3 pb-8 overscroll-contain touch-pan-y space-y-3.5">
             {/* BLOQUE PRINCIPAL: Parámetros Clave con Badges de Salud */}
             <div className="grid grid-cols-2 gap-2.5">
               {/* Peso Total */}
@@ -440,7 +442,7 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
                         step="0.5"
                         value={waistCm}
                         onChange={(e) => setWaistCm(e.target.value)}
-                        className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1 text-zinc-100 font-mono font-bold text-sm focus:outline-none"
+                        className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1 text-zinc-100 font-mono font-bold text-base focus:outline-none"
                       />
                     </div>
 
@@ -464,7 +466,7 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
                         step="0.5"
                         value={hipCm}
                         onChange={(e) => setHipCm(e.target.value)}
-                        className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1 text-zinc-100 font-mono font-bold text-sm focus:outline-none"
+                        className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1 text-zinc-100 font-mono font-bold text-base focus:outline-none"
                       />
                     </div>
 
@@ -478,7 +480,7 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
                         step="0.5"
                         value={neckCm}
                         onChange={(e) => setNeckCm(e.target.value)}
-                        className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1 text-zinc-100 font-mono font-bold text-sm focus:outline-none"
+                        className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1 text-zinc-100 font-mono font-bold text-base focus:outline-none"
                       />
                     </div>
 
@@ -492,7 +494,7 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
                         step="0.5"
                         value={chestCm}
                         onChange={(e) => setChestCm(e.target.value)}
-                        className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1 text-zinc-100 font-mono font-bold text-sm focus:outline-none"
+                        className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1 text-zinc-100 font-mono font-bold text-base focus:outline-none"
                       />
                     </div>
 
@@ -506,7 +508,7 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
                         step="0.5"
                         value={armCm}
                         onChange={(e) => setArmCm(e.target.value)}
-                        className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1 text-zinc-100 font-mono font-bold text-sm focus:outline-none"
+                        className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1 text-zinc-100 font-mono font-bold text-base focus:outline-none"
                       />
                     </div>
 
@@ -520,22 +522,26 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
                         step="0.5"
                         value={thighCm}
                         onChange={(e) => setThighCm(e.target.value)}
-                        className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1 text-zinc-100 font-mono font-bold text-sm focus:outline-none"
+                        className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1 text-zinc-100 font-mono font-bold text-base focus:outline-none"
                       />
                     </div>
                   </div>
                 </div>
               )}
             </div>
+          </div>
 
-            <button
-              type="submit"
-              className="w-full mt-6 mb-2 min-h-[52px] py-3.5 rounded-2xl font-black text-sm uppercase tracking-wider text-black flex items-center justify-center gap-2 shadow-xl transition-all duration-200 active:scale-95 shrink-0"
-              style={{ backgroundColor: accentColor }}
-            >
-              <Check className="w-5 h-5 stroke-[3]" />
-              <span>Guardar Medición Matutina</span>
-            </button>
+          {/* Barra Inferior Fija de Acción (Sticky Bottom con Safe Area) */}
+            <div className="sticky bottom-0 bg-zinc-950/95 backdrop-blur-md px-5 pt-3 pb-[calc(env(safe-area-inset-bottom,16px)+12px)] border-t border-zinc-900 shrink-0">
+              <button
+                type="submit"
+                className="w-full min-h-[50px] py-3.5 rounded-2xl font-black text-xs sm:text-sm uppercase tracking-wider text-black flex items-center justify-center gap-2 shadow-xl transition-all duration-200 active:scale-95"
+                style={{ backgroundColor: accentColor }}
+              >
+                <Check className="w-5 h-5 stroke-[3]" />
+                <span>Guardar Medición Matutina</span>
+              </button>
+            </div>
           </form>
         </Drawer.Content>
       </Drawer.Portal>

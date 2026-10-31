@@ -232,17 +232,17 @@ export const ActiveWorkoutView: React.FC = () => {
                   {/* Cabecera de Ejercicio Resistente a Nombres Largos */}
                   <div className="mb-3">
                     {/* Fila 1: Número y Nombre del Ejercicio con salto limpio */}
-                    <div className="flex items-baseline gap-2">
+                    <div className="flex items-baseline gap-2 min-w-0">
                       <span className="text-xs font-mono font-black text-zinc-400 shrink-0">
                         #{workoutExercise.orderIndex}
                       </span>
-                      <h3 className="text-lg font-black text-white uppercase tracking-tight leading-tight">
+                      <h3 className="text-lg font-black text-white uppercase tracking-tight leading-tight break-words min-w-0">
                         {workoutExercise.exercise.name}
                       </h3>
                     </div>
 
                     {/* Fila 2: Botones de Utilidad (Discos, M&R, Guía) */}
-                    <div className="flex items-center gap-1.5 mt-2">
+                    <div className="flex items-center gap-1.5 mt-2 flex-wrap">
                       <button
                         onClick={() =>
                           setPlateDrawerData({

@@ -103,6 +103,7 @@ export const RecoveryCheckinDrawer: React.FC<RecoveryCheckinDrawerProps> = ({
               : motivation === "Normal"
               ? 3
               : 4,
+          session_rpe: domsLevel === "Incapacitante" ? 9 : domsLevel === "Intenso" ? 8 : 7,
           notes: `Sueño: ${sleepQuality}, DOMS: ${domsLevel}, Agua: ${waterIntake}, Pasos: ${dailySteps}`,
         },
         { onConflict: "profile_id,log_date" }
@@ -110,7 +111,7 @@ export const RecoveryCheckinDrawer: React.FC<RecoveryCheckinDrawerProps> = ({
 
       await refreshStats();
     } catch (err) {
-      console.warn("Aviso al guardar daily_habits:", err);
+      console.warn("Aviso al guardar hábito diario en Supabase:", err);
     }
 
     onClose();
@@ -119,180 +120,188 @@ export const RecoveryCheckinDrawer: React.FC<RecoveryCheckinDrawerProps> = ({
   return (
     <Drawer.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <Drawer.Portal>
-        <Drawer.Overlay className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50" />
-        <Drawer.Content className="bg-zinc-950 border-t border-zinc-800 fixed bottom-0 left-0 right-0 z-50 rounded-t-[32px] p-6 max-w-md mx-auto outline-none max-h-[90vh] overflow-y-auto">
-          <div className="w-12 h-1.5 bg-zinc-700 rounded-full mx-auto mb-5" />
+        <Drawer.Overlay className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50" />
+        <Drawer.Content className="max-h-[90dvh] flex flex-col bg-zinc-950 border-t border-zinc-800 rounded-t-[28px] overflow-hidden fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto outline-none">
+          {/* Handle superior visible */}
+          <div className="w-12 h-1.5 bg-zinc-700/80 rounded-full mx-auto my-3 shrink-0" />
 
-          {/* Encabezado */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <HeartPulse className="w-5 h-5" style={{ color: accentColor }} />
-              <h2 className="text-lg font-black uppercase tracking-tight text-white">
-                Check-in de Recuperación (DIARIO)
-              </h2>
+          {/* Cabecera Fija */}
+          <div className="px-5 pb-3 border-b border-zinc-800/80 shrink-0">
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-2">
+                <HeartPulse className="w-5 h-5" style={{ color: accentColor }} />
+                <h2 className="text-base sm:text-lg font-black uppercase tracking-tight text-white">
+                  Check-in de Recuperación (DIARIO)
+                </h2>
+              </div>
+              <button
+                onClick={onClose}
+                className="min-w-[40px] min-h-[40px] flex items-center justify-center rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white transition-all duration-200 active:scale-95"
+                aria-label="Cerrar modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
-            <button
-              onClick={onClose}
-              className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white transition-all duration-200 active:scale-95"
-              aria-label="Cerrar modal"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            <p className="text-[11px] text-zinc-400 leading-snug">
+              Registra tu estado de recuperación diario según la pestaña DIARIO del sistema Hoplita para modular el volumen e intensidad.
+            </p>
           </div>
 
-          <p className="text-xs text-zinc-400 mb-6">
-            Registra tu estado de recuperación diario según la pestaña DIARIO del sistema Hoplita para modular el volumen e intensidad.
-          </p>
+          {/* Cuerpo desplazable con Safe Area */}
+          <form onSubmit={handleSave} className="flex-1 flex flex-col min-h-0 overflow-hidden">
+            <div className="flex-1 overflow-y-auto px-5 pt-3 pb-8 overscroll-contain touch-pan-y space-y-5">
+              {/* 1. Calidad de Sueño */}
+              <div>
+                <label className="text-xs font-mono font-bold text-zinc-300 flex items-center gap-1.5 uppercase mb-2">
+                  <Moon className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>Calidad de Sueño</span>
+                </label>
+                <div className="grid grid-cols-5 gap-1.5">
+                  {sleepOptions.map((opt) => (
+                    <button
+                      type="button"
+                      key={opt}
+                      onClick={() => setSleepQuality(opt)}
+                      className={cn(
+                        "min-h-[44px] py-2 px-1 rounded-xl text-[10px] font-mono font-black text-center truncate transition-all duration-200 active:scale-95 flex items-center justify-center",
+                        sleepQuality === opt
+                          ? "text-black shadow-md font-extrabold"
+                          : "bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white"
+                      )}
+                      style={{
+                        backgroundColor: sleepQuality === opt ? accentColor : undefined,
+                      }}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-          <form onSubmit={handleSave} className="space-y-5">
-            {/* 1. Calidad de Sueño */}
-            <div>
-              <label className="text-xs font-mono font-bold text-zinc-300 flex items-center gap-1.5 uppercase mb-2">
-                <Moon className="w-3.5 h-3.5 text-indigo-400" />
-                <span>Calidad de Sueño</span>
-              </label>
-              <div className="grid grid-cols-5 gap-1.5">
-                {sleepOptions.map((opt) => (
-                  <button
-                    type="button"
-                    key={opt}
-                    onClick={() => setSleepQuality(opt)}
-                    className={cn(
-                      "min-h-[44px] py-2 px-1 rounded-xl text-[10px] font-mono font-black text-center truncate transition-all duration-200 active:scale-95 flex items-center justify-center",
-                      sleepQuality === opt
-                        ? "text-black shadow-md font-extrabold"
-                        : "bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white"
-                    )}
-                    style={{
-                      backgroundColor: sleepQuality === opt ? accentColor : undefined,
-                    }}
-                  >
-                    {opt}
-                  </button>
-                ))}
+              {/* 2. Nivel de Agujetas (DOMS) */}
+              <div>
+                <label className="text-xs font-mono font-bold text-zinc-300 flex items-center gap-1.5 uppercase mb-2">
+                  <Flame className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Nivel de Agujetas</span>
+                </label>
+                <div className="grid grid-cols-5 gap-1.5">
+                  {domsOptions.map((opt) => (
+                    <button
+                      type="button"
+                      key={opt}
+                      onClick={() => setDomsLevel(opt)}
+                      className={cn(
+                        "min-h-[44px] py-2 px-1 rounded-xl text-[10px] font-mono font-black text-center truncate transition-all duration-200 active:scale-95 flex items-center justify-center",
+                        domsLevel === opt
+                          ? "text-black shadow-md font-extrabold"
+                          : "bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white"
+                      )}
+                      style={{
+                        backgroundColor: domsLevel === opt ? accentColor : undefined,
+                      }}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 3. Ingesta de Agua */}
+              <div>
+                <label className="text-xs font-mono font-bold text-zinc-300 flex items-center gap-1.5 uppercase mb-2">
+                  <Droplets className="w-3.5 h-3.5 text-sky-400" />
+                  <span>Ingesta de Agua</span>
+                </label>
+                <div className="grid grid-cols-5 gap-1.5">
+                  {waterOptions.map((opt) => (
+                    <button
+                      type="button"
+                      key={opt}
+                      onClick={() => setWaterIntake(opt)}
+                      className={cn(
+                        "min-h-[44px] py-2 rounded-xl text-xs font-mono tabular-nums font-black text-center transition-all duration-200 active:scale-95 flex items-center justify-center",
+                        waterIntake === opt
+                          ? "text-black shadow-md font-extrabold"
+                          : "bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white"
+                      )}
+                      style={{
+                        backgroundColor: waterIntake === opt ? accentColor : undefined,
+                      }}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 4. Ganas de Entrenar */}
+              <div>
+                <label className="text-xs font-mono font-bold text-zinc-300 flex items-center gap-1.5 uppercase mb-2">
+                  <Zap className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Ganas de Entrenar</span>
+                </label>
+                <div className="grid grid-cols-5 gap-1.5">
+                  {motivationOptions.map((opt) => (
+                    <button
+                      type="button"
+                      key={opt}
+                      onClick={() => setMotivation(opt)}
+                      className={cn(
+                        "min-h-[44px] py-2 px-1 rounded-xl text-[10px] font-mono font-black text-center truncate transition-all duration-200 active:scale-95 flex items-center justify-center",
+                        motivation === opt
+                          ? "text-black shadow-md font-extrabold"
+                          : "bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white"
+                      )}
+                      style={{
+                        backgroundColor: motivation === opt ? accentColor : undefined,
+                      }}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 5. Pasos Diarios */}
+              <div>
+                <label className="text-xs font-mono font-bold text-zinc-300 flex items-center gap-1.5 uppercase mb-2">
+                  <Footprints className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Pasos Diarios (Actividad NEAT)</span>
+                </label>
+                <div className="grid grid-cols-5 gap-1.5">
+                  {stepsOptions.map((opt) => (
+                    <button
+                      type="button"
+                      key={opt}
+                      onClick={() => setDailySteps(opt)}
+                      className={cn(
+                        "min-h-[44px] py-2 rounded-xl text-[10px] font-mono tabular-nums font-black text-center transition-all duration-200 active:scale-95 flex items-center justify-center",
+                        dailySteps === opt
+                          ? "text-black shadow-md font-extrabold"
+                          : "bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white"
+                      )}
+                      style={{
+                        backgroundColor: dailySteps === opt ? accentColor : undefined,
+                      }}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
-            {/* 2. Nivel de Agujetas (DOMS) */}
-            <div>
-              <label className="text-xs font-mono font-bold text-zinc-300 flex items-center gap-1.5 uppercase mb-2">
-                <Flame className="w-3.5 h-3.5 text-amber-500" />
-                <span>Nivel de Agujetas</span>
-              </label>
-              <div className="grid grid-cols-5 gap-1.5">
-                {domsOptions.map((opt) => (
-                  <button
-                    type="button"
-                    key={opt}
-                    onClick={() => setDomsLevel(opt)}
-                    className={cn(
-                      "min-h-[44px] py-2 px-1 rounded-xl text-[10px] font-mono font-black text-center truncate transition-all duration-200 active:scale-95 flex items-center justify-center",
-                      domsLevel === opt
-                        ? "text-black shadow-md font-extrabold"
-                        : "bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white"
-                    )}
-                    style={{
-                      backgroundColor: domsLevel === opt ? accentColor : undefined,
-                    }}
-                  >
-                    {opt}
-                  </button>
-                ))}
-              </div>
+            {/* Barra Inferior Fija de Acción (Sticky Bottom con Safe Area) */}
+            <div className="sticky bottom-0 bg-zinc-950/95 backdrop-blur-md px-5 pt-3 pb-[calc(env(safe-area-inset-bottom,16px)+12px)] border-t border-zinc-900 shrink-0">
+              <button
+                type="submit"
+                className="w-full min-h-[50px] py-3.5 rounded-2xl font-black text-xs sm:text-sm uppercase tracking-wider text-black flex items-center justify-center gap-2 shadow-xl transition-all duration-200 active:scale-95"
+                style={{ backgroundColor: accentColor }}
+              >
+                <Check className="w-5 h-5 stroke-[3]" />
+                <span>Guardar Check-in de Recuperación</span>
+              </button>
             </div>
-
-            {/* 3. Ingesta de Agua */}
-            <div>
-              <label className="text-xs font-mono font-bold text-zinc-300 flex items-center gap-1.5 uppercase mb-2">
-                <Droplets className="w-3.5 h-3.5 text-sky-400" />
-                <span>Ingesta de Agua</span>
-              </label>
-              <div className="grid grid-cols-5 gap-1.5">
-                {waterOptions.map((opt) => (
-                  <button
-                    type="button"
-                    key={opt}
-                    onClick={() => setWaterIntake(opt)}
-                    className={cn(
-                      "min-h-[44px] py-2 rounded-xl text-xs font-mono tabular-nums font-black text-center transition-all duration-200 active:scale-95 flex items-center justify-center",
-                      waterIntake === opt
-                        ? "text-black shadow-md font-extrabold"
-                        : "bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white"
-                    )}
-                    style={{
-                      backgroundColor: waterIntake === opt ? accentColor : undefined,
-                    }}
-                  >
-                    {opt}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* 4. Ganas de Entrenar */}
-            <div>
-              <label className="text-xs font-mono font-bold text-zinc-300 flex items-center gap-1.5 uppercase mb-2">
-                <Zap className="w-3.5 h-3.5 text-amber-400" />
-                <span>Ganas de Entrenar</span>
-              </label>
-              <div className="grid grid-cols-5 gap-1.5">
-                {motivationOptions.map((opt) => (
-                  <button
-                    type="button"
-                    key={opt}
-                    onClick={() => setMotivation(opt)}
-                    className={cn(
-                      "min-h-[44px] py-2 px-1 rounded-xl text-[10px] font-mono font-black text-center truncate transition-all duration-200 active:scale-95 flex items-center justify-center",
-                      motivation === opt
-                        ? "text-black shadow-md font-extrabold"
-                        : "bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white"
-                    )}
-                    style={{
-                      backgroundColor: motivation === opt ? accentColor : undefined,
-                    }}
-                  >
-                    {opt}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* 5. Pasos Diarios */}
-            <div>
-              <label className="text-xs font-mono font-bold text-zinc-300 flex items-center gap-1.5 uppercase mb-2">
-                <Footprints className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Pasos Diarios (Actividad NEAT)</span>
-              </label>
-              <div className="grid grid-cols-5 gap-1.5">
-                {stepsOptions.map((opt) => (
-                  <button
-                    type="button"
-                    key={opt}
-                    onClick={() => setDailySteps(opt)}
-                    className={cn(
-                      "min-h-[44px] py-2 rounded-xl text-[10px] font-mono tabular-nums font-black text-center transition-all duration-200 active:scale-95 flex items-center justify-center",
-                      dailySteps === opt
-                        ? "text-black shadow-md font-extrabold"
-                        : "bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white"
-                    )}
-                    style={{
-                      backgroundColor: dailySteps === opt ? accentColor : undefined,
-                    }}
-                  >
-                    {opt}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              className="w-full mt-6 min-h-[52px] py-3.5 rounded-2xl font-black text-sm uppercase tracking-wider text-black flex items-center justify-center gap-2 shadow-xl transition-all duration-200 active:scale-95"
-              style={{ backgroundColor: accentColor }}
-            >
-              <Check className="w-5 h-5 stroke-[3]" />
-              <span>Guardar Check-in de Recuperación</span>
-            </button>
           </form>
         </Drawer.Content>
       </Drawer.Portal>
