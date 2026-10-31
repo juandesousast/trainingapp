@@ -6,16 +6,11 @@ import {
   Trophy,
   TrendingUp,
   Zap,
-  ArrowRight,
-  ShieldCheck,
-  Dumbbell,
-  Sparkles,
   CheckCircle2,
-  Clock,
-  Activity,
   Layers,
+  Award,
 } from "lucide-react";
-import { useWorkoutSessionStore, LiftProgression } from "@/stores/useWorkoutSessionStore";
+import { useWorkoutSessionStore } from "@/stores/useWorkoutSessionStore";
 import { useProfileStore } from "@/stores/useProfileStore";
 import { cn } from "@/lib/utils";
 
@@ -24,7 +19,7 @@ export const MesocycleCompletionModal: React.FC = () => {
     showMesocycleCompletionModal,
     mesocycleCompletionData,
     closeMesocycleCompletionModal,
-    activateMesocycle2,
+    activateNextMesocycle,
   } = useWorkoutSessionStore();
   const { activeProfile } = useProfileStore();
   const [isActivating, setIsActivating] = useState(false);
@@ -34,16 +29,47 @@ export const MesocycleCompletionModal: React.FC = () => {
   }
 
   const accentColor = activeProfile.themeAccent || "#CCFF00";
-  const { progressions, mesocycleNumber, totalExposures } = mesocycleCompletionData;
+  const {
+    progressions,
+    mesocycleNumber,
+    mesocycleName,
+    totalExposures,
+    nextMesocycleNumber,
+    nextMesocycleName,
+    nextMesocycleTotalExposures,
+    isMacrocyleComplete,
+  } = mesocycleCompletionData;
+
+  const nextNumber = nextMesocycleNumber || mesocycleNumber + 1;
+  const nextName = nextMesocycleName || `M${nextNumber}`;
+  const nextSessions = nextMesocycleTotalExposures || 9;
 
   const handleActivate = async () => {
     setIsActivating(true);
     try {
-      await activateMesocycle2();
+      await activateNextMesocycle();
     } catch (err) {
-      console.error("Error activating M2:", err);
+      console.error("Error activating next mesocycle:", err);
     } finally {
       setIsActivating(false);
+    }
+  };
+
+  const getSubtitles = () => {
+    if (isMacrocyleComplete) {
+      return "Has recorrido con éxito la totalidad del sistema BIIO (M1 Reacondicionamiento ➔ M2 Preparación ➔ M3 Especialización ➔ M4 Fuerza 1 ➔ M5 Maximales). Has alcanzado tu pico histórico de fuerza absoluta.";
+    }
+    switch (mesocycleNumber) {
+      case 1:
+        return "Has consolidado la adaptación anatómica de tendones y la base hipertrófica en pirámide inversa (15-12-10). Tus patrones biomecánicos están optimizados para pasar a la fase de fuerza submáxima.";
+      case 2:
+        return "Has superado los 3 microciclos de sobrecarga progresiva (8-6-4) y descarga técnica. Tu reclutamiento neuromuscular y umbral de fatiga están listos para la especialización técnica.";
+      case 3:
+        return "Has perfeccionado el tempo y la tensión mecánica continua bajo carga submáxima. Estás preparado para la fase de cargas altas en Fuerza 1.";
+      case 4:
+        return "Fase de fuerza submáxima 4x4 y pirámide pesada dominada. Has sentado las bases para el test final de maximales y cluster sets en M5.";
+      default:
+        return "Bloque completado con éxito siguiendo la metodología de sobrecarga progresiva BIIO.";
     }
   };
 
@@ -61,7 +87,7 @@ export const MesocycleCompletionModal: React.FC = () => {
             boxShadow: `0 20px 60px -15px ${accentColor}25`,
           }}
         >
-          {/* Subtle background glow */}
+          {/* Background glow */}
           <div
             className="absolute -top-24 -right-24 w-60 h-60 rounded-full blur-3xl opacity-20 pointer-events-none"
             style={{ backgroundColor: accentColor }}
@@ -76,21 +102,32 @@ export const MesocycleCompletionModal: React.FC = () => {
                 color: "#000000",
               }}
             >
-              <Trophy className="w-3.5 h-3.5" />
-              M{mesocycleNumber} COMPLETADO · {totalExposures}/{totalExposures} EXPOSICIONES
+              {isMacrocyleComplete ? (
+                <>
+                  <Award className="w-3.5 h-3.5" />
+                  MACROCICLO COMPLETO · HOPLITA BIIO
+                </>
+              ) : (
+                <>
+                  <Trophy className="w-3.5 h-3.5" />
+                  M{mesocycleNumber} COMPLETADO · {totalExposures}/{totalExposures} SESIONES
+                </>
+              )}
             </span>
             <span className="text-xs font-mono font-bold text-zinc-500 uppercase tracking-widest">
               HOPLITA BIIO
             </span>
           </div>
 
-          {/* Main Title & Congratulations */}
+          {/* Main Title & Subtitle */}
           <div className="space-y-1.5">
             <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight uppercase leading-none">
-              REACONDICIONAMIENTO CONCLUIDO
+              {isMacrocyleComplete
+                ? "MACROCICLO HOPLITA BIIO COMPLETADO"
+                : `${mesocycleName.toUpperCase()} CONCLUIDO`}
             </h2>
             <p className="text-xs text-zinc-400 leading-relaxed">
-              Has consolidado la adaptación anatómica de tendones y la base hipertrófica en pirámide inversa (15-12-10). Tus patrones biomecánicos están optimizados para pasar a la fase de fuerza submáxima.
+              {getSubtitles()}
             </p>
           </div>
 
@@ -99,10 +136,12 @@ export const MesocycleCompletionModal: React.FC = () => {
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-mono font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
                 <TrendingUp className="w-3.5 h-3.5 text-zinc-300" />
-                PROGRESIÓN DE FUERZA (EXP 1 ➔ EXP {totalExposures})
+                {isMacrocyleComplete
+                  ? "EVOLUCIÓN TOTAL DEL MACROCICLO (M1 ➔ M5 PICO REAL)"
+                  : `PROGRESIÓN DE FUERZA (SESIÓN 1 ➔ SESIÓN ${totalExposures})`}
               </span>
               <span className="text-[10px] font-mono text-zinc-500 uppercase">
-                SERIE 1 BASE
+                {isMacrocyleComplete ? "PICO HISTÓRICO" : "SERIE EFECTIVA"}
               </span>
             </div>
 
@@ -151,7 +190,9 @@ export const MesocycleCompletionModal: React.FC = () => {
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-mono font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
                 <Zap className="w-3.5 h-3.5 text-amber-400" />
-                RECALIBRACIÓN DE 1RM ESTIMADO (EPLEY / BRZYCKI)
+                {isMacrocyleComplete
+                  ? "MAXIMALES 1RM PICO HISTÓRICO CONSOLIDADOS"
+                  : "RECALIBRACIÓN DE 1RM ESTIMADO (EPLEY / BRZYCKI)"}
               </span>
               <span className="text-[10px] font-mono text-emerald-400 font-bold flex items-center gap-1">
                 <CheckCircle2 className="w-3 h-3" />
@@ -160,7 +201,9 @@ export const MesocycleCompletionModal: React.FC = () => {
             </div>
 
             <p className="text-[11px] text-zinc-400 leading-normal">
-              A partir de tus series efectivas en M1 se han proyectado tus nuevos maximales para calibrar con precisión milimétrica las intensidades del siguiente mesociclo:
+              {isMacrocyleComplete
+                ? "Tus marcas máximas oficiales registradas tras completar los 5 mesociclos:"
+                : "A partir de tus series efectivas se han proyectado tus nuevos maximales para calibrar con precisión las intensidades del siguiente mesociclo:"}
             </p>
 
             <div className="grid grid-cols-2 gap-2">
@@ -189,59 +232,108 @@ export const MesocycleCompletionModal: React.FC = () => {
           </div>
 
           {/* Next Mesocycle Preview Card */}
-          <div className="p-3.5 rounded-2xl bg-zinc-950/80 border border-zinc-800/80 flex items-start gap-3">
-            <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-              style={{
-                backgroundColor: `${accentColor}15`,
-                color: accentColor,
-                border: `1px solid ${accentColor}30`,
-              }}
-            >
-              <Layers className="w-4 h-4" />
-            </div>
-            <div className="space-y-1 text-xs">
-              <div className="flex items-center gap-2">
-                <span className="font-black text-white uppercase tracking-tight">
-                  M2 · PREPARACIÓN FUERZA
-                </span>
-                <span className="text-[10px] font-mono text-zinc-500 font-bold">
-                  12 SESIONES
-                </span>
+          {!isMacrocyleComplete && (
+            <div className="p-3.5 rounded-2xl bg-zinc-950/80 border border-zinc-800/80 flex items-start gap-3">
+              <div
+                className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                style={{
+                  backgroundColor: `${accentColor}15`,
+                  color: accentColor,
+                  border: `1px solid ${accentColor}30`,
+                }}
+              >
+                <Layers className="w-4 h-4" />
               </div>
-              <p className="text-[11px] text-zinc-400 leading-relaxed">
-                Sobrecarga progresiva en rangos de fuerza <span className="text-zinc-200 font-mono font-bold">8-6-4</span>, descansos ampliados a <span className="text-zinc-200 font-mono font-bold">2&apos;00&quot;</span> y cargas iniciales calculadas con tu nuevo 1RM.
-              </p>
+              <div className="space-y-1 text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="font-black text-white uppercase tracking-tight">
+                    M{nextNumber} · {nextName.toUpperCase()}
+                  </span>
+                  <span className="text-[10px] font-mono text-zinc-500 font-bold">
+                    {nextSessions} SESIONES
+                  </span>
+                </div>
+                <p className="text-[11px] text-zinc-400 leading-relaxed">
+                  {nextNumber === 2 && (
+                    <>
+                      Sobrecarga progresiva en rangos de fuerza <span className="text-zinc-200 font-mono font-bold">8-6-4</span>, descansos ampliados a <span className="text-zinc-200 font-mono font-bold">2&apos;00&quot;</span> y descarga técnica 8x3.
+                    </>
+                  )}
+                  {nextNumber === 3 && (
+                    <>
+                      Especialización técnica con tensión mecánica continua <span className="text-zinc-200 font-mono font-bold">6-6-6</span>, tempo estricto y pausas de <span className="text-zinc-200 font-mono font-bold">2&apos;15&quot;</span>.
+                    </>
+                  )}
+                  {nextNumber === 4 && (
+                    <>
+                      Cargas submáximas en pirámide pesada <span className="text-zinc-200 font-mono font-bold">5-4-3-2</span> al 80%-87.5% de 1RM y pausas de <span className="text-zinc-200 font-mono font-bold">2&apos;30&quot; - 3&apos;00&quot;</span>.
+                    </>
+                  )}
+                  {nextNumber === 5 && (
+                    <>
+                      Cluster Sets intra-serie (1 rep / 15&quot;-25&quot;) al 87.5%-92.5% y sesiones de test de 1RM real.
+                    </>
+                  )}
+                </p>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Action CTAs */}
           <div className="pt-2 space-y-2">
-            <button
-              type="button"
-              onClick={handleActivate}
-              disabled={isActivating}
-              className={cn(
-                "w-full py-4 px-6 rounded-2xl font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-xl",
-                isActivating ? "opacity-60 cursor-not-allowed" : "hover:brightness-110 active:scale-[0.98]"
-              )}
-              style={{
-                backgroundColor: accentColor,
-                color: "#000000",
-                boxShadow: `0 8px 30px -8px ${accentColor}50`,
-              }}
-            >
-              {isActivating ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
-                  ACTIVANDO M2 Y ACTUALIZANDO 1RM...
-                </>
-              ) : (
-                <>
-                  « ACTIVAR M2: PREPARACIÓN FUERZA ➔ »
-                </>
-              )}
-            </button>
+            {isMacrocyleComplete ? (
+              <button
+                type="button"
+                onClick={handleActivate}
+                disabled={isActivating}
+                className={cn(
+                  "w-full py-4 px-6 rounded-2xl font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-xl",
+                  isActivating ? "opacity-60 cursor-not-allowed" : "hover:brightness-110 active:scale-[0.98]"
+                )}
+                style={{
+                  backgroundColor: accentColor,
+                  color: "#000000",
+                  boxShadow: `0 8px 30px -8px ${accentColor}50`,
+                }}
+              >
+                {isActivating ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                    FINALIZANDO MACROCICLO...
+                  </>
+                ) : (
+                  <>
+                    « FINALIZAR MACROCICLO Y PROGRAMAR DESCARGA ESTRATÉGICA »
+                  </>
+                )}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleActivate}
+                disabled={isActivating}
+                className={cn(
+                  "w-full py-4 px-6 rounded-2xl font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-xl",
+                  isActivating ? "opacity-60 cursor-not-allowed" : "hover:brightness-110 active:scale-[0.98]"
+                )}
+                style={{
+                  backgroundColor: accentColor,
+                  color: "#000000",
+                  boxShadow: `0 8px 30px -8px ${accentColor}50`,
+                }}
+              >
+                {isActivating ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                    ACTIVANDO M{nextNumber} Y ACTUALIZANDO 1RM...
+                  </>
+                ) : (
+                  <>
+                    « ACTIVAR M{nextNumber}: {nextName.toUpperCase()} ({nextSessions} SESIONES) ➔ »
+                  </>
+                )}
+              </button>
+            )}
 
             <button
               type="button"
