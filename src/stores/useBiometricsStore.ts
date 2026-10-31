@@ -24,6 +24,8 @@ export interface BiometricEntry {
   armCm?: number;
   thighCm?: number;
   hipCm?: number;
+  isFasting?: boolean;
+  createdAt?: string;
 }
 
 export interface DailyHabitEntry {
@@ -80,7 +82,8 @@ export const useBiometricsStore = create<BiometricsState>((set) => ({
         .from("biometric_logs")
         .select("*")
         .eq("user_id", user.id)
-        .order("measured_at", { ascending: true });
+        .order("measured_at", { ascending: true })
+        .order("created_at", { ascending: true });
 
       if (bioData && bioData.length > 0) {
         set({
@@ -107,6 +110,8 @@ export const useBiometricsStore = create<BiometricsState>((set) => ({
             armCm: b.arm_cm ? Number(b.arm_cm) : undefined,
             thighCm: b.thigh_cm ? Number(b.thigh_cm) : undefined,
             hipCm: b.hip_cm ? Number(b.hip_cm) : undefined,
+            isFasting: b.is_fasting ?? true,
+            createdAt: b.created_at,
           })),
         });
       } else {
