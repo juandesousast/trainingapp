@@ -10,6 +10,7 @@ export interface Profile {
   themeAccent: string; // '#CCFF00' o '#F43F5E'
   targetBodyFatPct: number;
   targetWeightKg?: number;
+  heightCm?: number | null;
   streakDays: number;
   weeklyCompleted: number;
   weeklyTarget: number;

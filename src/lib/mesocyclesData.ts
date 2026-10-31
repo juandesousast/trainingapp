@@ -254,7 +254,7 @@ export const getMesocyclesForProfile = (slugOrRole: ProfileSlug): Mesocycle[] =>
               orderIndex: 6,
               blockType: "tri_set",
               groupTag: "TRI2",
-              technicalNotes: "Tri-Set 3 · Tríceps",
+              technicalNotes: "Tri-Set 3 · Tríceps (o Press Agarre Estrecho)",
               tempo: "2-0-2-0",
               restSeconds: 30,
               schemeConfig: { target: "2-3 x 12", restDesc: 'Pausa 30"' },
