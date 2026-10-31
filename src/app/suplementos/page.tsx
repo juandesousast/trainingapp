@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { SupplementsView } from "@/components/SupplementsView";
+import { NutritionView } from "@/components/NutritionView";
 import { BottomNav, TabType } from "@/components/BottomNav";
 
 export default function SuplementosRoutePage() {
@@ -15,7 +15,7 @@ export default function SuplementosRoutePage() {
 
   return (
     <div className="w-full">
-      <SupplementsView />
+      <NutritionView />
       <BottomNav activeTab="supplements" onTabChange={handleTabChange} />
     </div>
   );

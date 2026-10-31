@@ -5,7 +5,7 @@ import { useWorkoutSessionStore } from "@/stores/useWorkoutSessionStore";
 import { MesocyclesDashboard } from "@/components/MesocyclesDashboard";
 import { ActiveWorkoutView } from "@/components/ActiveWorkoutView";
 import { RecompCharts } from "@/components/RecompCharts";
-import { SupplementsView } from "@/components/SupplementsView";
+import { NutritionView } from "@/components/NutritionView";
 import { DailyCheckinView } from "@/components/DailyCheckinView";
 import { BottomNav, TabType } from "@/components/BottomNav";
 
@@ -21,7 +21,7 @@ export default function HomePage() {
         <>
           {activeTab === "workout" && <MesocyclesDashboard />}
           {activeTab === "recomp" && <RecompCharts />}
-          {activeTab === "supplements" && <SupplementsView />}
+          {activeTab === "supplements" && <NutritionView />}
           {activeTab === "daily" && <DailyCheckinView />}
           <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
         </>

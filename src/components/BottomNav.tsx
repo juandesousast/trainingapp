@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useProfileStore } from "@/stores/useProfileStore";
-import { Dumbbell, Scale, Pill, Calendar } from "lucide-react";
+import { Dumbbell, Scale, Utensils, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type TabType = "workout" | "recomp" | "supplements" | "daily";
@@ -22,7 +22,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   const tabs: { id: TabType; label: string; icon: React.ElementType }[] = [
     { id: "workout", label: "Entreno", icon: Dumbbell },
     { id: "recomp", label: "Báscula", icon: Scale },
-    { id: "supplements", label: "Suplementos", icon: Pill },
+    { id: "supplements", label: "Nutrición", icon: Utensils },
     { id: "daily", label: "Diario", icon: Calendar },
   ];
 
