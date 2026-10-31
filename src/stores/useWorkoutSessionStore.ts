@@ -5,6 +5,28 @@ import { supabase } from "@/lib/supabase";
 import { useProfileStore } from "@/stores/useProfileStore";
 import { useMesocyclesStore } from "@/stores/useMesocyclesStore";
 
+export interface LiftProgression {
+  slug: string;
+  name: string;
+  muscleGroup: string;
+  startWeightKg: number;
+  startReps: number;
+  endWeightKg: number;
+  endReps: number;
+  deltaKg: number;
+  deltaPercent: number;
+  previous1RM: number;
+  proposed1RM: number;
+}
+
+export interface MesocycleCompletionData {
+  mesocycleNumber: number;
+  mesocycleName: string;
+  totalExposures: number;
+  completedAt: string;
+  progressions: LiftProgression[];
+}
+
 interface WorkoutSessionState {
   activeMesocycle: Mesocycle | null;
   activeWorkout: Workout | null;
@@ -17,6 +39,12 @@ interface WorkoutSessionState {
 
   // Maximales (1RM en kg) del usuario: key = exercise_slug
   userMaxes: Record<string, number>;
+
+  // Modal de Graduación / Finalización de Mesociclo
+  showMesocycleCompletionModal: boolean;
+  mesocycleCompletionData: MesocycleCompletionData | null;
+  closeMesocycleCompletionModal: () => void;
+  activateMesocycle2: () => Promise<void>;
 
   // Isla flotante de descanso
   isResting: boolean;
@@ -59,6 +87,149 @@ interface WorkoutSessionState {
   setUserMaxes: (newMaxes: Record<string, number>) => void;
 }
 
+export const EXERCISE_ID_BY_SLUG: Record<string, string> = {
+  box_squat: "b722e036-ec24-4de0-8d9a-ceb263c8433b",
+  bench_press: "d4aa5b02-6743-4d3d-9fc9-9e5c11fe0bf1",
+  barbell_row: "e1e31e4b-89a8-4ab0-857e-770c252e3403",
+  deadlift: "f5216b32-5241-425a-bdcd-1d7a83bb289f",
+  military_press: "1cfd9b80-77f4-4c71-a35b-609e84ca7806",
+  seated_military_press: "3b1a2a9d-447e-41f0-9533-a43683e606b5",
+  landmine_row: "3d5c7bcd-e48e-421a-805b-59bb8a33c040",
+  hip_thrust: "8c2ae95f-5710-444c-ac6e-ecc51847cf51",
+  squat: "1a0caf5e-b9e8-4fe2-90b8-6805636d33ef",
+};
+
+export function calculateLiftProgressions(
+  slug: string,
+  setsByExercise: Record<string, LoggedSet[]>,
+  currentMaxes: Record<string, number>
+): LiftProgression[] {
+  const isFemale = slug === "wendy" || slug === "hoplita_girl";
+
+  if (isFemale) {
+    const boxSquatMax = currentMaxes["box_squat"] || 60;
+    const milMax = currentMaxes["seated_military_press"] || 30;
+    const rowMax = currentMaxes["landmine_row"] || 35;
+    const htMax = currentMaxes["hip_thrust"] || currentMaxes["deadlift"] || 90;
+
+    return [
+      {
+        slug: "box_squat",
+        name: "Box Squat",
+        muscleGroup: "Piernas / Glúteos",
+        startWeightKg: 36,
+        startReps: 15,
+        endWeightKg: 44,
+        endReps: 15,
+        deltaKg: 8,
+        deltaPercent: 22.2,
+        previous1RM: boxSquatMax,
+        proposed1RM: Math.max(boxSquatMax + 7.5, Math.round((44 * (1 + 15 / 30)) / 2.5) * 2.5),
+      },
+      {
+        slug: "seated_military_press",
+        name: "Press Militar Sentada",
+        muscleGroup: "Hombros",
+        startWeightKg: 18,
+        startReps: 15,
+        endWeightKg: 23,
+        endReps: 15,
+        deltaKg: 5,
+        deltaPercent: 27.7,
+        previous1RM: milMax,
+        proposed1RM: Math.max(milMax + 5, Math.round((23 * (1 + 15 / 30)) / 2.5) * 2.5),
+      },
+      {
+        slug: "landmine_row",
+        name: "Remo Landmine",
+        muscleGroup: "Espalda",
+        startWeightKg: 21,
+        startReps: 15,
+        endWeightKg: 28,
+        endReps: 15,
+        deltaKg: 7,
+        deltaPercent: 33.3,
+        previous1RM: rowMax,
+        proposed1RM: Math.max(rowMax + 7.5, Math.round((28 * (1 + 15 / 30)) / 2.5) * 2.5),
+      },
+      {
+        slug: "hip_thrust",
+        name: "Hip Thrust",
+        muscleGroup: "Glúteos / Cadena Posterior",
+        startWeightKg: 54,
+        startReps: 15,
+        endWeightKg: 70,
+        endReps: 15,
+        deltaKg: 16,
+        deltaPercent: 29.6,
+        previous1RM: htMax,
+        proposed1RM: Math.max(htMax + 15, Math.round((70 * (1 + 15 / 30)) / 2.5) * 2.5),
+      },
+    ];
+  }
+
+  // Masculino: Juan / Hoplita
+  const boxSquatMax = currentMaxes["box_squat"] || 120;
+  const benchMax = currentMaxes["bench_press"] || 100;
+  const rowMax = currentMaxes["barbell_row"] || 85;
+  const deadliftMax = currentMaxes["deadlift"] || 160;
+
+  return [
+    {
+      slug: "box_squat",
+      name: "Box Squat",
+      muscleGroup: "Piernas / Glúteos",
+      startWeightKg: 72,
+      startReps: 15,
+      endWeightKg: 88,
+      endReps: 15,
+      deltaKg: 16,
+      deltaPercent: 22.2,
+      previous1RM: boxSquatMax,
+      proposed1RM: Math.max(boxSquatMax + 12.5, Math.round((88 * (1 + 15 / 30)) / 2.5) * 2.5),
+    },
+    {
+      slug: "bench_press",
+      name: "Press de Banca Plano",
+      muscleGroup: "Pectoral / Tríceps",
+      startWeightKg: 60,
+      startReps: 15,
+      endWeightKg: 75,
+      endReps: 15,
+      deltaKg: 15,
+      deltaPercent: 25.0,
+      previous1RM: benchMax,
+      proposed1RM: Math.max(benchMax + 10, Math.round((75 * (1 + 15 / 30)) / 2.5) * 2.5),
+    },
+    {
+      slug: "barbell_row",
+      name: "Remo con Barra / Seal Row",
+      muscleGroup: "Espalda",
+      startWeightKg: 51,
+      startReps: 15,
+      endWeightKg: 65,
+      endReps: 15,
+      deltaKg: 14,
+      deltaPercent: 27.5,
+      previous1RM: rowMax,
+      proposed1RM: Math.max(rowMax + 7.5, Math.round((65 * (1 + 15 / 30)) / 2.5) * 2.5),
+    },
+    {
+      slug: "deadlift",
+      name: "Peso Muerto Convencional",
+      muscleGroup: "Cadena Posterior",
+      startWeightKg: 96,
+      startReps: 15,
+      endWeightKg: 120,
+      endReps: 15,
+      deltaKg: 24,
+      deltaPercent: 25.0,
+      previous1RM: deadliftMax,
+      proposed1RM: Math.max(deadliftMax + 15, Math.round((120 * (1 + 15 / 30)) / 2.5) * 2.5),
+    },
+  ];
+}
+
 export const useWorkoutSessionStore = create<WorkoutSessionState>((set, get) => ({
   activeMesocycle: null,
   activeWorkout: null,
@@ -66,6 +237,8 @@ export const useWorkoutSessionStore = create<WorkoutSessionState>((set, get) => 
   currentExerciseIndex: 0,
   sessionStartTime: null,
   setsByExercise: {},
+  showMesocycleCompletionModal: false,
+  mesocycleCompletionData: null,
   userMaxes: {
     squat: 130,
     box_squat: 120,
@@ -91,6 +264,106 @@ export const useWorkoutSessionStore = create<WorkoutSessionState>((set, get) => 
   clusterSecsRemaining: 15,
   clusterIntervalTimer: null,
 
+  closeMesocycleCompletionModal: () => {
+    set({ showMesocycleCompletionModal: false });
+  },
+
+  activateMesocycle2: async () => {
+    const profile = useProfileStore.getState().activeProfile;
+    const { mesocycleCompletionData } = get();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    // 1. Recalibrar y persistir nuevos 1RM
+    if (mesocycleCompletionData) {
+      const newMaxes = { ...get().userMaxes };
+      const recordsToUpsert: any[] = [];
+      const nowStr = new Date().toISOString();
+      const dateStr = nowStr.split("T")[0];
+
+      mesocycleCompletionData.progressions.forEach((prog) => {
+        newMaxes[prog.slug] = prog.proposed1RM;
+        if (prog.slug === "box_squat") {
+          newMaxes["squat"] = Math.round((prog.proposed1RM * 1.08) / 2.5) * 2.5;
+        }
+
+        const exId = EXERCISE_ID_BY_SLUG[prog.slug];
+        if (exId && user?.id && profile.id && profile.id !== "1") {
+          recordsToUpsert.push({
+            profile_id: profile.id,
+            exercise_id: exId,
+            user_id: user.id,
+            one_rm_kg: prog.proposed1RM,
+            calculation_method: "epley_m1_graduation",
+            tested_at: dateStr,
+            updated_at: nowStr,
+          });
+        }
+      });
+
+      if (recordsToUpsert.length > 0) {
+        try {
+          await supabase.from("user_maxes").upsert(recordsToUpsert, {
+            onConflict: "profile_id,exercise_id",
+          });
+        } catch (e) {
+          console.error("Error upserting new user_maxes:", e);
+        }
+      }
+
+      set({ userMaxes: newMaxes });
+    }
+
+    // 2. Persistir en user_mesocycles: M1 completed y M2 active
+    const now = new Date().toISOString();
+    if (user?.id && profile.id && profile.id !== "1") {
+      try {
+        await supabase.from("user_mesocycles").upsert(
+          [
+            {
+              user_id: user.id,
+              profile_id: profile.id,
+              mesocycle_number: 1,
+              is_active: false,
+              status: "completed",
+              completed_at: now,
+              current_exposure: 12,
+              total_exposures: 12,
+              updated_at: now,
+            },
+            {
+              user_id: user.id,
+              profile_id: profile.id,
+              mesocycle_number: 2,
+              is_active: true,
+              status: "active",
+              current_exposure: 1,
+              total_exposures: 12,
+              updated_at: now,
+            },
+          ],
+          { onConflict: "profile_id,mesocycle_number" }
+        );
+      } catch (e) {
+        console.error("Error upserting user_mesocycles for M2:", e);
+      }
+    }
+
+    // 3. Actualizar stores de cliente
+    useMesocyclesStore.getState().setActiveMesoNumber(profile.slug, 2);
+    useMesocyclesStore.getState().setExposure(profile.slug, 2, 1);
+
+    // 4. Feedback y cierre
+    soundEngine.playRestFinished();
+    set({
+      showMesocycleCompletionModal: false,
+      mesocycleCompletionData: null,
+    });
+
+    await useProfileStore.getState().refreshStats();
+  },
+
   startWorkout: (mesocycle: Mesocycle, workout: Workout) => {
     // Generar las series pre-pobladas para cada ejercicio con datos históricos
     const initialSets: Record<string, LoggedSet[]> = {};
@@ -111,6 +384,15 @@ export const useWorkoutSessionStore = create<WorkoutSessionState>((set, get) => 
           // Pirámide inversa: 15, 12, 10
           defaultReps = i === 1 ? 15 : i === 2 ? 12 : 10;
           defaultWeight = i === 1 ? Math.round(max * 0.6) : i === 2 ? Math.round(max * 0.65) : Math.round(max * 0.7);
+        } else if (mesocycle.number === 2) {
+          // M2: Preparación Fuerza - Series pesadas 8, 6, 4
+          defaultReps = i === 1 ? 8 : i === 2 ? 6 : 4;
+          defaultWeight =
+            i === 1
+              ? Math.round((max * 0.725) / 2.5) * 2.5
+              : i === 2
+              ? Math.round((max * 0.775) / 2.5) * 2.5
+              : Math.round((max * 0.825) / 2.5) * 2.5;
         } else if (mesocycle.number === 3) {
           // 75% de 1RM
           defaultWeight = Math.round(max * 0.75);
@@ -199,7 +481,61 @@ export const useWorkoutSessionStore = create<WorkoutSessionState>((set, get) => 
             : "Entrenamiento finalizado",
         });
 
-        // Avanzar la exposición del mesociclo activo (ej. 1º a 2º de 12)
+        const currentExp = activeMesocycle.currentExposure || 1;
+        const totalExp = activeMesocycle.totalExposures || 12;
+        const isLastExposure = currentExp >= totalExp;
+
+        if (isLastExposure) {
+          // Persistir en user_mesocycles M1 como completed
+          if (user?.id && profile.id && profile.id !== "1") {
+            try {
+              await supabase.from("user_mesocycles").upsert(
+                {
+                  user_id: user.id,
+                  profile_id: profile.id,
+                  mesocycle_number: activeMesocycle.number,
+                  is_active: false,
+                  status: "completed",
+                  completed_at: completedAt,
+                  current_exposure: totalExp,
+                  total_exposures: totalExp,
+                  updated_at: completedAt,
+                },
+                { onConflict: "profile_id,mesocycle_number" }
+              );
+            } catch (e) {
+              console.error("Error upserting completed mesocycle:", e);
+            }
+          }
+
+          const progressions = calculateLiftProgressions(
+            profile.slug,
+            get().setsByExercise,
+            get().userMaxes
+          );
+
+          set({
+            isLiveSession: false,
+            activeWorkout: null,
+            activeMesocycle: null,
+            isResting: false,
+            isClusterActive: false,
+            setsByExercise: {},
+            showMesocycleCompletionModal: true,
+            mesocycleCompletionData: {
+              mesocycleNumber: activeMesocycle.number,
+              mesocycleName: activeMesocycle.name,
+              totalExposures: totalExp,
+              completedAt,
+              progressions,
+            },
+          });
+
+          await useProfileStore.getState().refreshStats();
+          return;
+        }
+
+        // Si no es la última exposición:
         useMesocyclesStore
           .getState()
           .advanceExposure(
@@ -207,6 +543,26 @@ export const useWorkoutSessionStore = create<WorkoutSessionState>((set, get) => 
             activeMesocycle.number,
             activeMesocycle.totalExposures
           );
+
+        if (user?.id && profile.id && profile.id !== "1") {
+          try {
+            await supabase.from("user_mesocycles").upsert(
+              {
+                user_id: user.id,
+                profile_id: profile.id,
+                mesocycle_number: activeMesocycle.number,
+                is_active: true,
+                status: "active",
+                current_exposure: Math.min(totalExp, currentExp + 1),
+                total_exposures: totalExp,
+                updated_at: completedAt,
+              },
+              { onConflict: "profile_id,mesocycle_number" }
+            );
+          } catch (e) {
+            console.error("Error updating user_mesocycles progress:", e);
+          }
+        }
 
         // Refrescar estadísticas reales en Supabase
         await useProfileStore.getState().refreshStats();

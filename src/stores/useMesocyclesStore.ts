@@ -6,6 +6,7 @@ interface MesocyclesState {
   setActiveMesoNumber: (slug: string, mesoNumber: number) => void;
   exposuresByProfileAndMeso: Record<string, Record<number, number>>;
   advanceExposure: (slug: string, mesoNumber: number, maxExposures?: number) => void;
+  setExposure: (slug: string, mesoNumber: number, exposure: number) => void;
   getExposure: (slug: string, mesoNumber: number, fallback?: number) => number;
 }
 
@@ -40,6 +41,17 @@ export const useMesocyclesStore = create<MesocyclesState>()(
           return profileExposures[mesoNumber];
         }
         return fallback;
+      },
+      setExposure: (slug: string, mesoNumber: number, exposure: number) => {
+        set((state) => ({
+          exposuresByProfileAndMeso: {
+            ...state.exposuresByProfileAndMeso,
+            [slug]: {
+              ...(state.exposuresByProfileAndMeso?.[slug] || {}),
+              [mesoNumber]: exposure,
+            },
+          },
+        }));
       },
       advanceExposure: (slug: string, mesoNumber: number, maxExposures = 12) => {
         set((state) => {

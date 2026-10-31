@@ -8,6 +8,7 @@ import { RecompCharts } from "@/components/RecompCharts";
 import { NutritionView } from "@/components/NutritionView";
 import { DailyCheckinView } from "@/components/DailyCheckinView";
 import { BottomNav, TabType } from "@/components/BottomNav";
+import { MesocycleCompletionModal } from "@/components/MesocycleCompletionModal";
 
 export default function HomePage() {
   const { isLiveSession } = useWorkoutSessionStore();
@@ -26,6 +27,9 @@ export default function HomePage() {
           <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
         </>
       )}
+
+      {/* Modal de Finalización / Graduación de Mesociclo */}
+      <MesocycleCompletionModal />
     </div>
   );
 }
