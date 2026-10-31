@@ -6,11 +6,14 @@
  * y porciones de comida para días de entrenamiento vs. descanso.
  */
 
+import { NutritionGoal } from "./types";
+
 export interface NutritionEngineInput {
   weightKg: number;
   bodyFatPct: number;
   targetBodyFatPct: number;
   isTrainingDay: boolean;
+  nutritionGoal?: NutritionGoal;
 }
 
 export interface MealPortion {
@@ -37,8 +40,10 @@ export interface NutritionPlan {
   lbmKg: number; // Masa magra en kg
   bmr: number; // Tasa metabólica basal (Katch-McArdle)
   tdee: number; // Gasto energético diario total
-  isDeficitPhase: boolean; // true si bodyFat > target
-  caloricAdjustmentPct: number; // -18% o 0%
+  nutritionGoal: NutritionGoal;
+  goalLabel: string;
+  isDeficitPhase: boolean;
+  caloricAdjustmentPct: number;
 
   // Metas diarias de macros y calorías
   targetCalories: number;
@@ -62,7 +67,7 @@ export interface NutritionPlan {
  * Calcula el plan nutricional dinámico a partir de las métricas corporales y el calendario
  */
 export function calculateNutritionPlan(input: NutritionEngineInput): NutritionPlan {
-  const { weightKg, bodyFatPct, targetBodyFatPct, isTrainingDay } = input;
+  const { weightKg, bodyFatPct, targetBodyFatPct, isTrainingDay, nutritionGoal } = input;
 
   // 1. Masa Libre de Grasa (LBM): weightKg * (1 - (bodyFatPct / 100))
   const safeFatPct = Math.max(3, Math.min(60, bodyFatPct || 20));
@@ -77,15 +82,48 @@ export function calculateNutritionPlan(input: NutritionEngineInput): NutritionPl
   const activityMultiplier = isTrainingDay ? 1.45 : 1.25;
   const tdee = Math.round(bmr * activityMultiplier);
 
-  // 4. Ajuste por Meta (% Grasa Actual vs. Meta):
-  //    - Si bodyFatPct > target: Déficit del 18% (targetCalories = Math.round(tdee * 0.82))
-  //    - Si bodyFatPct <= target: Normocalórica (targetCalories = Math.round(tdee))
-  const isDeficitPhase = safeFatPct > (targetBodyFatPct || 16);
-  const caloricAdjustmentPct = isDeficitPhase ? -18 : 0;
-  const targetCalories = isDeficitPhase ? Math.round(tdee * 0.82) : tdee;
+  // 4. Ajuste por Objetivo Nutricional Seleccionado (nutritionGoal):
+  //    - fat_loss: Déficit del 18% (TDEE * 0.82)
+  //    - recomp: Día entreno TDEE * 1.0 (normocalórica), Día descanso TDEE * 0.92 (déficit leve -8%)
+  //    - maintenance: TDEE * 1.0 (100% TDEE diario)
+  //    - hypertrophy: Superávit del 8% (TDEE * 1.08)
+  const activeGoal: NutritionGoal =
+    nutritionGoal || (safeFatPct > (targetBodyFatPct || 16) ? "fat_loss" : "recomp");
+
+  let caloricMultiplier = 1.0;
+  let caloricAdjustmentPct = 0;
+  let goalLabel = "Normocalórica · Mantenimiento";
+
+  switch (activeGoal) {
+    case "fat_loss":
+      caloricMultiplier = 0.82;
+      caloricAdjustmentPct = -18;
+      goalLabel = "Déficit -18% · Fase de Definición";
+      break;
+    case "recomp":
+      caloricMultiplier = isTrainingDay ? 1.0 : 0.92;
+      caloricAdjustmentPct = isTrainingDay ? 0 : -8;
+      goalLabel = isTrainingDay
+        ? "Normocalórica · Recomposición BIIO"
+        : "Déficit Leve -8% · Recomposición BIIO";
+      break;
+    case "maintenance":
+      caloricMultiplier = 1.0;
+      caloricAdjustmentPct = 0;
+      goalLabel = "Normocalórica · Mantenimiento";
+      break;
+    case "hypertrophy":
+      caloricMultiplier = 1.08;
+      caloricAdjustmentPct = 8;
+      goalLabel = "Superávit +8% · Ganancia Muscular";
+      break;
+  }
+
+  const isDeficitPhase = caloricAdjustmentPct < 0;
+  const targetCalories = Math.round(tdee * caloricMultiplier);
 
   // 5. Reparto de Macronutrientes:
-  //    - Proteína: 2.2 g por kg de LBM (o mínimo 1.8 g/kg de peso total)
+  //    - Proteína (Fija y blindada): 2.2 g por kg de LBM (o mínimo 1.8 g/kg de peso total)
   const proteinGrams = Math.round(Math.max(lbmKg * 2.2, weightKg * 1.8));
   const proteinKcal = proteinGrams * 4;
 
@@ -93,7 +131,7 @@ export function calculateNutritionPlan(input: NutritionEngineInput): NutritionPl
   const fatGrams = Math.round(weightKg * 0.9);
   const fatKcal = fatGrams * 9;
 
-  //    - Carbohidratos: Cubren el balance calórico restante
+  //    - Carbohidratos (Ciclados por demanda): Cubren el balance calórico restante
   const carbKcal = Math.max(0, targetCalories - proteinKcal - fatKcal);
   const carbGrams = Math.round(carbKcal / 4);
 
@@ -197,6 +235,8 @@ export function calculateNutritionPlan(input: NutritionEngineInput): NutritionPl
     lbmKg,
     bmr,
     tdee,
+    nutritionGoal: activeGoal,
+    goalLabel,
     isDeficitPhase,
     caloricAdjustmentPct,
     targetCalories,

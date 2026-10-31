@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Drawer } from "vaul";
 import { useProfileStore } from "@/stores/useProfileStore";
 import { useWorkoutSessionStore } from "@/stores/useWorkoutSessionStore";
+import { NutritionGoal } from "@/lib/types";
 import { supabase } from "@/lib/supabase";
 import {
   User,
@@ -12,10 +13,12 @@ import {
   Ruler,
   Target,
   Flame,
+  Zap,
   Dumbbell,
   Minus,
   Plus,
   Sparkles,
+  Apple,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -108,6 +111,45 @@ const FEMALE_EXERCISES: ProgramExercise[] = [
   },
 ];
 
+interface NutritionGoalOption {
+  id: NutritionGoal;
+  label: string;
+  badge: string;
+  description: string;
+  icon: React.ElementType;
+}
+
+const NUTRITION_GOAL_OPTIONS: NutritionGoalOption[] = [
+  {
+    id: "fat_loss",
+    label: "Definición / Grasa",
+    badge: "Déficit -18%",
+    description: "Máxima oxidación adiposa manteniendo masa magra.",
+    icon: Flame,
+  },
+  {
+    id: "recomp",
+    label: "Recomposición BIIO",
+    badge: "Normo / -8%",
+    description: "100% TDEE en entreno · Déficit -8% en descanso.",
+    icon: Zap,
+  },
+  {
+    id: "maintenance",
+    label: "Mantenimiento",
+    badge: "100% TDEE",
+    description: "Consolidación y balance calórico neutro.",
+    icon: Target,
+  },
+  {
+    id: "hypertrophy",
+    label: "Volumen Limpio",
+    badge: "Superávit +8%",
+    description: "Superávit para máxima síntesis de hipertrofia.",
+    icon: Dumbbell,
+  },
+];
+
 export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ isOpen, onClose }) => {
   const { authUserId, activeProfile, updateProfileGoals } = useProfileStore();
   const { userMaxes, setUserMaxes } = useWorkoutSessionStore();
@@ -120,6 +162,9 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ isOpen, onClose })
   const [heightCm, setHeightCm] = useState("");
   const [targetWeightKg, setTargetWeightKg] = useState("");
   const [targetBodyFatPct, setTargetBodyFatPct] = useState("");
+
+  // Estado de Objetivo Nutricional
+  const [nutritionGoal, setNutritionGoal] = useState<NutritionGoal>("fat_loss");
 
   // Estado de 1RM
   const [oneRms, setOneRms] = useState<Record<string, number>>({});
@@ -134,6 +179,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ isOpen, onClose })
       setTargetBodyFatPct(
         activeProfile.targetBodyFatPct !== undefined ? String(activeProfile.targetBodyFatPct) : ""
       );
+      setNutritionGoal(activeProfile.nutritionGoal || "fat_loss");
 
       // Cargar 1RMs iniciales desde el store o defaults
       const initialMaxes: Record<string, number> = {};
@@ -190,7 +236,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ isOpen, onClose })
       const parsedWeight = targetWeightKg ? parseFloat(targetWeightKg) : undefined;
       const parsedFat = targetBodyFatPct ? parseFloat(targetBodyFatPct) : activeProfile.targetBodyFatPct;
 
-      await updateProfileGoals(parsedFat, parsedWeight, parsedHeight);
+      await updateProfileGoals(parsedFat, parsedWeight, parsedHeight, nutritionGoal);
 
       // 3. Guardar 1RM en user_maxes
       if (currentUserId && currentProfileId && currentProfileId !== "1") {
@@ -341,7 +387,83 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ isOpen, onClose })
                 </div>
               </div>
 
-              {/* SECCIÓN 2: GESTOR DE 1RM BASE */}
+              {/* SECCIÓN 2: OBJETIVO NUTRICIONAL ACTUAL */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Apple className="w-4 h-4" style={{ color: accentColor }} />
+                    <h3 className="text-xs font-black tracking-widest text-zinc-300 uppercase">
+                      Objetivo Nutricional Actual
+                    </h3>
+                  </div>
+                  <span className="text-[10px] font-mono text-zinc-500">
+                    Ajuste dinámico TDEE
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  {NUTRITION_GOAL_OPTIONS.map((opt) => {
+                    const isSelected = nutritionGoal === opt.id;
+                    const Icon = opt.icon;
+
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => setNutritionGoal(opt.id)}
+                        className={cn(
+                          "p-3 rounded-2xl border text-left transition-all duration-200 flex flex-col justify-between gap-2 active:scale-98 select-none relative overflow-hidden",
+                          isSelected
+                            ? "bg-zinc-900 border-zinc-600 shadow-md ring-1 ring-white/10"
+                            : "bg-zinc-950/60 border-zinc-800 hover:border-zinc-700 opacity-75 hover:opacity-100"
+                        )}
+                        style={{
+                          borderColor: isSelected ? accentColor : undefined,
+                        }}
+                      >
+                        <div className="flex items-center justify-between gap-1 w-full">
+                          <div
+                            className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+                            style={{
+                              backgroundColor: isSelected ? `${accentColor}25` : "#27272A",
+                              color: isSelected ? accentColor : "#A1A1AA",
+                            }}
+                          >
+                            <Icon className="w-3.5 h-3.5" />
+                          </div>
+
+                          <span
+                            className={cn(
+                              "text-[8px] font-mono font-black px-1.5 py-0.5 rounded uppercase tracking-wider leading-none",
+                              isSelected
+                                ? "bg-white/10 text-white"
+                                : "bg-zinc-900 text-zinc-400"
+                            )}
+                          >
+                            {opt.badge}
+                          </span>
+                        </div>
+
+                        <div>
+                          <span
+                            className={cn(
+                              "text-xs font-bold block leading-tight",
+                              isSelected ? "text-white" : "text-zinc-300"
+                            )}
+                          >
+                            {opt.label}
+                          </span>
+                          <p className="text-[9px] text-zinc-400 leading-snug mt-1 line-clamp-2">
+                            {opt.description}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* SECCIÓN 3: GESTOR DE 1RM BASE */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">

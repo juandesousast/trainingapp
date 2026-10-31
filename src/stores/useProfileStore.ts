@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { Profile } from "@/lib/types";
+import { Profile, NutritionGoal } from "@/lib/types";
 import { fetchUserActivityStats } from "@/lib/activityStats";
 import { supabase } from "@/lib/supabase";
 import { useBiometricsStore } from "@/stores/useBiometricsStore";
@@ -11,7 +11,12 @@ interface ProfileState {
   isLoadingStats: boolean;
   initAuthSession: () => Promise<void>;
   updateActivityStats: (streakDays: number, weeklyCompleted: number, weeklyTarget: number) => void;
-  updateProfileGoals: (targetBodyFatPct: number, targetWeightKg?: number, heightCm?: number | null) => Promise<void>;
+  updateProfileGoals: (
+    targetBodyFatPct: number,
+    targetWeightKg?: number,
+    heightCm?: number | null,
+    nutritionGoal?: NutritionGoal
+  ) => Promise<void>;
   refreshStats: () => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -26,6 +31,7 @@ const defaultProfile: Profile = {
   targetBodyFatPct: 16.0,
   targetWeightKg: 72.8,
   heightCm: 180,
+  nutritionGoal: "fat_loss",
   streakDays: 0,
   weeklyCompleted: 0,
   weeklyTarget: 3,
@@ -74,6 +80,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
           targetBodyFatPct: dbProfile.target_body_fat_pct ? Number(dbProfile.target_body_fat_pct) : 16.0,
           targetWeightKg: dbProfile.target_weight_kg ? Number(dbProfile.target_weight_kg) : 75.0,
           heightCm: dbProfile.height_cm ? Number(dbProfile.height_cm) : null,
+          nutritionGoal: dbProfile.nutrition_goal || "fat_loss",
           streakDays: dbProfile.streak_days || 0,
           weeklyCompleted: dbProfile.weekly_completed || 0,
           weeklyTarget: dbProfile.weekly_target || 3,
@@ -125,7 +132,12 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     }));
   },
 
-  updateProfileGoals: async (targetBodyFatPct: number, targetWeightKg?: number, heightCm?: number | null) => {
+  updateProfileGoals: async (
+    targetBodyFatPct: number,
+    targetWeightKg?: number,
+    heightCm?: number | null,
+    nutritionGoal?: NutritionGoal
+  ) => {
     const { authUserId, activeProfile } = get();
 
     // Actualización optimista local
@@ -135,6 +147,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
         targetBodyFatPct,
         targetWeightKg: targetWeightKg ?? state.activeProfile.targetWeightKg,
         heightCm: heightCm !== undefined ? heightCm : state.activeProfile.heightCm,
+        nutritionGoal: nutritionGoal !== undefined ? nutritionGoal : state.activeProfile.nutritionGoal,
       },
     }));
 
@@ -148,6 +161,9 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
         };
         if (heightCm !== undefined) {
           updatePayload.height_cm = heightCm;
+        }
+        if (nutritionGoal !== undefined) {
+          updatePayload.nutrition_goal = nutritionGoal;
         }
         await supabase
           .from("profiles")

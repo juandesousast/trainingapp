@@ -99,8 +99,9 @@ export const NutritionView: React.FC = () => {
       bodyFatPct: currentBodyFatPct,
       targetBodyFatPct: targetBodyFatPct,
       isTrainingDay,
+      nutritionGoal: activeProfile.nutritionGoal,
     });
-  }, [currentWeightKg, currentBodyFatPct, targetBodyFatPct, isTrainingDay]);
+  }, [currentWeightKg, currentBodyFatPct, targetBodyFatPct, isTrainingDay, activeProfile.nutritionGoal]);
 
   // Cálculos dinámicos de suplementación e hidratación
   const creatineGrams = useMemo(() => {
@@ -275,11 +276,20 @@ export const NutritionView: React.FC = () => {
         <div className="mt-4 pt-3 border-t border-zinc-800/80 flex items-center justify-between text-[11px] font-mono">
           <div className="flex items-center gap-1.5">
             <span
-              className="w-1.5 h-1.5 rounded-full"
-              style={{ backgroundColor: plan.isDeficitPhase ? "#F59E0B" : "#10B981" }}
+              className="w-2 h-2 rounded-full animate-pulse"
+              style={{
+                backgroundColor:
+                  plan.nutritionGoal === "fat_loss"
+                    ? "#F59E0B"
+                    : plan.nutritionGoal === "recomp"
+                    ? "#10B981"
+                    : plan.nutritionGoal === "hypertrophy"
+                    ? "#A855F7"
+                    : "#38BDF8",
+              }}
             />
-            <span className="font-bold text-zinc-300">
-              {plan.isDeficitPhase ? "Déficit -18% · Fase de Definición" : "Normocalórica · Mantenimiento"}
+            <span className="font-bold text-zinc-200">
+              {plan.goalLabel}
             </span>
           </div>
           <span className="text-zinc-500">

@@ -1,5 +1,7 @@
 export type ProfileSlug = "hoplita" | "hoplita_girl" | "juan" | "wendy" | "nato" | string;
 
+export type NutritionGoal = "fat_loss" | "recomp" | "maintenance" | "hypertrophy";
+
 export interface Profile {
   id: string;
   userId?: string;
@@ -11,6 +13,7 @@ export interface Profile {
   targetBodyFatPct: number;
   targetWeightKg?: number;
   heightCm?: number | null;
+  nutritionGoal?: NutritionGoal;
   streakDays: number;
   weeklyCompleted: number;
   weeklyTarget: number;
