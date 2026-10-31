@@ -20,6 +20,7 @@ import {
   Wheat,
   Activity,
   ShieldCheck,
+  ArrowRightLeft,
 } from "lucide-react";
 import {
   useSupplementStore,
@@ -29,6 +30,14 @@ import {
 import { useProfileStore } from "@/stores/useProfileStore";
 import { useBiometricsStore } from "@/stores/useBiometricsStore";
 import { calculateNutritionPlan, MealPortion } from "@/lib/nutrition-engine";
+import {
+  CLEAN_FOODS,
+  MacroCategory,
+  calculateFoodPortion,
+} from "@/lib/food-database";
+import { useMealCustomizationsStore } from "@/stores/useMealCustomizationsStore";
+import { FoodSwapDrawer } from "@/components/FoodSwapDrawer";
+import { soundEngine } from "@/lib/audio";
 import { cn } from "@/lib/utils";
 
 const ICONS_MAP: Record<string, React.ElementType> = {
@@ -58,6 +67,46 @@ export const NutritionView: React.FC = () => {
 
   // Acordeón de comidas (abierto por defecto la primera comida)
   const [expandedMeal, setExpandedMeal] = useState<string | null>("meal_1");
+
+  // Perfil actual para personalización de comidas
+  const profileSlug =
+    activeProfile.slug ||
+    (activeProfile.role === "hoplita_girl" || activeProfile.gender === "female"
+      ? "wendy"
+      : "juan");
+
+  const { getCustomization, setSwap } = useMealCustomizationsStore();
+
+  // Estado del drawer de intercambio de alimentos
+  const [swapDrawerState, setSwapDrawerState] = useState<{
+    isOpen: boolean;
+    category: MacroCategory;
+    mealId: string;
+    mealName: string;
+    mealSubtitle: string;
+    targetMacroGrams: number;
+    currentFoodId: string;
+  } | null>(null);
+
+  const openSwapDrawer = (
+    mealId: string,
+    mealName: string,
+    mealSubtitle: string,
+    category: MacroCategory,
+    targetMacroGrams: number,
+    currentFoodId: string
+  ) => {
+    soundEngine.playTap();
+    setSwapDrawerState({
+      isOpen: true,
+      category,
+      mealId,
+      mealName,
+      mealSubtitle,
+      targetMacroGrams,
+      currentFoodId,
+    });
+  };
 
   // Cargar registros al montar o cuando cambie el usuario
   useEffect(() => {
@@ -417,6 +466,29 @@ export const NutritionView: React.FC = () => {
         <div className="space-y-2.5">
           {plan.meals.map((meal) => {
             const isExpanded = expandedMeal === meal.id;
+            const custom = getCustomization(profileSlug, meal.id);
+            const proteinFood =
+              CLEAN_FOODS[custom.proteinFoodId] || CLEAN_FOODS.pechuga_pollo;
+            const carbFood =
+              CLEAN_FOODS[custom.carbFoodId] || CLEAN_FOODS.arroz_basmati;
+            const fatFood =
+              CLEAN_FOODS[custom.fatFoodId] || CLEAN_FOODS.aove;
+
+            const proteinPortion = calculateFoodPortion(
+              meal.proteinGrams,
+              "protein",
+              proteinFood
+            );
+            const carbPortion = calculateFoodPortion(
+              meal.carbGrams,
+              "carbs",
+              carbFood
+            );
+            const fatPortion = calculateFoodPortion(
+              meal.fatGrams,
+              "fats",
+              fatFood
+            );
 
             return (
               <div
@@ -508,32 +580,165 @@ export const NutritionView: React.FC = () => {
                           </div>
                         </div>
 
-                        {/* Sugerencias prácticas de fuentes limpias */}
-                        <div className="bg-zinc-950/60 border border-zinc-800/80 rounded-xl p-3 space-y-2 text-[11px]">
-                          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-400 block flex items-center gap-1.5">
-                            <Sparkles className="w-3.5 h-3.5" style={{ color: accentColor }} />
-                            Fuentes Óptimas Sugeridas
-                          </span>
+                        {/* Intercambio Inteligente de Alimentos Limpios */}
+                        <div className="space-y-2 pt-1">
+                          <div className="flex items-center justify-between px-0.5">
+                            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
+                              <Sparkles className="w-3.5 h-3.5" style={{ color: accentColor }} />
+                              Alimentos & Gramaje en Báscula
+                            </span>
+                            <span className="text-[9px] font-mono text-zinc-400">
+                              Pulsa para intercambiar ⇄
+                            </span>
+                          </div>
 
-                          <div className="space-y-1.5">
-                            <div className="flex items-start gap-2">
-                              <span className="text-cyan-400 font-mono font-bold shrink-0">P:</span>
-                              <span className="text-zinc-300 leading-tight">
-                                {meal.suggestions.protein}
-                              </span>
-                            </div>
-                            <div className="flex items-start gap-2">
-                              <span className="text-amber-400 font-mono font-bold shrink-0">C:</span>
-                              <span className="text-zinc-300 leading-tight">
-                                {meal.suggestions.carbs}
-                              </span>
-                            </div>
-                            <div className="flex items-start gap-2">
-                              <span className="text-rose-400 font-mono font-bold shrink-0">G:</span>
-                              <span className="text-zinc-300 leading-tight">
-                                {meal.suggestions.fats}
-                              </span>
-                            </div>
+                          <div className="space-y-2">
+                            {/* Chip Proteína */}
+                            <button
+                              type="button"
+                              onClick={() =>
+                                openSwapDrawer(
+                                  meal.id,
+                                  meal.name,
+                                  meal.subtitle,
+                                  "protein",
+                                  meal.proteinGrams,
+                                  custom.proteinFoodId
+                                )
+                              }
+                              className="w-full text-left p-2.5 rounded-xl bg-cyan-950/20 hover:bg-cyan-950/30 border border-cyan-500/25 hover:border-cyan-500/50 transition-all flex items-center justify-between gap-2.5 group active:scale-[0.99] touch-manipulation min-h-[44px]"
+                            >
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <span className="text-lg shrink-0 leading-none" role="img" aria-label="protein">
+                                  {proteinFood.emoji}
+                                </span>
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span className="text-xs font-bold text-zinc-100">
+                                      <span className="font-mono text-cyan-300 font-black mr-1">
+                                        {proteinPortion.grams}g
+                                      </span>
+                                      {proteinFood.shortName}
+                                    </span>
+                                    {proteinPortion.unitNote && (
+                                      <span className="text-[10px] font-mono text-zinc-400">
+                                        ({proteinPortion.unitNote})
+                                      </span>
+                                    )}
+                                  </div>
+                                  <span className="text-[10px] font-mono text-cyan-400/80 block">
+                                    ➔ ({meal.proteinGrams}g P)
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                <span className="text-[10px] font-mono font-bold text-cyan-400 bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/20">
+                                  {proteinPortion.calories} kcal
+                                </span>
+                                <div className="w-6 h-6 rounded-lg bg-zinc-900 border border-cyan-500/30 flex items-center justify-center text-cyan-400 group-hover:text-white group-hover:border-cyan-400 transition-colors">
+                                  <ArrowRightLeft className="w-3 h-3" />
+                                </div>
+                              </div>
+                            </button>
+
+                            {/* Chip Carbohidratos */}
+                            <button
+                              type="button"
+                              onClick={() =>
+                                openSwapDrawer(
+                                  meal.id,
+                                  meal.name,
+                                  meal.subtitle,
+                                  "carbs",
+                                  meal.carbGrams,
+                                  custom.carbFoodId
+                                )
+                              }
+                              className="w-full text-left p-2.5 rounded-xl bg-amber-950/20 hover:bg-amber-950/30 border border-amber-500/25 hover:border-amber-500/50 transition-all flex items-center justify-between gap-2.5 group active:scale-[0.99] touch-manipulation min-h-[44px]"
+                            >
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <span className="text-lg shrink-0 leading-none" role="img" aria-label="carbs">
+                                  {carbFood.emoji}
+                                </span>
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span className="text-xs font-bold text-zinc-100">
+                                      <span className="font-mono text-amber-300 font-black mr-1">
+                                        {carbPortion.grams}g
+                                      </span>
+                                      {carbFood.shortName}
+                                    </span>
+                                    {carbPortion.unitNote && (
+                                      <span className="text-[10px] font-mono text-zinc-400">
+                                        ({carbPortion.unitNote})
+                                      </span>
+                                    )}
+                                  </div>
+                                  <span className="text-[10px] font-mono text-amber-400/80 block">
+                                    ➔ ({meal.carbGrams}g C)
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                <span className="text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                                  {carbPortion.calories} kcal
+                                </span>
+                                <div className="w-6 h-6 rounded-lg bg-zinc-900 border border-amber-500/30 flex items-center justify-center text-amber-400 group-hover:text-white group-hover:border-amber-400 transition-colors">
+                                  <ArrowRightLeft className="w-3 h-3" />
+                                </div>
+                              </div>
+                            </button>
+
+                            {/* Chip Grasas Saludables */}
+                            <button
+                              type="button"
+                              onClick={() =>
+                                openSwapDrawer(
+                                  meal.id,
+                                  meal.name,
+                                  meal.subtitle,
+                                  "fats",
+                                  meal.fatGrams,
+                                  custom.fatFoodId
+                                )
+                              }
+                              className="w-full text-left p-2.5 rounded-xl bg-rose-950/20 hover:bg-rose-950/30 border border-rose-500/25 hover:border-rose-500/50 transition-all flex items-center justify-between gap-2.5 group active:scale-[0.99] touch-manipulation min-h-[44px]"
+                            >
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <span className="text-lg shrink-0 leading-none" role="img" aria-label="fats">
+                                  {fatFood.emoji}
+                                </span>
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span className="text-xs font-bold text-zinc-100">
+                                      <span className="font-mono text-rose-300 font-black mr-1">
+                                        {fatPortion.grams}g
+                                      </span>
+                                      {fatFood.shortName}
+                                    </span>
+                                    {fatPortion.unitNote && (
+                                      <span className="text-[10px] font-mono text-zinc-400">
+                                        ({fatPortion.unitNote})
+                                      </span>
+                                    )}
+                                  </div>
+                                  <span className="text-[10px] font-mono text-rose-400/80 block">
+                                    ➔ ({meal.fatGrams}g G)
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                <span className="text-[10px] font-mono font-bold text-rose-400 bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/20">
+                                  {fatPortion.calories} kcal
+                                </span>
+                                <div className="w-6 h-6 rounded-lg bg-zinc-900 border border-rose-500/30 flex items-center justify-center text-rose-400 group-hover:text-white group-hover:border-rose-400 transition-colors">
+                                  <ArrowRightLeft className="w-3 h-3" />
+                                </div>
+                              </div>
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -715,6 +920,30 @@ export const NutritionView: React.FC = () => {
           <div className="space-y-2">{nightItems.map(renderSupplementRow)}</div>
         </div>
       </div>
+
+      {/* MODAL / DRAWER INTERCAMBIO INTELIGENTE DE ALIMENTOS */}
+      {swapDrawerState && (
+        <FoodSwapDrawer
+          isOpen={swapDrawerState.isOpen}
+          onClose={() => setSwapDrawerState(null)}
+          category={swapDrawerState.category}
+          mealId={swapDrawerState.mealId}
+          mealName={swapDrawerState.mealName}
+          mealSubtitle={swapDrawerState.mealSubtitle}
+          targetMacroGrams={swapDrawerState.targetMacroGrams}
+          currentFoodId={swapDrawerState.currentFoodId}
+          themeAccent={accentColor}
+          onSelectFood={(newFoodId) => {
+            setSwap(
+              profileSlug,
+              swapDrawerState.mealId,
+              swapDrawerState.category,
+              newFoodId
+            );
+            setSwapDrawerState(null);
+          }}
+        />
+      )}
     </div>
   );
 };
