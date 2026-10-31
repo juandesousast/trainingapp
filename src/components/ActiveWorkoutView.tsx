@@ -158,7 +158,7 @@ export const ActiveWorkoutView: React.FC = () => {
   return (
     <div className="pb-44 max-w-md mx-auto pb-[calc(11rem+env(safe-area-inset-bottom,0px))]">
       {/* Encabezado Sticky del Entreno Activo */}
-      <div className="sticky top-0 z-40 w-full bg-zinc-950/95 backdrop-blur-md border-b border-zinc-900 py-3 px-4 mb-3 flex items-center justify-between">
+      <div className="sticky top-0 z-40 w-full bg-zinc-950/98 backdrop-blur-xl border-b border-zinc-800/80 py-3 px-4 mb-3 flex items-center justify-between shadow-lg shadow-black/40">
         <button
           onClick={handleVolverClick}
           className="min-h-[44px] px-2 flex items-center gap-1 text-xs font-extrabold text-zinc-400 hover:text-white transition-colors active:scale-95 uppercase tracking-tight"

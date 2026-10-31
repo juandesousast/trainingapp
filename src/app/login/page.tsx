@@ -158,7 +158,7 @@ export default function LoginPage() {
                 <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
               ) : (
                 <>
-                  <span>Iniciar Sesión</span>
+                  <span>Entrar al Sistema</span>
                   <ArrowRight className="w-4 h-4 stroke-[3]" />
                 </>
               )}

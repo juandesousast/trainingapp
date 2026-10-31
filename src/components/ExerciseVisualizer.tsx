@@ -103,7 +103,7 @@ export const ExerciseVisualizer: React.FC<ExerciseVisualizerProps> = ({
               handleModeChange("tempo");
             }}
             className={cn(
-              "px-2.5 py-1 rounded-full text-[9px] font-mono font-bold tracking-wider transition-all",
+              "px-3 py-1.5 rounded-full text-[10px] font-mono font-bold tracking-wider transition-all min-h-[32px] flex items-center justify-center",
               viewMode === "tempo"
                 ? "bg-zinc-800 text-white shadow-sm"
                 : "text-zinc-500 hover:text-zinc-300"
@@ -119,7 +119,7 @@ export const ExerciseVisualizer: React.FC<ExerciseVisualizerProps> = ({
               handleModeChange("tecnica");
             }}
             className={cn(
-              "px-2.5 py-1 rounded-full text-[9px] font-mono font-bold tracking-wider transition-all",
+              "px-3 py-1.5 rounded-full text-[10px] font-mono font-bold tracking-wider transition-all min-h-[32px] flex items-center justify-center",
               viewMode === "tecnica"
                 ? "bg-zinc-800 text-white shadow-sm"
                 : "text-zinc-500 hover:text-zinc-300"
