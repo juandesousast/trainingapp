@@ -156,44 +156,46 @@ export const ActiveWorkoutView: React.FC = () => {
   };
 
   return (
-    <div className="pb-44 max-w-md mx-auto pb-[calc(11rem+env(safe-area-inset-bottom,0px))]">
-      {/* Encabezado Sticky del Entreno Activo */}
-      <div className="sticky top-0 z-40 w-full bg-zinc-950/98 backdrop-blur-xl border-b border-zinc-800/80 py-3 px-4 mb-3 flex items-center justify-between shadow-lg shadow-black/40">
-        <button
-          onClick={handleVolverClick}
-          className="min-h-[44px] px-2 flex items-center gap-1 text-xs font-extrabold text-zinc-400 hover:text-white transition-colors active:scale-95 uppercase tracking-tight"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          <span>Volver</span>
-        </button>
+    <div className="w-full pb-44 pb-[calc(11rem+env(safe-area-inset-bottom,0px))]">
+      {/* Header Superior de Extremo a Extremo (Sin cortes laterales) */}
+      <header className="w-full sticky top-0 z-40 bg-zinc-950/95 backdrop-blur-md border-b border-zinc-900 shadow-lg shadow-black/40">
+        <div className="w-full max-w-md mx-auto px-4 py-3 flex items-center justify-between">
+          <button
+            onClick={handleVolverClick}
+            className="min-h-[44px] px-2 flex items-center gap-1 text-xs font-extrabold text-zinc-400 hover:text-white transition-colors active:scale-95 uppercase tracking-tight"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span>Volver</span>
+          </button>
 
-        <div className="text-center">
-          <span className="text-[10px] font-mono font-extrabold tracking-widest text-zinc-400 uppercase block">
-            {activeMesocycle.name} · {activeWorkout.letter}
-          </span>
-          <h2 className="text-sm font-black text-white tracking-tight uppercase">
-            Exposición <span className="font-mono tabular-nums">{activeMesocycle.currentExposure}</span>º de <span className="font-mono tabular-nums">{activeMesocycle.totalExposures}</span>º
-          </h2>
+          <div className="text-center">
+            <span className="text-[10px] font-mono font-extrabold tracking-widest text-zinc-400 uppercase block">
+              {activeMesocycle.name} · {activeWorkout.letter}
+            </span>
+            <h2 className="text-sm font-black text-white tracking-tight uppercase">
+              Exposición <span className="font-mono tabular-nums">{activeMesocycle.currentExposure}</span>º de <span className="font-mono tabular-nums">{activeMesocycle.totalExposures}</span>º
+            </h2>
+          </div>
+
+          <button
+            onClick={handleTerminarClick}
+            className="min-h-[44px] px-4 rounded-full text-xs font-black uppercase text-black font-mono transition-all duration-200 active:scale-95 shadow-md flex items-center justify-center"
+            style={{ backgroundColor: accentColor }}
+          >
+            Terminar
+          </button>
         </div>
+      </header>
 
-        <button
-          onClick={handleTerminarClick}
-          className="min-h-[44px] px-4 rounded-full text-xs font-black uppercase text-black font-mono transition-all duration-200 active:scale-95 shadow-md flex items-center justify-center"
-          style={{ backgroundColor: accentColor }}
-        >
-          Terminar
-        </button>
-      </div>
-
-      {/* Lista de Bloques y Ejercicios */}
-      <div className="space-y-6 px-4 pt-2">
+      {/* Lista de Bloques y Ejercicios Centrada */}
+      <div className="max-w-md mx-auto space-y-6 px-4 pt-3">
         {groupedExercises.map((group, groupIdx) => (
           <div
             key={groupIdx}
             className={cn(
               "rounded-3xl transition-all",
               group.isGroup
-                ? "bg-zinc-950/40 border border-zinc-800/80 p-3.5 space-y-4"
+                ? "bg-zinc-950/40 border border-zinc-800/80 p-2.5 space-y-3"
                 : "space-y-4"
             )}
             style={{
@@ -227,7 +229,10 @@ export const ActiveWorkoutView: React.FC = () => {
               return (
                 <div
                   key={workoutExercise.id}
-                  className="bg-zinc-900/80 border border-zinc-800 rounded-3xl p-4 shadow-lg backdrop-blur-md"
+                  className={cn(
+                    "bg-zinc-900/80 border border-zinc-800 rounded-3xl shadow-lg backdrop-blur-md",
+                    group.isGroup ? "p-2.5 sm:p-3" : "p-3.5 sm:p-4"
+                  )}
                 >
                   {/* Cabecera de Ejercicio Resistente a Nombres Largos */}
                   <div className="mb-3">
@@ -325,14 +330,14 @@ export const ActiveWorkoutView: React.FC = () => {
                       <div
                         key={set.id}
                         className={cn(
-                          "grid grid-cols-[30px_1fr_1fr_42px] items-center gap-2 px-3 py-2.5 rounded-xl border transition-all duration-300",
+                          "grid grid-cols-[28px_1fr_1fr_38px] items-center gap-1.5 px-2 py-2 rounded-xl border transition-all duration-300",
                           set.isCompleted
                             ? "bg-zinc-950/90 border-emerald-500/60 shadow-[0_0_20px_-3px_rgba(16,185,129,0.3)] ring-1 ring-emerald-500/30"
                             : "bg-zinc-900/60 border border-zinc-800/80 hover:border-zinc-700"
                         )}
                       >
                         {/* Columna 1: Label de Serie */}
-                        <div className="flex flex-col items-center justify-center">
+                        <div className="flex flex-col items-center justify-center min-w-[28px]">
                           <span className="font-mono font-bold text-xs text-zinc-400">
                             S{set.setNumber}
                           </span>
@@ -348,7 +353,7 @@ export const ActiveWorkoutView: React.FC = () => {
                             onClick={() =>
                               adjustWeight(workoutExercise.id, setIndex, -2.5)
                             }
-                            className="w-8 h-8 rounded-lg bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center text-zinc-200 shrink-0 font-bold text-base transition-all active:scale-95 disabled:opacity-30 p-0"
+                            className="w-7 h-7 min-w-[28px] rounded-lg bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center text-zinc-200 shrink-0 font-bold text-sm transition-all active:scale-95 disabled:opacity-30 p-0"
                           >
                             -
                           </button>
@@ -360,11 +365,11 @@ export const ActiveWorkoutView: React.FC = () => {
                                 weightKg: set.actualWeightKg,
                               })
                             }
-                            className="flex flex-col items-center justify-center text-center px-1 min-w-[58px] cursor-pointer hover:opacity-80 transition-opacity active:scale-95"
+                            className="flex flex-col items-center justify-center text-center px-0.5 min-w-0 cursor-pointer hover:opacity-80 transition-opacity active:scale-95"
                             title="Pulsar para calcular discos"
                           >
                             <div className="flex items-baseline justify-center gap-0.5 leading-none">
-                              <span className="font-mono font-black text-lg text-white tabular-nums leading-none">
+                              <span className="font-mono font-black text-base sm:text-lg text-white tabular-nums leading-none">
                                 {set.actualWeightKg}
                               </span>
                               <span className="text-[10px] uppercase font-bold text-zinc-400 ml-0.5">
@@ -372,7 +377,7 @@ export const ActiveWorkoutView: React.FC = () => {
                               </span>
                             </div>
                             {set.historicalWeightKg != null ? (
-                              <span className="text-[10px] text-zinc-400 font-mono tracking-tight leading-tight mt-0.5 whitespace-nowrap">
+                              <span className="text-[9px] text-zinc-400 font-mono tracking-tight leading-tight mt-0.5 whitespace-nowrap">
                                 prev: {set.historicalWeightKg}
                               </span>
                             ) : null}
@@ -383,7 +388,7 @@ export const ActiveWorkoutView: React.FC = () => {
                             onClick={() =>
                               adjustWeight(workoutExercise.id, setIndex, 2.5)
                             }
-                            className="w-8 h-8 rounded-lg bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center text-zinc-200 shrink-0 font-bold text-base transition-all active:scale-95 disabled:opacity-30 p-0"
+                            className="w-7 h-7 min-w-[28px] rounded-lg bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center text-zinc-200 shrink-0 font-bold text-sm transition-all active:scale-95 disabled:opacity-30 p-0"
                           >
                             +
                           </button>
@@ -396,14 +401,14 @@ export const ActiveWorkoutView: React.FC = () => {
                             onClick={() =>
                               adjustReps(workoutExercise.id, setIndex, -1)
                             }
-                            className="w-8 h-8 rounded-lg bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center text-zinc-200 shrink-0 font-bold text-base transition-all active:scale-95 disabled:opacity-30 p-0"
+                            className="w-7 h-7 min-w-[28px] rounded-lg bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center text-zinc-200 shrink-0 font-bold text-sm transition-all active:scale-95 disabled:opacity-30 p-0"
                           >
                             -
                           </button>
 
-                          <div className="flex flex-col items-center justify-center text-center px-1 min-w-[58px]">
+                          <div className="flex flex-col items-center justify-center text-center px-0.5 min-w-0">
                             <div className="flex items-baseline justify-center gap-0.5 leading-none">
-                              <span className="font-mono font-black text-lg text-white tabular-nums leading-none">
+                              <span className="font-mono font-black text-base sm:text-lg text-white tabular-nums leading-none">
                                 {set.actualReps}
                               </span>
                               <span className="text-[10px] uppercase font-bold text-zinc-400 ml-0.5">
@@ -411,7 +416,7 @@ export const ActiveWorkoutView: React.FC = () => {
                               </span>
                             </div>
                             {set.historicalReps != null ? (
-                              <span className="text-[10px] text-zinc-400 font-mono tracking-tight leading-tight mt-0.5 whitespace-nowrap">
+                              <span className="text-[9px] text-zinc-400 font-mono tracking-tight leading-tight mt-0.5 whitespace-nowrap">
                                 prev: {set.historicalReps}
                               </span>
                             ) : null}
@@ -422,7 +427,7 @@ export const ActiveWorkoutView: React.FC = () => {
                             onClick={() =>
                               adjustReps(workoutExercise.id, setIndex, 1)
                             }
-                            className="w-8 h-8 rounded-lg bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center text-zinc-200 shrink-0 font-bold text-base transition-all active:scale-95 disabled:opacity-30 p-0"
+                            className="w-7 h-7 min-w-[28px] rounded-lg bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center text-zinc-200 shrink-0 font-bold text-sm transition-all active:scale-95 disabled:opacity-30 p-0"
                           >
                             +
                           </button>
@@ -440,13 +445,14 @@ export const ActiveWorkoutView: React.FC = () => {
                             )
                           }
                           className={cn(
-                            "w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 active:scale-90 shrink-0 justify-self-center",
+                            "w-9 h-9 min-w-[36px] rounded-xl flex items-center justify-center transition-all duration-200 active:scale-90 shrink-0 justify-self-center shadow-md",
                             set.isCompleted
-                              ? "bg-emerald-400 text-black shadow-lg shadow-emerald-500/25 font-black"
+                              ? "bg-emerald-400 text-black shadow-emerald-500/25 font-black"
                               : "bg-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-700"
                           )}
+                          title="Marcar serie completada"
                         >
-                          <Check className="w-5 h-5 stroke-[3]" />
+                          <Check className="w-4 h-4 stroke-[3]" />
                         </button>
                       </div>
                     ))}
