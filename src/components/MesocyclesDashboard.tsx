@@ -9,7 +9,6 @@ import { BentoMesocycleCard } from "@/components/BentoMesocycleCard";
 import { RecoveryCheckinDrawer } from "@/components/RecoveryCheckinDrawer";
 import { TargetGoalDialog } from "@/components/TargetGoalDialog";
 import { BiometricsDrawer } from "@/components/BiometricsDrawer";
-import { SupplementProtocolCard } from "@/components/SupplementProtocolCard";
 import { useBiometricsStore } from "@/stores/useBiometricsStore";
 import { Mesocycle, Workout } from "@/lib/types";
 import { Play, Sparkles, Scale, HeartPulse, Check, Eye } from "lucide-react";
@@ -284,9 +283,6 @@ export const MesocyclesDashboard: React.FC = () => {
           </span>
         </button>
       </div>
-
-      {/* Módulo de Suplementación & Recuperación */}
-      <SupplementProtocolCard />
 
       {/* Catálogo Bento de los 5 Mesociclos (Navegación Desbloqueada) */}
       <div className="space-y-3">
