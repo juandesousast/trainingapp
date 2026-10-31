@@ -8,6 +8,7 @@ export interface SupplementItem {
   id: string;
   name: string;
   timing: "morning" | "afternoon" | "night";
+  block: "breakfast" | "workout" | "lunch" | "night";
   baseDose: string;
   getDynamicDose?: (weightKg: number, isTrainingDay: boolean) => string;
   notes: string;
@@ -15,20 +16,23 @@ export interface SupplementItem {
 }
 
 export const SUPPLEMENT_CATALOG: SupplementItem[] = [
-  // 1. Mañana / Desayuno
+  // 1. Desayuno
   {
     id: "d3_k2",
     name: "Vitamina D3 + K2",
     timing: "morning",
+    block: "breakfast",
     baseDose: "1 cápsula",
     getDynamicDose: () => "1 cápsula (con fuente de grasa)",
     notes: "Tomar con el desayuno junto a grasas saludables (huevos, AOVE o aguacate).",
     iconName: "Sun",
   },
+  // 2. Pre / Post-Entreno
   {
     id: "citrulline",
     name: "Citrulina Malato",
     timing: "morning",
+    block: "workout",
     baseDose: "3 g",
     getDynamicDose: (_w, isTrainingDay) =>
       isTrainingDay ? "6 - 8 g (Pre-entreno)" : "3 g (con agua)",
@@ -36,11 +40,12 @@ export const SUPPLEMENT_CATALOG: SupplementItem[] = [
     iconName: "Flame",
   },
 
-  // 2. Comida o Merienda
+  // 3. Comida o Merienda
   {
     id: "creatine",
     name: "Creatina Monohidrato",
     timing: "afternoon",
+    block: "lunch",
     baseDose: "4.0 g",
     getDynamicDose: (weightKg) => {
       const grams = Math.round(weightKg * 0.05 * 10) / 10;
@@ -53,17 +58,19 @@ export const SUPPLEMENT_CATALOG: SupplementItem[] = [
     id: "whey",
     name: "Proteína Whey",
     timing: "afternoon",
+    block: "lunch",
     baseDose: "1 scoop",
     getDynamicDose: () => "1 scoop (~25-30 g proteína)",
     notes: "Opcional según requerimiento proteico diario de la dieta.",
     iconName: "Utensils",
   },
 
-  // 3. Noche / Antes de Dormir
+  // 4. Noche / Antes de Dormir
   {
     id: "magnesium",
     name: "Bisglicinato de Magnesio",
     timing: "night",
+    block: "night",
     baseDose: "1 dosis",
     getDynamicDose: () => "1 dosis (~200-400 mg magnesio elemental)",
     notes: "Tomar 30-45 min antes de acostarse con medio vaso de agua.",
