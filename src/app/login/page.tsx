@@ -49,7 +49,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative min-h-screen bg-zinc-950 text-zinc-100 flex flex-col justify-center items-center px-4 py-8 select-none overflow-hidden">
+    <div className="relative min-h-screen bg-zinc-950 text-zinc-100 flex flex-col justify-center items-center px-4 py-8 select-none overflow-y-auto overflow-x-hidden">
       {/* Luces cinéticas de fondo */}
       <div className="absolute -top-32 -left-32 w-80 h-80 rounded-full blur-[130px] opacity-20 bg-[#CCFF00] pointer-events-none" />
       <div className="absolute -bottom-32 -right-32 w-80 h-80 rounded-full blur-[130px] opacity-15 bg-[#F43F5E] pointer-events-none" />

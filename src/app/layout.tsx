@@ -28,10 +28,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" data-theme="hoplita" className="dark overscroll-none overflow-x-hidden">
-      <body className="min-h-screen bg-zinc-950 text-zinc-100 antialiased selection:bg-[#CCFF00] selection:text-black overscroll-none overflow-x-hidden">
+    <html lang="es" data-theme="hoplita" className="dark">
+      <body className="min-h-screen w-full bg-zinc-950 text-white overflow-y-auto overflow-x-hidden antialiased selection:bg-[#CCFF00] selection:text-black">
         <Header />
-        <main className="min-h-[calc(100vh-60px)] overflow-x-hidden">{children}</main>
+        <main className="min-h-screen w-full flex flex-col pb-32">{children}</main>
       </body>
     </html>
   );
