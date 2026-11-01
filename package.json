@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:e2e:visual": "node scratch/test_visual_audit.cjs"
   },
   "dependencies": {
     "@remotion/player": "^4.0.539",

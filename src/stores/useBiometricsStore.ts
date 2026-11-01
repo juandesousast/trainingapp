@@ -53,16 +53,21 @@ export interface RecoveryCheckinEntry {
 
 interface BiometricsState {
   entries: BiometricEntry[];
+  history: BiometricEntry[];
+  latestLog: BiometricEntry | null;
   dailyHabits: DailyHabitEntry[];
   recoveryCheckins: RecoveryCheckinEntry[];
   fetchUserData: (profileId?: string) => Promise<void>;
-  addBiometricEntry: (entry: Omit<BiometricEntry, "id">) => Promise<void>;
+  fetchBiometrics: (profileId?: string) => Promise<void>;
+  addBiometricEntry: (entry: Omit<BiometricEntry, "id">) => Promise<BiometricEntry>;
   addDailyHabit: (habit: Omit<DailyHabitEntry, "id">) => Promise<void>;
   addRecoveryCheckin: (checkin: Omit<RecoveryCheckinEntry, "id" | "recordedAt">) => void;
 }
 
-export const useBiometricsStore = create<BiometricsState>((set) => ({
+export const useBiometricsStore = create<BiometricsState>((set, get) => ({
   entries: [],
+  history: [],
+  latestLog: null,
   dailyHabits: [],
   recoveryCheckins: [],
 
@@ -93,36 +98,40 @@ export const useBiometricsStore = create<BiometricsState>((set) => ({
       const { data: bioData } = await bioQuery;
 
       if (bioData && bioData.length > 0) {
+        const mappedEntries: BiometricEntry[] = bioData.map((b: any) => ({
+          id: b.id,
+          profileId: b.profile_id,
+          date: b.measured_at,
+          weightKg: Number(b.weight_kg),
+          bmi: Number(b.bmi || 25),
+          bodyFatPct: Number(b.body_fat_pct || 20),
+          subcutaneousFatPct: Number(b.subcutaneous_fat_pct || 18),
+          visceralFatRating: Number(b.visceral_fat_rating || 5),
+          fatFreeMassKg: Number(b.fat_free_mass_kg || 60),
+          muscleMassKg: Number(b.muscle_mass_kg || 55),
+          boneMassKg: Number(b.bone_mass_kg || 3),
+          skeletalMusclePct: Number(b.skeletal_muscle_pct || 45),
+          bodyWaterPct: Number(b.body_water_pct || 55),
+          proteinPct: Number(b.protein_pct || 17),
+          bmrKcal: Number(b.bmr_kcal || 1650),
+          metabolicAge: Number(b.metabolic_age || 30),
+          waistCircumferenceCm: b.waist_cm ? Number(b.waist_cm) : undefined,
+          neckCm: b.neck_cm ? Number(b.neck_cm) : undefined,
+          chestCm: b.chest_cm ? Number(b.chest_cm) : undefined,
+          armCm: b.arm_cm ? Number(b.arm_cm) : undefined,
+          thighCm: b.thigh_cm ? Number(b.thigh_cm) : undefined,
+          hipCm: b.hip_cm ? Number(b.hip_cm) : undefined,
+          isFasting: b.is_fasting ?? true,
+          createdAt: b.created_at,
+        }));
+
         set({
-          entries: bioData.map((b: any) => ({
-            id: b.id,
-            profileId: b.profile_id,
-            date: b.measured_at,
-            weightKg: Number(b.weight_kg),
-            bmi: Number(b.bmi || 25),
-            bodyFatPct: Number(b.body_fat_pct || 20),
-            subcutaneousFatPct: Number(b.subcutaneous_fat_pct || 18),
-            visceralFatRating: Number(b.visceral_fat_rating || 5),
-            fatFreeMassKg: Number(b.fat_free_mass_kg || 60),
-            muscleMassKg: Number(b.muscle_mass_kg || 55),
-            boneMassKg: Number(b.bone_mass_kg || 3),
-            skeletalMusclePct: Number(b.skeletal_muscle_pct || 45),
-            bodyWaterPct: Number(b.body_water_pct || 55),
-            proteinPct: Number(b.protein_pct || 17),
-            bmrKcal: Number(b.bmr_kcal || 1650),
-            metabolicAge: Number(b.metabolic_age || 30),
-            waistCircumferenceCm: b.waist_cm ? Number(b.waist_cm) : undefined,
-            neckCm: b.neck_cm ? Number(b.neck_cm) : undefined,
-            chestCm: b.chest_cm ? Number(b.chest_cm) : undefined,
-            armCm: b.arm_cm ? Number(b.arm_cm) : undefined,
-            thighCm: b.thigh_cm ? Number(b.thigh_cm) : undefined,
-            hipCm: b.hip_cm ? Number(b.hip_cm) : undefined,
-            isFasting: b.is_fasting ?? true,
-            createdAt: b.created_at,
-          })),
+          entries: mappedEntries,
+          history: mappedEntries,
+          latestLog: mappedEntries[mappedEntries.length - 1],
         });
       } else {
-        set({ entries: [] });
+        set({ entries: [], history: [], latestLog: null });
       }
 
       // 2. Consultar hábitos diarios del perfil con filtro estricto
@@ -160,16 +169,36 @@ export const useBiometricsStore = create<BiometricsState>((set) => ({
     }
   },
 
+  fetchBiometrics: async (profileId?: string) => {
+    await get().fetchUserData(profileId);
+  },
+
   addBiometricEntry: async (entry) => {
+    // Normalizar fecha a formato estándar YYYY-MM-DD
+    const todayStr =
+      entry.date && !entry.date.startsWith("Medición")
+        ? entry.date
+        : new Date().toISOString().split("T")[0];
+
     const newEntry: BiometricEntry = {
       ...entry,
       id: `bio-${Date.now()}`,
+      date: todayStr,
+      isFasting: entry.isFasting ?? true,
+      createdAt: new Date().toISOString(),
     };
 
-    set((state) => ({
-      entries: [...state.entries, newEntry],
-    }));
+    // 1. Actualización optimista e inmediata del estado global en memoria
+    set((state) => {
+      const updated = [...state.entries, newEntry];
+      return {
+        entries: updated,
+        history: updated,
+        latestLog: newEntry,
+      };
+    });
 
+    // 2. Persistencia en Supabase
     try {
       const {
         data: { user },
@@ -178,8 +207,8 @@ export const useBiometricsStore = create<BiometricsState>((set) => ({
       await supabase.from("biometric_logs").insert({
         user_id: user?.id,
         profile_id: entry.profileId,
-        measured_at: new Date().toISOString().split("T")[0],
-        is_fasting: true,
+        measured_at: todayStr,
+        is_fasting: entry.isFasting ?? true,
         weight_kg: entry.weightKg,
         bmi: entry.bmi,
         body_fat_pct: entry.bodyFatPct,
@@ -200,9 +229,16 @@ export const useBiometricsStore = create<BiometricsState>((set) => ({
         thigh_cm: entry.thighCm,
         hip_cm: entry.hipCm,
       });
+
+      // 3. Refetch en background para sincronizar con la base de datos
+      if (entry.profileId) {
+        get().fetchUserData(entry.profileId);
+      }
     } catch (err) {
       console.warn("Aviso al guardar biometric_logs en Supabase:", err);
     }
+
+    return newEntry;
   },
 
   addDailyHabit: async (habit) => {

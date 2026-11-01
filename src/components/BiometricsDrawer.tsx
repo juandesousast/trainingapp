@@ -13,6 +13,14 @@ interface BiometricsDrawerProps {
   onClose: () => void;
 }
 
+const sanitizeFloat = (val: string | number, fallback: number = 0): number => {
+  if (typeof val === "number") return isNaN(val) ? fallback : val;
+  if (!val || typeof val !== "string") return fallback;
+  const cleaned = val.trim().replace(/,/g, ".");
+  const parsed = parseFloat(cleaned);
+  return isNaN(parsed) ? fallback : parsed;
+};
+
 export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
   isOpen,
   onClose,
@@ -26,6 +34,15 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
     activeProfile.role === "hoplita_girl";
 
   const latest = entries && entries.length > 0 ? entries[entries.length - 1] : null;
+
+  const handleDecimalInput =
+    (setter: (val: string) => void) =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const val = e.target.value;
+      if (/^[0-9]*[.,]?[0-9]*$/.test(val) || val === "") {
+        setter(val);
+      }
+    };
 
   // Altura requerida si no está configurada en perfil
   const [heightCm, setHeightCm] = useState(
@@ -130,15 +147,15 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
   }, [isOpen, latest, isFemale, activeProfile.heightCm]);
 
   // Badges clínicos de salud en tiempo real
-  const bmiBadge = getBMIBadge(parseFloat(bmi) || 0);
-  const fatBadge = getBodyFatBadge(parseFloat(bodyFatPct) || 0, activeProfile.gender);
-  const visceralBadge = getVisceralFatBadge(parseFloat(visceralFatRating) || 0);
+  const bmiBadge = getBMIBadge(sanitizeFloat(bmi, 0));
+  const fatBadge = getBodyFatBadge(sanitizeFloat(bodyFatPct, 0), activeProfile.gender);
+  const visceralBadge = getVisceralFatBadge(sanitizeFloat(visceralFatRating, 0));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Validar altura obligatoria si no existe previamente
-    const parsedHeight = parseFloat(heightCm);
+    const parsedHeight = sanitizeFloat(heightCm, 0);
     if (!activeProfile.heightCm && (!parsedHeight || parsedHeight < 100 || parsedHeight > 250)) {
       setHeightError(true);
       return;
@@ -153,28 +170,33 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
       );
     }
 
-    addBiometricEntry({
+    // Fecha estándar YYYY-MM-DD en hora local
+    const now = new Date();
+    const localDateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+
+    await addBiometricEntry({
       profileId: activeProfile.id,
-      date: `Medición ${new Date().toLocaleDateString("es-ES", { day: "numeric", month: "short" })}`,
-      weightKg: parseFloat(weightKg) || 82,
-      bmi: parseFloat(bmi) || 25,
-      bodyFatPct: parseFloat(bodyFatPct) || 25,
-      subcutaneousFatPct: parseFloat(subcutaneousFatPct) || 22,
-      visceralFatRating: parseFloat(visceralFatRating) || 8,
-      muscleMassKg: parseFloat(muscleMassKg) || 58,
-      skeletalMusclePct: parseFloat(skeletalMusclePct) || 47,
-      fatFreeMassKg: parseFloat(fatFreeMassKg) || 61,
-      boneMassKg: parseFloat(boneMassKg) || 3,
-      bmrKcal: parseInt(bmrKcal) || 1680,
-      bodyWaterPct: parseFloat(bodyWaterPct) || 53,
-      proteinPct: parseFloat(proteinPct) || 17,
+      date: localDateStr,
+      weightKg: sanitizeFloat(weightKg, isFemale ? 60.0 : 82.15),
+      bmi: sanitizeFloat(bmi, isFemale ? 22.0 : 25.4),
+      bodyFatPct: sanitizeFloat(bodyFatPct, isFemale ? 22.0 : 25.6),
+      subcutaneousFatPct: sanitizeFloat(subcutaneousFatPct, isFemale ? 19.5 : 22.8),
+      visceralFatRating: sanitizeFloat(visceralFatRating, isFemale ? 4 : 8),
+      muscleMassKg: sanitizeFloat(muscleMassKg, isFemale ? 44.0 : 58.08),
+      skeletalMusclePct: sanitizeFloat(skeletalMusclePct, isFemale ? 42.0 : 47.9),
+      fatFreeMassKg: sanitizeFloat(fatFreeMassKg, isFemale ? 46.8 : 61.12),
+      boneMassKg: sanitizeFloat(boneMassKg, isFemale ? 2.5 : 3.04),
+      bmrKcal: Math.round(sanitizeFloat(bmrKcal, isFemale ? 1350 : 1683)),
+      bodyWaterPct: sanitizeFloat(bodyWaterPct, isFemale ? 55.0 : 53.7),
+      proteinPct: sanitizeFloat(proteinPct, isFemale ? 16.5 : 17.0),
       metabolicAge: 35,
-      waistCircumferenceCm: parseFloat(waistCm) || undefined,
-      neckCm: parseFloat(neckCm) || undefined,
-      chestCm: parseFloat(chestCm) || undefined,
-      armCm: parseFloat(armCm) || undefined,
-      thighCm: parseFloat(thighCm) || undefined,
-      hipCm: parseFloat(hipCm) || undefined,
+      waistCircumferenceCm: waistCm ? sanitizeFloat(waistCm, 89) : undefined,
+      neckCm: neckCm ? sanitizeFloat(neckCm, 39) : undefined,
+      chestCm: chestCm ? sanitizeFloat(chestCm, 104) : undefined,
+      armCm: armCm ? sanitizeFloat(armCm, 37) : undefined,
+      thighCm: thighCm ? sanitizeFloat(thighCm, 59) : undefined,
+      hipCm: hipCm ? sanitizeFloat(hipCm, 101) : undefined,
+      isFasting: true,
     });
 
     onClose();
@@ -268,10 +290,22 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
                   Peso Total (kg)
                 </label>
                 <input
-                  type="number"
-                  step="0.05"
+                  type="text"
+                  inputMode="decimal"
+                  data-weight-input
+                  placeholder="82.5"
                   value={weightKg}
-                  onChange={(e) => setWeightKg(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (/^[0-9]*[.,]?[0-9]*$/.test(val) || val === "") {
+                      setWeightKg(val);
+                      const h = sanitizeFloat(heightCm);
+                      const w = sanitizeFloat(val);
+                      if (h > 100 && w > 30) {
+                        setBmi((w / ((h / 100) ** 2)).toFixed(1));
+                      }
+                    }
+                  }}
                   className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-1.5 text-white font-mono font-black text-lg focus:outline-none focus:border-zinc-500"
                 />
               </div>
@@ -614,6 +648,7 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
             <div className="sticky bottom-0 bg-zinc-950/95 backdrop-blur-md px-5 pt-3 pb-[calc(env(safe-area-inset-bottom,16px)+12px)] border-t border-zinc-900 shrink-0">
               <button
                 type="submit"
+                data-save-biometrics
                 className="w-full min-h-[50px] py-3.5 rounded-2xl font-black text-xs sm:text-sm uppercase tracking-wider text-black flex items-center justify-center gap-2 shadow-xl transition-all duration-200 active:scale-95"
                 style={{ backgroundColor: accentColor }}
               >

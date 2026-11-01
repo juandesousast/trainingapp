@@ -115,18 +115,13 @@ export const RecompCharts: React.FC = () => {
 
     const map = new Map<string, BiometricEntry>();
     entries.forEach((e) => {
-      const dateKey = e.date.includes("T") ? e.date.split("T")[0] : e.date;
-      const existing = map.get(dateKey);
-      if (!existing) {
-        map.set(dateKey, e);
-      } else {
-        // Si la nueva toma es en ayunas y la anterior no, sobrescribe
-        if (e.isFasting && !existing.isFasting) {
-          map.set(dateKey, e);
-        } else if (e.isFasting === existing.isFasting) {
-          map.set(dateKey, e);
-        }
+      let dateKey = e.date;
+      if (e.date.includes("T")) {
+        dateKey = e.date.split("T")[0];
+      } else if (e.date.startsWith("Medición")) {
+        dateKey = new Date().toISOString().split("T")[0];
       }
+      map.set(dateKey, { ...e, date: dateKey });
     });
 
     return Array.from(map.values()).sort(
@@ -293,6 +288,7 @@ export const RecompCharts: React.FC = () => {
 
         <button
           onClick={() => setIsDrawerOpen(true)}
+          data-open-weigh-in
           className="min-h-[44px] px-4 py-2 rounded-2xl text-xs font-black uppercase text-black font-mono flex items-center justify-center gap-1.5 shadow-lg active:scale-95 transition-all duration-200"
           style={{ backgroundColor: accentColor }}
         >
@@ -307,7 +303,7 @@ export const RecompCharts: React.FC = () => {
           <span className="text-[10px] font-mono font-bold text-zinc-400 uppercase block">
             Peso Actual
           </span>
-          <span className="text-lg font-mono tabular-nums font-black text-white">
+          <span data-current-weight className="text-lg font-mono tabular-nums font-black text-white">
             {latest ? latest.weightKg : "--"}{" "}
             <span className="text-xs font-normal text-zinc-400">kg</span>
           </span>
