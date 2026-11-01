@@ -426,6 +426,9 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     } finally {
       if (typeof window !== "undefined") {
         localStorage.removeItem("hoplita_active_profile_id");
+        localStorage.removeItem("hoplita-supplement-storage");
+        localStorage.removeItem("hoplita-meal-customizations-storage");
+        localStorage.removeItem("hoplita-mesocycles-storage");
       }
       set({
         authUserId: null,

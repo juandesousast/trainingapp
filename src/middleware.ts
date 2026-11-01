@@ -38,9 +38,14 @@ export async function middleware(request: NextRequest) {
   const isLoginPage = request.nextUrl.pathname.startsWith("/login");
   const isApiRoute = request.nextUrl.pathname.startsWith("/api");
 
-  // Rutas de API: Si no hay usuario y no es una ruta pública de API, devolver 401 JSON
-  // Permitimos /api/exercises para que la guía técnica y los componentes puedan consultar los proxies
+  // Rutas de API: Si no hay usuario autenticado, denegar acceso con 401 JSON
   if (isApiRoute) {
+    if (!user) {
+      return NextResponse.json(
+        { error: { message: "No autorizado. Inicia sesión para acceder a las APIs de VECTOR OS." } },
+        { status: 401 }
+      );
+    }
     return supabaseResponse;
   }
 
