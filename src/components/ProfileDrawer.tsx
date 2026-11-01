@@ -154,8 +154,11 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ isOpen, onClose })
   const { authUserId, activeProfile, updateProfileGoals } = useProfileStore();
   const { userMaxes, setUserMaxes } = useWorkoutSessionStore();
 
-  const accentColor = activeProfile.themeAccent;
-  const isFemale = activeProfile.gender === "female" || activeProfile.role === "hoplita_girl";
+  const [sex, setSex] = useState<"male" | "female">(
+    activeProfile.sex || (activeProfile.gender === "female" ? "female" : "male")
+  );
+  const isFemale = sex === "female";
+  const accentColor = isFemale ? "#F43F5E" : "#CCFF00";
   const exercises = isFemale ? FEMALE_EXERCISES : MALE_EXERCISES;
 
   // Estado Antropométrico
@@ -174,6 +177,12 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ isOpen, onClose })
   // Inicializar estado cuando se abre el drawer
   useEffect(() => {
     if (isOpen) {
+      const initialSex =
+        activeProfile.sex ||
+        (activeProfile.gender === "female" || activeProfile.role === "hoplita_girl"
+          ? "female"
+          : "male");
+      setSex(initialSex);
       setHeightCm(activeProfile.heightCm ? String(activeProfile.heightCm) : "");
       setTargetWeightKg(activeProfile.targetWeightKg ? String(activeProfile.targetWeightKg) : "");
       setTargetBodyFatPct(
@@ -181,15 +190,35 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ isOpen, onClose })
       );
       setNutritionGoal(activeProfile.nutritionGoal || "fat_loss");
 
-      // Cargar 1RMs iniciales desde el store o defaults
+      // Cargar 1RMs iniciales desde el store o defaults según sexo
+      const exList = initialSex === "female" ? FEMALE_EXERCISES : MALE_EXERCISES;
       const initialMaxes: Record<string, number> = {};
-      exercises.forEach((ex) => {
+      exList.forEach((ex) => {
         initialMaxes[ex.slug] = userMaxes[ex.slug] || ex.defaultKg;
       });
       setOneRms(initialMaxes);
       setSaveSuccess(false);
     }
-  }, [isOpen, activeProfile, userMaxes, exercises]);
+  }, [isOpen, activeProfile, userMaxes]);
+
+  const handleSexChange = (newSex: "male" | "female") => {
+    setSex(newSex);
+    // Sugerir meta % grasa por defecto si no está personalizado
+    if (!targetBodyFatPct || targetBodyFatPct === "16" || targetBodyFatPct === "16.0" || targetBodyFatPct === "21" || targetBodyFatPct === "21.0") {
+      setTargetBodyFatPct(newSex === "female" ? "21.0" : "16.0");
+    }
+    // Re-mapear 1RMs por defecto si no existen
+    const exList = newSex === "female" ? FEMALE_EXERCISES : MALE_EXERCISES;
+    setOneRms((prev) => {
+      const updated = { ...prev };
+      exList.forEach((ex) => {
+        if (!updated[ex.slug]) {
+          updated[ex.slug] = userMaxes[ex.slug] || ex.defaultKg;
+        }
+      });
+      return updated;
+    });
+  };
 
   const handleAdjust1RM = (slug: string, delta: number) => {
     setOneRms((prev) => {
@@ -236,7 +265,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ isOpen, onClose })
       const parsedWeight = targetWeightKg ? parseFloat(targetWeightKg) : undefined;
       const parsedFat = targetBodyFatPct ? parseFloat(targetBodyFatPct) : activeProfile.targetBodyFatPct;
 
-      await updateProfileGoals(parsedFat, parsedWeight, parsedHeight, nutritionGoal);
+      await updateProfileGoals(parsedFat, parsedWeight, parsedHeight, nutritionGoal, sex);
 
       // 3. Guardar 1RM en user_maxes
       if (currentUserId && currentProfileId && currentProfileId !== "1") {
@@ -331,6 +360,50 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ isOpen, onClose })
                   <h3 className="text-xs font-black tracking-widest text-zinc-300 uppercase">
                     Datos Antropométricos y Metas
                   </h3>
+                </div>
+
+                {/* Selector Sexo Fisiológico */}
+                <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-mono font-bold text-zinc-300 uppercase tracking-wider block">
+                      Sexo Fisiológico
+                    </label>
+                    <span className="text-[9px] font-mono text-zinc-500">
+                      Rige rutinas BIIO y nutrición
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleSexChange("male")}
+                      className={cn(
+                        "py-2.5 px-3 rounded-xl border text-xs font-mono font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all min-h-[44px]",
+                        sex === "male"
+                          ? "bg-[#CCFF00]/15 border-[#CCFF00] text-[#CCFF00] shadow-sm shadow-[#CCFF00]/10"
+                          : "bg-zinc-950/60 border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700"
+                      )}
+                    >
+                      <span>⚡</span>
+                      <span>Hombre</span>
+                      {sex === "male" && <Check className="w-3.5 h-3.5 ml-1 stroke-[3]" />}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleSexChange("female")}
+                      className={cn(
+                        "py-2.5 px-3 rounded-xl border text-xs font-mono font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all min-h-[44px]",
+                        sex === "female"
+                          ? "bg-[#F43F5E]/15 border-[#F43F5E] text-[#F43F5E] shadow-sm shadow-[#F43F5E]/10"
+                          : "bg-zinc-950/60 border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700"
+                      )}
+                    >
+                      <span>🌸</span>
+                      <span>Mujer</span>
+                      {sex === "female" && <Check className="w-3.5 h-3.5 ml-1 stroke-[3]" />}
+                    </button>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2">

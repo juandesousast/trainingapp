@@ -55,7 +55,7 @@ interface BiometricsState {
   entries: BiometricEntry[];
   dailyHabits: DailyHabitEntry[];
   recoveryCheckins: RecoveryCheckinEntry[];
-  fetchUserData: () => Promise<void>;
+  fetchUserData: (profileId?: string) => Promise<void>;
   addBiometricEntry: (entry: Omit<BiometricEntry, "id">) => Promise<void>;
   addDailyHabit: (habit: Omit<DailyHabitEntry, "id">) => Promise<void>;
   addRecoveryCheckin: (checkin: Omit<RecoveryCheckinEntry, "id" | "recordedAt">) => void;
@@ -66,24 +66,31 @@ export const useBiometricsStore = create<BiometricsState>((set) => ({
   dailyHabits: [],
   recoveryCheckins: [],
 
-  fetchUserData: async () => {
+  fetchUserData: async (profileId?: string) => {
     try {
       const {
         data: { user },
       } = await supabase.auth.getUser();
 
-      if (!user) {
+      if (!profileId && !user) {
         set({ entries: [], dailyHabits: [] });
         return;
       }
 
-      // 1. Consultar registros biométricos del usuario autenticado con filtro estricto por user_id
-      const { data: bioData } = await supabase
+      // 1. Consultar registros biométricos del perfil con filtro estricto
+      let bioQuery = supabase
         .from("biometric_logs")
         .select("*")
-        .eq("user_id", user.id)
         .order("measured_at", { ascending: true })
         .order("created_at", { ascending: true });
+
+      if (profileId) {
+        bioQuery = bioQuery.eq("profile_id", profileId);
+      } else if (user) {
+        bioQuery = bioQuery.eq("user_id", user.id);
+      }
+
+      const { data: bioData } = await bioQuery;
 
       if (bioData && bioData.length > 0) {
         set({
@@ -118,12 +125,19 @@ export const useBiometricsStore = create<BiometricsState>((set) => ({
         set({ entries: [] });
       }
 
-      // 2. Consultar hábitos diarios del usuario autenticado con filtro estricto por user_id
-      const { data: habitsData } = await supabase
+      // 2. Consultar hábitos diarios del perfil con filtro estricto
+      let habitsQuery = supabase
         .from("daily_habits")
         .select("*")
-        .eq("user_id", user.id)
         .order("log_date", { ascending: false });
+
+      if (profileId) {
+        habitsQuery = habitsQuery.eq("profile_id", profileId);
+      } else if (user) {
+        habitsQuery = habitsQuery.eq("user_id", user.id);
+      }
+
+      const { data: habitsData } = await habitsQuery;
 
       if (habitsData && habitsData.length > 0) {
         set({

@@ -17,22 +17,23 @@ export const TargetGoalDialog: React.FC<TargetGoalDialogProps> = ({
   const { activeProfile, updateProfileGoals } = useProfileStore();
   const accentColor = activeProfile.themeAccent;
 
+  const defaultFat = activeProfile.sex === "female" ? 21.0 : 16.0;
+  const defaultWeight = activeProfile.sex === "female" ? 60.0 : 78.0;
+
   const [targetFat, setTargetFat] = useState<number>(
-    activeProfile.targetBodyFatPct || (activeProfile.slug === "hoplita" ? 16.0 : 21.0)
+    activeProfile.targetBodyFatPct || defaultFat
   );
   const [targetWeight, setTargetWeight] = useState<number>(
-    activeProfile.targetWeightKg || (activeProfile.slug === "hoplita" ? 78.0 : 60.0)
+    activeProfile.targetWeightKg || defaultWeight
   );
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (activeProfile) {
-      setTargetFat(
-        activeProfile.targetBodyFatPct || (activeProfile.slug === "hoplita" ? 16.0 : 21.0)
-      );
-      setTargetWeight(
-        activeProfile.targetWeightKg || (activeProfile.slug === "hoplita" ? 78.0 : 60.0)
-      );
+      const dFat = activeProfile.sex === "female" ? 21.0 : 16.0;
+      const dWeight = activeProfile.sex === "female" ? 60.0 : 78.0;
+      setTargetFat(activeProfile.targetBodyFatPct || dFat);
+      setTargetWeight(activeProfile.targetWeightKg || dWeight);
     }
   }, [activeProfile]);
 

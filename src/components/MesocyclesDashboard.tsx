@@ -21,13 +21,22 @@ export const MesocyclesDashboard: React.FC = () => {
   const { activeMesoNumberByProfile, setActiveMesoNumber, getExposure, exposuresByProfileAndMeso } = useMesocyclesStore();
   const accentColor = activeProfile.themeAccent;
 
-  const activeMesoNumber = activeMesoNumberByProfile[activeProfile.slug] || 1;
+  const activeMesoNumber =
+    activeMesoNumberByProfile[activeProfile.id] ||
+    (activeProfile.slug ? activeMesoNumberByProfile[activeProfile.slug] : 1) ||
+    1;
   const mesocycles = useMemo(() => {
-    return getMesocyclesForProfile(activeProfile.slug).map((m) => ({
+    return getMesocyclesForProfile(activeProfile).map((m) => ({
       ...m,
-      currentExposure: getExposure(activeProfile.slug, m.number, m.currentExposure),
+      currentExposure: getExposure(
+        activeProfile.id,
+        m.number,
+        activeProfile.slug
+          ? getExposure(activeProfile.slug, m.number, m.currentExposure)
+          : m.currentExposure
+      ),
     }));
-  }, [activeProfile.slug, getExposure, exposuresByProfileAndMeso]);
+  }, [activeProfile, getExposure, exposuresByProfileAndMeso]);
 
   const activeMeso =
     mesocycles.find((m) => m.number === activeMesoNumber) || mesocycles[0];
@@ -47,7 +56,7 @@ export const MesocyclesDashboard: React.FC = () => {
       mesocycles.find((m) => m.number === activeMesoNumber) || mesocycles[0];
     setSelectedMesocycle(nextActive);
     setSelectedWorkoutIndex(0);
-  }, [activeProfile.slug, activeMesoNumber]);
+  }, [activeProfile.id, activeProfile.sex, activeMesoNumber]);
 
   // Sincronizar el objetivo semanal del mesociclo activo
   useEffect(() => {
@@ -76,7 +85,10 @@ export const MesocyclesDashboard: React.FC = () => {
   const isSelectedActive = selectedMesocycle.number === activeMesoNumber;
 
   const handleMarkAsActive = (meso: Mesocycle) => {
-    setActiveMesoNumber(activeProfile.slug, meso.number);
+    setActiveMesoNumber(activeProfile.id, meso.number);
+    if (activeProfile.slug) {
+      setActiveMesoNumber(activeProfile.slug, meso.number);
+    }
   };
 
   return (
@@ -239,7 +251,7 @@ export const MesocyclesDashboard: React.FC = () => {
             className="min-h-[44px] text-[10px] font-mono tabular-nums font-black px-3.5 py-1.5 rounded-full text-black hover:opacity-90 active:scale-95 transition-all duration-200 shadow-md flex items-center justify-center gap-1 cursor-pointer shrink-0"
             style={{ backgroundColor: accentColor }}
           >
-            <span>Meta: {activeProfile.targetBodyFatPct || (activeProfile.role === "hoplita_girl" ? 21 : 16)}%</span>
+            <span>Meta: {activeProfile.targetBodyFatPct || (activeProfile.sex === "female" ? 21 : 16)}%</span>
           </button>
         </div>
 

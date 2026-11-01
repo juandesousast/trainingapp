@@ -32,16 +32,16 @@ export const DEFAULT_MEAL_FOODS: Record<string, MealCustomization> = {
 };
 
 interface MealCustomizationsState {
-  // Key format: `${profileSlug}_${mealId}` (ej. "juan_meal_1", "wendy_meal_2")
+  // Key format: `${profileId}_${mealId}` (UUID de perfil y comida)
   customizations: Record<string, MealCustomization>;
-  getCustomization: (profileSlug: string, mealId: string) => MealCustomization;
+  getCustomization: (profileId: string, mealId: string) => MealCustomization;
   setSwap: (
-    profileSlug: string,
+    profileId: string,
     mealId: string,
     category: MacroCategory,
     foodId: string
   ) => void;
-  resetCustomizations: (profileSlug: string) => void;
+  resetCustomizations: (profileId: string) => void;
 }
 
 export const useMealCustomizationsStore = create<MealCustomizationsState>()(
@@ -49,21 +49,21 @@ export const useMealCustomizationsStore = create<MealCustomizationsState>()(
     (set, get) => ({
       customizations: {},
 
-      getCustomization: (profileSlug: string, mealId: string) => {
-        const key = `${profileSlug}_${mealId}`;
+      getCustomization: (profileId: string, mealId: string) => {
+        const key = `${profileId}_${mealId}`;
         const existing = get().customizations[key];
         if (existing) return existing;
         return DEFAULT_MEAL_FOODS[mealId] || DEFAULT_MEAL_FOODS["meal_2"];
       },
 
       setSwap: (
-        profileSlug: string,
+        profileId: string,
         mealId: string,
         category: MacroCategory,
         foodId: string
       ) => {
-        const key = `${profileSlug}_${mealId}`;
-        const current = get().getCustomization(profileSlug, mealId);
+        const key = `${profileId}_${mealId}`;
+        const current = get().getCustomization(profileId, mealId);
 
         const updated: MealCustomization = {
           ...current,
@@ -80,11 +80,11 @@ export const useMealCustomizationsStore = create<MealCustomizationsState>()(
         }));
       },
 
-      resetCustomizations: (profileSlug: string) => {
+      resetCustomizations: (profileId: string) => {
         set((state) => {
           const filtered = { ...state.customizations };
           Object.keys(filtered).forEach((k) => {
-            if (k.startsWith(`${profileSlug}_`)) {
+            if (k.startsWith(`${profileId}_`)) {
               delete filtered[k];
             }
           });

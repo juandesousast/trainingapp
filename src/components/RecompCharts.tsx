@@ -54,7 +54,10 @@ export const RecompCharts: React.FC = () => {
   const { entries } = useBiometricsStore();
   const { activeProfile } = useProfileStore();
   const accentColor = activeProfile.themeAccent;
-  const isGirl = activeProfile.role === "hoplita_girl" || activeProfile.gender === "female";
+  const isGirl =
+    activeProfile.sex === "female" ||
+    activeProfile.gender === "female" ||
+    activeProfile.role === "hoplita_girl";
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedMetric, setSelectedMetric] = useState<MetricKey>("weight");

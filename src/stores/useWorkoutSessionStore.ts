@@ -152,12 +152,20 @@ export const EXERCISE_ID_BY_SLUG: Record<string, string> = {
 };
 
 export function calculateLiftProgressions(
-  slug: string,
+  sexOrProfile: any,
   mesoNumber: number,
   setsByExercise: Record<string, LoggedSet[]>,
   currentMaxes: Record<string, number>
 ): LiftProgression[] {
-  const isFemale = slug === "wendy" || slug === "hoplita_girl";
+  const isFemale =
+    sexOrProfile === "female" ||
+    sexOrProfile === true ||
+    (typeof sexOrProfile === "object" &&
+      (sexOrProfile?.sex === "female" ||
+        sexOrProfile?.gender === "female" ||
+        sexOrProfile?.role === "hoplita_girl")) ||
+    sexOrProfile === "wendy" ||
+    sexOrProfile === "hoplita_girl";
 
   if (isFemale) {
     const boxMax = currentMaxes["box_squat"] || 60;
@@ -437,8 +445,12 @@ export const useWorkoutSessionStore = create<WorkoutSessionState>((set, get) => 
 
     // 3. Actualizar stores de cliente
     if (!isMacrocyleComplete) {
-      useMesocyclesStore.getState().setActiveMesoNumber(profile.slug, nextNumber);
-      useMesocyclesStore.getState().setExposure(profile.slug, nextNumber, 1);
+      useMesocyclesStore.getState().setActiveMesoNumber(profile.id, nextNumber);
+      useMesocyclesStore.getState().setExposure(profile.id, nextNumber, 1);
+      if (profile.slug) {
+        useMesocyclesStore.getState().setActiveMesoNumber(profile.slug, nextNumber);
+        useMesocyclesStore.getState().setExposure(profile.slug, nextNumber, 1);
+      }
     }
 
     // 4. Feedback y cierre
@@ -622,7 +634,7 @@ export const useWorkoutSessionStore = create<WorkoutSessionState>((set, get) => 
           }
 
           const progressions = calculateLiftProgressions(
-            profile.slug,
+            profile,
             activeMesocycle.number,
             get().setsByExercise,
             get().userMaxes
@@ -661,10 +673,19 @@ export const useWorkoutSessionStore = create<WorkoutSessionState>((set, get) => 
         useMesocyclesStore
           .getState()
           .advanceExposure(
-            profile.slug,
+            profile.id,
             activeMesocycle.number,
             activeMesocycle.totalExposures
           );
+        if (profile.slug) {
+          useMesocyclesStore
+            .getState()
+            .advanceExposure(
+              profile.slug,
+              activeMesocycle.number,
+              activeMesocycle.totalExposures
+            );
+        }
 
         if (user?.id && profile.id && profile.id !== "1") {
           try {
@@ -931,7 +952,7 @@ export const useWorkoutSessionStore = create<WorkoutSessionState>((set, get) => 
       }
 
       if (data && data.length > 0) {
-        const loaded: Record<string, number> = { ...get().userMaxes };
+        const loaded: Record<string, number> = {};
         data.forEach((row: any) => {
           const slug = row.exercises?.slug;
           const val = Number(row.one_rm_kg);
@@ -940,6 +961,8 @@ export const useWorkoutSessionStore = create<WorkoutSessionState>((set, get) => 
           }
         });
         set({ userMaxes: loaded });
+      } else {
+        set({ userMaxes: {} });
       }
     } catch (err) {
       console.warn("Error loading user maxes:", err);

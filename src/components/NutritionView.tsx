@@ -51,7 +51,10 @@ const ICONS_MAP: Record<string, React.ElementType> = {
 export const NutritionView: React.FC = () => {
   const { activeProfile, authUserId } = useProfileStore();
   const accentColor = activeProfile.themeAccent;
-  const isFemale = activeProfile.role === "hoplita_girl" || activeProfile.gender === "female";
+  const isFemale =
+    activeProfile.sex === "female" ||
+    activeProfile.gender === "female" ||
+    activeProfile.role === "hoplita_girl";
   const { entries } = useBiometricsStore();
 
   const {
@@ -68,12 +71,8 @@ export const NutritionView: React.FC = () => {
   // Acordeón de comidas (abierto por defecto la primera comida)
   const [expandedMeal, setExpandedMeal] = useState<string | null>("meal_1");
 
-  // Perfil actual para personalización de comidas
-  const profileSlug =
-    activeProfile.slug ||
-    (activeProfile.role === "hoplita_girl" || activeProfile.gender === "female"
-      ? "wendy"
-      : "juan");
+  // Perfil actual para personalización de comidas (indexado por UUID)
+  const profileId = activeProfile.id;
 
   const { getCustomization, setSwap } = useMealCustomizationsStore();
 
@@ -149,8 +148,9 @@ export const NutritionView: React.FC = () => {
       targetBodyFatPct: targetBodyFatPct,
       isTrainingDay,
       nutritionGoal: activeProfile.nutritionGoal,
+      sex: activeProfile.sex,
     });
-  }, [currentWeightKg, currentBodyFatPct, targetBodyFatPct, isTrainingDay, activeProfile.nutritionGoal]);
+  }, [currentWeightKg, currentBodyFatPct, targetBodyFatPct, isTrainingDay, activeProfile.nutritionGoal, activeProfile.sex]);
 
   // Cálculos dinámicos de suplementación e hidratación
   const creatineGrams = useMemo(() => {
@@ -466,7 +466,7 @@ export const NutritionView: React.FC = () => {
         <div className="space-y-2.5">
           {plan.meals.map((meal) => {
             const isExpanded = expandedMeal === meal.id;
-            const custom = getCustomization(profileSlug, meal.id);
+            const custom = getCustomization(profileId, meal.id);
             const proteinFood =
               CLEAN_FOODS[custom.proteinFoodId] || CLEAN_FOODS.pechuga_pollo;
             const carbFood =
@@ -935,7 +935,7 @@ export const NutritionView: React.FC = () => {
           themeAccent={accentColor}
           onSelectFood={(newFoodId) => {
             setSwap(
-              profileSlug,
+              profileId,
               swapDrawerState.mealId,
               swapDrawerState.category,
               newFoodId

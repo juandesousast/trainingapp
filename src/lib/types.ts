@@ -1,14 +1,17 @@
 export type ProfileSlug = "hoplita" | "hoplita_girl" | "juan" | "wendy" | "nato" | string;
 
+export type BiologicalSex = "male" | "female";
+
 export type NutritionGoal = "fat_loss" | "recomp" | "maintenance" | "hypertrophy";
 
 export interface Profile {
   id: string;
   userId?: string;
-  slug: string;
+  slug?: string;
   displayName: string;
-  role?: "hoplita" | "hoplita_girl";
-  gender: "male" | "female";
+  role?: "hoplita" | "hoplita_girl" | string;
+  sex: BiologicalSex;
+  gender?: "male" | "female"; // compatibilidad hacia atrás
   themeAccent: string; // '#CCFF00' o '#F43F5E'
   targetBodyFatPct: number;
   targetWeightKg?: number;

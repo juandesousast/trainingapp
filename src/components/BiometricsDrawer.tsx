@@ -20,7 +20,10 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
   const { entries, addBiometricEntry } = useBiometricsStore();
   const { activeProfile, updateProfileGoals } = useProfileStore();
   const accentColor = activeProfile.themeAccent;
-  const isFemale = activeProfile.gender === "female" || activeProfile.role === "hoplita_girl";
+  const isFemale =
+    activeProfile.sex === "female" ||
+    activeProfile.gender === "female" ||
+    activeProfile.role === "hoplita_girl";
 
   const latest = entries && entries.length > 0 ? entries[entries.length - 1] : null;
 

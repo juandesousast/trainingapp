@@ -1,22 +1,36 @@
 import { create } from "zustand";
-import { Profile, NutritionGoal } from "@/lib/types";
+import { Profile, BiologicalSex, NutritionGoal } from "@/lib/types";
 import { fetchUserActivityStats } from "@/lib/activityStats";
 import { supabase } from "@/lib/supabase";
 import { useBiometricsStore } from "@/stores/useBiometricsStore";
+import { useWorkoutSessionStore } from "@/stores/useWorkoutSessionStore";
+import { useMesocyclesStore } from "@/stores/useMesocyclesStore";
 
 interface ProfileState {
   authUserId: string | null;
   authUserEmail: string | null;
   activeProfile: Profile;
+  profiles: Profile[];
   isLoadingStats: boolean;
   initAuthSession: () => Promise<void>;
+  loadAllProfiles: () => Promise<Profile[]>;
+  switchProfile: (profileId: string) => Promise<void>;
   updateActivityStats: (streakDays: number, weeklyCompleted: number, weeklyTarget: number) => void;
   updateProfileGoals: (
     targetBodyFatPct: number,
     targetWeightKg?: number,
     heightCm?: number | null,
-    nutritionGoal?: NutritionGoal
+    nutritionGoal?: NutritionGoal,
+    sex?: BiologicalSex
   ) => Promise<void>;
+  updateProfileSex: (newSex: BiologicalSex) => Promise<void>;
+  createProfile: (profileData: {
+    displayName: string;
+    sex: BiologicalSex;
+    targetWeightKg?: number;
+    targetBodyFatPct?: number;
+    heightCm?: number;
+  }) => Promise<Profile | null>;
   refreshStats: () => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -26,6 +40,7 @@ const defaultProfile: Profile = {
   slug: "juan",
   displayName: "Juan",
   role: "hoplita",
+  sex: "male",
   gender: "male",
   themeAccent: "#CCFF00",
   targetBodyFatPct: 16.0,
@@ -37,11 +52,95 @@ const defaultProfile: Profile = {
   weeklyTarget: 3,
 };
 
+function mapDbProfileToProfile(dbProfile: any): Profile {
+  const isFemale =
+    dbProfile.sex === "female" ||
+    dbProfile.gender === "female" ||
+    dbProfile.role === "hoplita_girl";
+  const sex: BiologicalSex = isFemale ? "female" : "male";
+
+  return {
+    id: dbProfile.id,
+    userId: dbProfile.user_id,
+    slug: dbProfile.slug || `user-${dbProfile.id.slice(0, 8)}`,
+    displayName: dbProfile.display_name || "Atleta",
+    role: dbProfile.role || (isFemale ? "hoplita_girl" : "hoplita"),
+    sex,
+    gender: sex,
+    themeAccent: dbProfile.theme_accent || (isFemale ? "#F43F5E" : "#CCFF00"),
+    targetBodyFatPct: dbProfile.target_body_fat_pct
+      ? Number(dbProfile.target_body_fat_pct)
+      : isFemale
+      ? 21.0
+      : 16.0,
+    targetWeightKg: dbProfile.target_weight_kg
+      ? Number(dbProfile.target_weight_kg)
+      : isFemale
+      ? 60.0
+      : 75.0,
+    heightCm: dbProfile.height_cm ? Number(dbProfile.height_cm) : null,
+    nutritionGoal: dbProfile.nutrition_goal || "fat_loss",
+    streakDays: dbProfile.streak_days || 0,
+    weeklyCompleted: dbProfile.weekly_completed || 0,
+    weeklyTarget: dbProfile.weekly_target || 3,
+    avatarUrl: dbProfile.avatar_url,
+  };
+}
+
+async function ensureUserMesocyclesInitialized(profileId: string, userId?: string | null) {
+  try {
+    const { data: existing } = await supabase
+      .from("user_mesocycles")
+      .select("id")
+      .eq("profile_id", profileId)
+      .eq("mesocycle_number", 1)
+      .maybeSingle();
+
+    if (!existing) {
+      await supabase.from("user_mesocycles").insert({
+        profile_id: profileId,
+        user_id: userId || null,
+        mesocycle_number: 1,
+        is_active: true,
+        current_exposure: 1,
+        total_exposures: 12,
+        status: "active",
+      });
+    }
+  } catch (err) {
+    console.warn("Aviso al asegurar user_mesocycles:", err);
+  }
+}
+
 export const useProfileStore = create<ProfileState>((set, get) => ({
   authUserId: null,
   authUserEmail: null,
   activeProfile: defaultProfile,
+  profiles: [],
   isLoadingStats: false,
+
+  loadAllProfiles: async () => {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .order("created_at", { ascending: true });
+
+      if (error) {
+        console.warn("Aviso al consultar profiles en Supabase:", error.message);
+        return [];
+      }
+
+      if (data && data.length > 0) {
+        const mapped = data.map(mapDbProfileToProfile);
+        set({ profiles: mapped });
+        return mapped;
+      }
+    } catch (err) {
+      console.error("Error al cargar lista de perfiles:", err);
+    }
+    return [];
+  },
 
   initAuthSession: async () => {
     try {
@@ -49,75 +148,90 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
         data: { user },
       } = await supabase.auth.getUser();
 
-      if (!user) {
-        set({ authUserId: null, authUserEmail: null });
-        return;
+      if (user) {
+        set({ authUserId: user.id, authUserEmail: user.email || null });
       }
 
-      set({ authUserId: user.id, authUserEmail: user.email || null });
+      // Cargar lista dinámica de todos los perfiles de la base de datos
+      const allProfiles = await get().loadAllProfiles();
 
-      // Consultar ÚNICAMENTE el perfil del usuario autenticado con filtro estricto por user_id
-      const { data: dbProfile, error: profileError } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("user_id", user.id)
-        .maybeSingle();
+      let targetProfile: Profile | undefined;
+      const savedProfileId =
+        typeof window !== "undefined"
+          ? localStorage.getItem("hoplita_active_profile_id")
+          : null;
 
-      if (profileError) {
-        console.warn("Aviso al consultar perfil en Supabase:", profileError.message);
+      if (savedProfileId) {
+        targetProfile = allProfiles.find((p) => p.id === savedProfileId);
       }
 
-      if (dbProfile) {
-        const isGirl = dbProfile.role === "hoplita_girl" || dbProfile.gender === "female";
-        const currentProfile: Profile = {
-          id: dbProfile.id,
-          userId: dbProfile.user_id,
-          slug: dbProfile.slug,
-          displayName: dbProfile.display_name,
-          role: dbProfile.role || (isGirl ? "hoplita_girl" : "hoplita"),
-          gender: dbProfile.gender,
-          themeAccent: dbProfile.theme_accent || (isGirl ? "#F43F5E" : "#CCFF00"),
-          targetBodyFatPct: dbProfile.target_body_fat_pct ? Number(dbProfile.target_body_fat_pct) : 16.0,
-          targetWeightKg: dbProfile.target_weight_kg ? Number(dbProfile.target_weight_kg) : 75.0,
-          heightCm: dbProfile.height_cm ? Number(dbProfile.height_cm) : null,
-          nutritionGoal: dbProfile.nutrition_goal || "fat_loss",
-          streakDays: dbProfile.streak_days || 0,
-          weeklyCompleted: dbProfile.weekly_completed || 0,
-          weeklyTarget: dbProfile.weekly_target || 3,
-          avatarUrl: dbProfile.avatar_url,
-        };
+      if (!targetProfile && user) {
+        targetProfile = allProfiles.find((p) => p.userId === user.id);
+      }
 
-        if (typeof document !== "undefined") {
-          document.documentElement.setAttribute(
-            "data-theme",
-            isGirl ? "hoplita_girl" : "hoplita"
-          );
-        }
+      if (!targetProfile && allProfiles.length > 0) {
+        targetProfile = allProfiles[0];
+      }
 
-        set({
-          activeProfile: currentProfile,
-        });
-
-        // Cargar estadísticas y datos biométricos reales del usuario autenticado
-        try {
-          const stats = await fetchUserActivityStats(user.id, currentProfile.weeklyTarget);
-          set((state) => ({
-            activeProfile: {
-              ...state.activeProfile,
-              streakDays: stats.streakDays,
-              weeklyCompleted: stats.weeklyCompleted,
-              weeklyTarget: stats.weeklyTarget,
-            },
-          }));
-        } catch (err) {
-          console.error("Error al cargar stats de actividad:", err);
-        }
-
-        // Sincronizar store de biometría del usuario activo
-        await useBiometricsStore.getState().fetchUserData();
+      if (targetProfile) {
+        await get().switchProfile(targetProfile.id);
       }
     } catch (err) {
       console.error("Error al inicializar sesión de autenticación:", err);
+    }
+  },
+
+  switchProfile: async (profileId: string) => {
+    const { profiles, authUserId } = get();
+    let target = profiles.find((p) => p.id === profileId);
+
+    if (!target) {
+      // Intentar refrescar profiles
+      const refreshed = await get().loadAllProfiles();
+      target = refreshed.find((p) => p.id === profileId);
+      if (!target) return;
+    }
+
+    if (typeof window !== "undefined") {
+      localStorage.setItem("hoplita_active_profile_id", target.id);
+    }
+
+    const isFemale = target.sex === "female";
+
+    // Actualizar tema cinético en DOM
+    if (typeof document !== "undefined") {
+      document.documentElement.setAttribute(
+        "data-theme",
+        isFemale ? "hoplita_girl" : "hoplita"
+      );
+    }
+
+    set({ activeProfile: target });
+
+    // 1. Asegurar mesociclo M1 en Supabase
+    await ensureUserMesocyclesInitialized(target.id, authUserId || target.userId);
+
+    // 2. Aislar y cargar 1RM individual del perfil
+    await useWorkoutSessionStore.getState().loadUserMaxes(target.id);
+
+    // 3. Aislar y cargar registros biométricos del perfil
+    await useBiometricsStore.getState().fetchUserData(target.id);
+
+    // 4. Cargar estadísticas de actividad
+    try {
+      if (target.userId) {
+        const stats = await fetchUserActivityStats(target.userId, target.weeklyTarget);
+        set((state) => ({
+          activeProfile: {
+            ...state.activeProfile,
+            streakDays: stats.streakDays,
+            weeklyCompleted: stats.weeklyCompleted,
+            weeklyTarget: stats.weeklyTarget,
+          },
+        }));
+      }
+    } catch (err) {
+      console.error("Error al refrescar stats de actividad:", err);
     }
   },
 
@@ -136,75 +250,152 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     targetBodyFatPct: number,
     targetWeightKg?: number,
     heightCm?: number | null,
-    nutritionGoal?: NutritionGoal
+    nutritionGoal?: NutritionGoal,
+    sex?: BiologicalSex
   ) => {
-    const { authUserId, activeProfile } = get();
+    const { activeProfile } = get();
+    const newSex = sex || activeProfile.sex;
+    const isFemale = newSex === "female";
+    const themeAccent = isFemale ? "#F43F5E" : "#CCFF00";
+    const role = isFemale ? "hoplita_girl" : "hoplita";
 
     // Actualización optimista local
     set((state) => ({
       activeProfile: {
         ...state.activeProfile,
+        sex: newSex,
+        gender: newSex,
+        role,
+        themeAccent,
         targetBodyFatPct,
         targetWeightKg: targetWeightKg ?? state.activeProfile.targetWeightKg,
         heightCm: heightCm !== undefined ? heightCm : state.activeProfile.heightCm,
         nutritionGoal: nutritionGoal !== undefined ? nutritionGoal : state.activeProfile.nutritionGoal,
       },
+      profiles: state.profiles.map((p) =>
+        p.id === activeProfile.id
+          ? {
+              ...p,
+              sex: newSex,
+              gender: newSex,
+              role,
+              themeAccent,
+              targetBodyFatPct,
+              targetWeightKg: targetWeightKg ?? p.targetWeightKg,
+              heightCm: heightCm !== undefined ? heightCm : p.heightCm,
+              nutritionGoal: nutritionGoal !== undefined ? nutritionGoal : p.nutritionGoal,
+            }
+          : p
+      ),
     }));
 
-    // Persistir en Supabase con filtro estricto por user_id
+    if (typeof document !== "undefined") {
+      document.documentElement.setAttribute("data-theme", isFemale ? "hoplita_girl" : "hoplita");
+    }
+
+    // Persistir en Supabase con filtro estricto por id de perfil
     try {
-      if (authUserId) {
-        const updatePayload: Record<string, any> = {
-          target_body_fat_pct: targetBodyFatPct,
-          target_weight_kg: targetWeightKg,
-          updated_at: new Date().toISOString(),
-        };
-        if (heightCm !== undefined) {
-          updatePayload.height_cm = heightCm;
-        }
-        if (nutritionGoal !== undefined) {
-          updatePayload.nutrition_goal = nutritionGoal;
-        }
-        await supabase
-          .from("profiles")
-          .update(updatePayload)
-          .eq("user_id", authUserId);
+      const updatePayload: Record<string, any> = {
+        sex: newSex,
+        gender: newSex,
+        role,
+        theme_accent: themeAccent,
+        target_body_fat_pct: targetBodyFatPct,
+        target_weight_kg: targetWeightKg,
+        updated_at: new Date().toISOString(),
+      };
+      if (heightCm !== undefined) {
+        updatePayload.height_cm = heightCm;
       }
+      if (nutritionGoal !== undefined) {
+        updatePayload.nutrition_goal = nutritionGoal;
+      }
+      await supabase
+        .from("profiles")
+        .update(updatePayload)
+        .eq("id", activeProfile.id);
     } catch (err) {
-      console.error("Error al actualizar meta en Supabase:", err);
+      console.error("Error al actualizar perfil en Supabase:", err);
+    }
+  },
+
+  updateProfileSex: async (newSex: BiologicalSex) => {
+    const { activeProfile, updateProfileGoals } = get();
+    const defaultFat = newSex === "female" ? 21.0 : 16.0;
+    await updateProfileGoals(
+      activeProfile.targetBodyFatPct || defaultFat,
+      activeProfile.targetWeightKg,
+      activeProfile.heightCm,
+      activeProfile.nutritionGoal,
+      newSex
+    );
+  },
+
+  createProfile: async (data) => {
+    try {
+      const isFemale = data.sex === "female";
+      const newProfileRow = {
+        display_name: data.displayName,
+        sex: data.sex,
+        gender: data.sex,
+        role: isFemale ? "hoplita_girl" : "hoplita",
+        theme_accent: isFemale ? "#F43F5E" : "#CCFF00",
+        target_weight_kg: data.targetWeightKg || (isFemale ? 60 : 75),
+        target_body_fat_pct: data.targetBodyFatPct || (isFemale ? 21.0 : 16.0),
+        height_cm: data.heightCm || (isFemale ? 165 : 180),
+        slug: data.displayName.toLowerCase().replace(/[^a-z0-9]/g, "_"),
+      };
+
+      const { data: inserted, error } = await supabase
+        .from("profiles")
+        .insert(newProfileRow)
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error insertando perfil en Supabase:", error);
+        return null;
+      }
+
+      const created = mapDbProfileToProfile(inserted);
+      await ensureUserMesocyclesInitialized(created.id, null);
+      await get().loadAllProfiles();
+      await get().switchProfile(created.id);
+      return created;
+    } catch (err) {
+      console.error("Error creating profile:", err);
+      return null;
     }
   },
 
   refreshStats: async () => {
-    const { authUserId, activeProfile } = get();
-    if (!authUserId) return;
+    const { activeProfile } = get();
+    if (!activeProfile.id) return;
 
     set({ isLoadingStats: true });
     try {
       // 1. Consultar metas actualizadas del perfil en Supabase
       const { data: dbProfile } = await supabase
         .from("profiles")
-        .select("target_body_fat_pct, target_weight_kg")
-        .eq("user_id", authUserId)
+        .select("*")
+        .eq("id", activeProfile.id)
         .maybeSingle();
 
       if (dbProfile) {
+        const mapped = mapDbProfileToProfile(dbProfile);
         set((state) => ({
           activeProfile: {
             ...state.activeProfile,
-            targetBodyFatPct: dbProfile.target_body_fat_pct
-              ? Number(dbProfile.target_body_fat_pct)
-              : state.activeProfile.targetBodyFatPct,
-            targetWeightKg: dbProfile.target_weight_kg
-              ? Number(dbProfile.target_weight_kg)
-              : state.activeProfile.targetWeightKg,
+            ...mapped,
           },
         }));
       }
 
       // 2. Consultar actividad y racha
-      const stats = await fetchUserActivityStats(authUserId, activeProfile.weeklyTarget);
-      get().updateActivityStats(stats.streakDays, stats.weeklyCompleted, stats.weeklyTarget);
+      if (activeProfile.userId) {
+        const stats = await fetchUserActivityStats(activeProfile.userId, activeProfile.weeklyTarget);
+        get().updateActivityStats(stats.streakDays, stats.weeklyCompleted, stats.weeklyTarget);
+      }
     } catch (err) {
       console.error("Error al refrescar estadísticas de perfil:", err);
     } finally {
@@ -218,6 +409,9 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     } catch (err) {
       console.error("Error al cerrar sesión:", err);
     } finally {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("hoplita_active_profile_id");
+      }
       set({
         authUserId: null,
         authUserEmail: null,

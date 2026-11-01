@@ -60,7 +60,7 @@ export const SupplementProtocolCard: React.FC = () => {
   const currentWeightKg = useMemo(() => {
     if (latestBiometric?.weightKg) return latestBiometric.weightKg;
     if (activeProfile.targetWeightKg) return Number(activeProfile.targetWeightKg);
-    return activeProfile.role === "hoplita_girl" || activeProfile.gender === "female" ? 60 : 80;
+    return activeProfile.sex === "female" || activeProfile.gender === "female" || activeProfile.role === "hoplita_girl" ? 60 : 80;
   }, [latestBiometric, activeProfile]);
 
   // Determinar si hoy es día de entrenamiento

@@ -6,14 +6,15 @@
  * y porciones de comida para días de entrenamiento vs. descanso.
  */
 
-import { NutritionGoal } from "./types";
+import { NutritionGoal, BiologicalSex } from "./types";
 
 export interface NutritionEngineInput {
   weightKg: number;
   bodyFatPct: number;
-  targetBodyFatPct: number;
+  targetBodyFatPct?: number;
   isTrainingDay: boolean;
   nutritionGoal?: NutritionGoal;
+  sex?: BiologicalSex;
 }
 
 export interface MealPortion {
@@ -67,10 +68,10 @@ export interface NutritionPlan {
  * Calcula el plan nutricional dinámico a partir de las métricas corporales y el calendario
  */
 export function calculateNutritionPlan(input: NutritionEngineInput): NutritionPlan {
-  const { weightKg, bodyFatPct, targetBodyFatPct, isTrainingDay, nutritionGoal } = input;
+  const { weightKg, bodyFatPct, targetBodyFatPct, isTrainingDay, nutritionGoal, sex = "male" } = input;
 
   // 1. Masa Libre de Grasa (LBM): weightKg * (1 - (bodyFatPct / 100))
-  const safeFatPct = Math.max(3, Math.min(60, bodyFatPct || 20));
+  const safeFatPct = Math.max(3, Math.min(60, bodyFatPct || (sex === "female" ? 22 : 20)));
   const lbmKg = Number((weightKg * (1 - safeFatPct / 100)).toFixed(2));
 
   // 2. Tasa Metabólica Basal (BMR - Fórmula Katch-McArdle): 370 + (21.6 * lbmKg)
@@ -83,12 +84,12 @@ export function calculateNutritionPlan(input: NutritionEngineInput): NutritionPl
   const tdee = Math.round(bmr * activityMultiplier);
 
   // 4. Ajuste por Objetivo Nutricional Seleccionado (nutritionGoal):
-  //    - fat_loss: Déficit del 18% (TDEE * 0.82)
-  //    - recomp: Día entreno TDEE * 1.0 (normocalórica), Día descanso TDEE * 0.92 (déficit leve -8%)
-  //    - maintenance: TDEE * 1.0 (100% TDEE diario)
-  //    - hypertrophy: Superávit del 8% (TDEE * 1.08)
+  //    Meta sugerida por defecto: 21% en mujeres, 16% en hombres
+  const defaultTargetFatPct = sex === "female" ? 21.0 : 16.0;
+  const effectiveTargetFatPct = targetBodyFatPct || defaultTargetFatPct;
+
   const activeGoal: NutritionGoal =
-    nutritionGoal || (safeFatPct > (targetBodyFatPct || 16) ? "fat_loss" : "recomp");
+    nutritionGoal || (safeFatPct > effectiveTargetFatPct ? "fat_loss" : "recomp");
 
   let caloricMultiplier = 1.0;
   let caloricAdjustmentPct = 0;
@@ -123,12 +124,15 @@ export function calculateNutritionPlan(input: NutritionEngineInput): NutritionPl
   const targetCalories = Math.round(tdee * caloricMultiplier);
 
   // 5. Reparto de Macronutrientes:
-  //    - Proteína (Fija y blindada): 2.2 g por kg de LBM (o mínimo 1.8 g/kg de peso total)
+  //    - Proteína (Fija y blindada universal): 2.2 g por kg de LBM (o mínimo 1.8 g/kg de peso total)
   const proteinGrams = Math.round(Math.max(lbmKg * 2.2, weightKg * 1.8));
   const proteinKcal = proteinGrams * 4;
 
-  //    - Grasas: 0.9 g por kg de peso total (soporte hormonal)
-  const fatGrams = Math.round(weightKg * 0.9);
+  //    - Suelo de Grasas según Sexo Fisiológico:
+  //      Mujeres (female): 1.0 g por kg de peso total (protección hormonal / estrogénica)
+  //      Hombres (male): 0.9 g por kg de peso total
+  const fatFloorMultiplier = sex === "female" ? 1.0 : 0.9;
+  const fatGrams = Math.round(weightKg * fatFloorMultiplier);
   const fatKcal = fatGrams * 9;
 
   //    - Carbohidratos (Ciclados por demanda): Cubren el balance calórico restante

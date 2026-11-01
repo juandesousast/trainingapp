@@ -1,11 +1,26 @@
-import { Mesocycle, ProfileSlug, Workout } from "@/lib/types";
+import { Mesocycle, Profile, BiologicalSex, ProfileSlug, Workout } from "@/lib/types";
 
-export const getMesocyclesForProfile = (slugOrRole: ProfileSlug): Mesocycle[] => {
-  const isFemale = slugOrRole === "hoplita_girl" || slugOrRole === "wendy";
+export const getMesocyclesForProfile = (
+  profileOrSexOrSlug: Profile | BiologicalSex | ProfileSlug,
+  targetProfileId?: string
+): Mesocycle[] => {
+  let isFemale = false;
+  let profileId = targetProfileId || "11111111-1111-1111-1111-111111111111";
+
+  if (typeof profileOrSexOrSlug === "object" && profileOrSexOrSlug !== null) {
+    isFemale =
+      profileOrSexOrSlug.sex === "female" ||
+      profileOrSexOrSlug.gender === "female" ||
+      profileOrSexOrSlug.role === "hoplita_girl";
+    profileId = profileOrSexOrSlug.id || profileId;
+  } else if (typeof profileOrSexOrSlug === "string") {
+    isFemale =
+      profileOrSexOrSlug === "female" ||
+      profileOrSexOrSlug === "hoplita_girl" ||
+      profileOrSexOrSlug === "wendy";
+    if (targetProfileId) profileId = targetProfileId;
+  }
   const isMale = !isFemale;
-  const profileId = isMale
-    ? "11111111-1111-1111-1111-111111111111"
-    : "22222222-2222-2222-2222-222222222222";
 
   return [
     /* =====================================================================
