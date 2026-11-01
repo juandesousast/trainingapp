@@ -28,8 +28,9 @@ import {
   PRESET_ATHLETES,
   DecodedBiometrics,
   TelemetryLog,
-  RENPHO_SERVICES,
-  RENPHO_CHARACTERISTICS,
+  RENPHO_OPTIONAL_SERVICES,
+  scanRenphoDevice,
+  discoverAndSubscribeServices,
   decodeRenphoPacket,
   buildRenphoProfileHandshake,
   isWebBluetoothSupported,
@@ -40,7 +41,6 @@ export default function RenphoLabPage() {
   const [status, setStatus] = useState<BLEConnectionStatus>("disconnected");
   const [selectedAthleteKey, setSelectedAthleteKey] = useState<"juan" | "wendy">("juan");
   const [selectedProfile, setSelectedProfile] = useState<RenphoAthleteProfile>(PRESET_ATHLETES.juan);
-  const [acceptAllDevices, setAcceptAllDevices] = useState(false);
 
   // Estado del dispositivo y servicios
   const [deviceInfo, setDeviceInfo] = useState<{
@@ -149,7 +149,7 @@ export default function RenphoLabPage() {
     );
   };
 
-  // Iniciar escaneo y conexión Web Bluetooth
+  // Iniciar escaneo y conexión Web Bluetooth con acceptAllDevices: true
   const handleScanDevice = async () => {
     if (!isWebBluetoothSupported()) {
       alert(
@@ -160,35 +160,9 @@ export default function RenphoLabPage() {
 
     try {
       setStatus("scanning");
-      addLog("info", "Solicitando emparejamiento BLE con navigator.bluetooth.requestDevice()...");
+      addLog("info", "Iniciando escáner BLE sin filtros de nombre (acceptAllDevices: true)...");
 
-      const navBluetooth = (navigator as any).bluetooth;
-
-      // Configuración de escaneo
-      let requestOptions: any;
-
-      if (acceptAllDevices) {
-        requestOptions = {
-          acceptAllDevices: true,
-          optionalServices: RENPHO_SERVICES,
-        };
-      } else {
-        requestOptions = {
-          filters: [
-            { namePrefix: "Renpho" },
-            { namePrefix: "ES-" },
-            { namePrefix: "QN-" },
-            { namePrefix: "Scale" },
-            { namePrefix: "Chipsea" },
-            { services: [0xffe0] },
-            { services: [0xfff0] },
-            { services: [0x181d] },
-          ],
-          optionalServices: RENPHO_SERVICES,
-        };
-      }
-
-      const device = await navBluetooth.requestDevice(requestOptions);
+      const device = await scanRenphoDevice();
       bluetoothDeviceRef.current = device;
 
       device.addEventListener("gattserverdisconnected", () => {
@@ -198,71 +172,44 @@ export default function RenphoLabPage() {
       });
 
       setStatus("connecting");
-      addLog("info", `Dispositivo seleccionado: "${device.name || "Sin nombre"}" (ID: ${device.id})`);
+      addLog("info", `Dispositivo seleccionado: "${device.name || "Báscula sin nombre / Chip anónimo"}" (ID: ${device.id})`);
 
       // Conexión GATT
       addLog("info", "Conectando al servidor GATT...");
       const server = await device.gatt.connect();
       addLog("info", "Servidor GATT conectado con éxito.");
 
-      const discoveredServices: string[] = [];
-      const discoveredChars: string[] = [];
-      let notifyCharFound = false;
+      // Introspección completa de servicios y suscripción a notificaciones
+      const details = await discoverAndSubscribeServices(
+        server,
+        handleCharacteristicValue,
+        (type, msg) => addLog(type, msg)
+      );
 
-      // Recorrer los servicios primarios para encontrar características de notificación
-      for (const serviceUuid of RENPHO_SERVICES) {
-        try {
-          const service = await server.getPrimaryService(serviceUuid);
-          const sUuidStr = typeof serviceUuid === "number" ? `0x${serviceUuid.toString(16)}` : serviceUuid;
-          discoveredServices.push(sUuidStr);
-          addLog("info", `Servicio GATT localizado: ${sUuidStr}`);
-
-          // Buscar características del servicio
-          for (const charUuid of RENPHO_CHARACTERISTICS) {
-            try {
-              const char = await service.getCharacteristic(charUuid);
-              const cUuidStr = typeof charUuid === "number" ? `0x${charUuid.toString(16)}` : charUuid;
-              discoveredChars.push(cUuidStr);
-
-              // Comprobar si admite escritura para el handshake
-              if (char.properties.write || char.properties.writeWithoutResponse) {
-                writeCharacteristicRef.current = char;
-                addLog("info", `Característica de escritura para handshake disponible: ${cUuidStr}`);
-              }
-
-              // Suscribir a notificaciones si las soporta
-              if (char.properties.notify || char.properties.indicate) {
-                await char.startNotifications();
-                char.addEventListener("characteristicvaluechanged", handleCharacteristicValue);
-                notifyCharFound = true;
-                addLog("info", `Suscripción activa a notificaciones en: ${cUuidStr}`);
-              }
-            } catch {
-              // Característica no presente en este servicio, continuar
-            }
-          }
-        } catch {
-          // Servicio no presente, continuar
-        }
-      }
+      writeCharacteristicRef.current = details.writeCharacteristic;
 
       setDeviceInfo({
         name: device.name || "Báscula BLE Renpho",
         id: device.id,
-        services: discoveredServices,
-        characteristics: discoveredChars,
+        services: details.services,
+        characteristics: details.characteristics,
       });
 
-      if (notifyCharFound) {
+      if (details.subscribedCharacteristics.length > 0) {
         setStatus("connected");
-        addLog("info", "Conexión completa. Súbete descalzo a la báscula para recibir telemetría...");
-        // Enviar handshake inicial automáticamente si hay canal de escritura
-        sendHandshakePacket();
+        addLog(
+          "info",
+          `✓ Conexión establecida. ${details.subscribedCharacteristics.length} canal(es) de notificación suscrito(s). Súbete descalzo a la báscula para recibir telemetría...`
+        );
+        // Enviar handshake si hay canal de escritura disponible
+        if (details.writeCharacteristic) {
+          sendHandshakePacket();
+        }
       } else {
         setStatus("connected");
         addLog(
           "warn",
-          "Conectado al dispositivo pero no se localizó la característica de notificación FFE1/FFF1 estándar. Revisa la consola."
+          "Conectado al dispositivo pero no se encontraron características con notificaciones activas. Revisa la consola."
         );
       }
     } catch (err: any) {
@@ -477,16 +424,11 @@ export default function RenphoLabPage() {
             </button>
           )}
 
-          {/* Checkbox Modo Escaneo Amplio */}
-          <label className="flex items-center gap-2 px-3 py-2 bg-zinc-950/60 border border-zinc-800 rounded-2xl text-[11px] font-mono text-zinc-400 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={acceptAllDevices}
-              onChange={(e) => setAcceptAllDevices(e.target.checked)}
-              className="accent-[#CCFF00] rounded"
-            />
-            <span>Escanear todos los BLE (`acceptAllDevices`)</span>
-          </label>
+          {/* Indicador Modo Escaneo Amplio Activo */}
+          <div className="flex items-center gap-1.5 px-3 py-2 bg-emerald-950/30 border border-emerald-800/50 rounded-2xl text-[11px] font-mono text-emerald-300">
+            <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+            <span>Escaneo Abierto Activo (`acceptAllDevices: true`)</span>
+          </div>
         </div>
 
         {/* Metadatos del dispositivo conectado */}

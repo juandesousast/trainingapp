@@ -59,13 +59,16 @@ export interface TelemetryLog {
   hex?: string;
 }
 
-// UUIDs comunes en básculas Renpho, Yolanda, Chipsea y Bluetooth SIG
-export const RENPHO_SERVICES = [
+// UUIDs de servicios opcionales permitidos para descubrimiento GATT en básculas Renpho
+export const RENPHO_OPTIONAL_SERVICES: (number | string)[] = [
   0xffe0,
   0xfff0,
-  0x181d, // weight_scale
-  0x181b, // body_composition
-  0xfa00,
+  0x181d, // Weight Scale estándar
+  0x181b, // Body Composition estándar
+  0xfa00, // Yolanda / Senssun
+  0x1800, // Generic Access
+  0x1801, // Generic Attribute
+  0x180a, // Device Information
   "0000ffe0-0000-1000-8000-00805f9b34fb",
   "0000fff0-0000-1000-8000-00805f9b34fb",
   "0000181d-0000-1000-8000-00805f9b34fb",
@@ -73,7 +76,11 @@ export const RENPHO_SERVICES = [
   "0000fa00-0000-1000-8000-00805f9b34fb",
 ];
 
-export const RENPHO_CHARACTERISTICS = [
+// Alias para compatibilidad de importaciones
+export const RENPHO_SERVICES = RENPHO_OPTIONAL_SERVICES;
+
+// Características conocidas para fallback si getCharacteristics() sin parámetros falla
+export const RENPHO_CHARACTERISTICS: (number | string)[] = [
   0xffe1,
   0xfff1,
   0xfff2,
@@ -87,6 +94,136 @@ export const RENPHO_CHARACTERISTICS = [
   "00002a9d-0000-1000-8000-00805f9b34fb",
   "00002a9c-0000-1000-8000-00805f9b34fb",
 ];
+
+/**
+ * Escanea dispositivos Bluetooth sin filtros restrictivos de nombre (acceptAllDevices: true)
+ * para capturar cualquier báscula Renpho independientemente de su identificador de chip o broadcast anónimo.
+ */
+export async function scanRenphoDevice(): Promise<any> {
+  if (typeof window === "undefined" || !("bluetooth" in navigator)) {
+    throw new Error("Web Bluetooth no está disponible en este navegador");
+  }
+
+  const navBluetooth = (navigator as any).bluetooth;
+  const device = await navBluetooth.requestDevice({
+    acceptAllDevices: true,
+    optionalServices: RENPHO_OPTIONAL_SERVICES,
+  });
+
+  return device;
+}
+
+export interface DiscoveredBLEDetails {
+  services: string[];
+  characteristics: string[];
+  subscribedCharacteristics: string[];
+  writeCharacteristic: any | null;
+}
+
+function formatProperties(props: any): string {
+  if (!props) return "propiedades desconocidas";
+  const flags: string[] = [];
+  if (props.read) flags.push("read");
+  if (props.write) flags.push("write");
+  if (props.writeWithoutResponse) flags.push("writeWithoutResponse");
+  if (props.notify) flags.push("notify");
+  if (props.indicate) flags.push("indicate");
+  return flags.join(", ") || "ninguna";
+}
+
+/**
+ * Itera sobre todos los servicios primarios disponibles con getPrimaryServices(),
+ * imprime en los logs de telemetría los UUIDs encontrados y sus características,
+ * y conecta listeners a cualquier característica con notify o indicate activa.
+ */
+export async function discoverAndSubscribeServices(
+  server: any,
+  onCharacteristicValue: (event: any) => void,
+  logFn: (type: TelemetryLog["type"], message: string) => void
+): Promise<DiscoveredBLEDetails> {
+  const discoveredServices: string[] = [];
+  const discoveredCharacteristics: string[] = [];
+  const subscribedCharacteristics: string[] = [];
+  let writeCharacteristic: any = null;
+
+  logFn("info", "Iniciando introspección profunda de servicios GATT con getPrimaryServices()...");
+
+  let primaryServices: any[] = [];
+  try {
+    primaryServices = await server.getPrimaryServices();
+    logFn("info", `Total de servicios primarios detectados: ${primaryServices.length}`);
+  } catch (err: any) {
+    logFn("warn", `getPrimaryServices() genérico falló: ${err.message}. Intentando lista de servicios permitidos...`);
+    // Fallback: consultar explícitamente los servicios de la lista opcional
+    for (const sUuid of RENPHO_OPTIONAL_SERVICES) {
+      try {
+        const s = await server.getPrimaryService(sUuid);
+        if (s) primaryServices.push(s);
+      } catch {
+        // Servicio no presente, ignorar
+      }
+    }
+  }
+
+  // Iterar sobre cada servicio primario
+  for (const service of primaryServices) {
+    const sUuidStr = service.uuid || String(service);
+    discoveredServices.push(sUuidStr);
+    logFn("info", `[SERVICIO GATT] UUID: ${sUuidStr}`);
+
+    let chars: any[] = [];
+    try {
+      chars = await service.getCharacteristics();
+    } catch (err: any) {
+      logFn("warn", `service.getCharacteristics() en ${sUuidStr} falló: ${err.message}. Probando fallback conocido...`);
+      for (const cUuid of RENPHO_CHARACTERISTICS) {
+        try {
+          const c = await service.getCharacteristic(cUuid);
+          if (c) chars.push(c);
+        } catch {
+          // Característica no presente, continuar
+        }
+      }
+    }
+
+    logFn("info", `  ↳ ${chars.length} característica(s) detectada(s) en ${sUuidStr}`);
+
+    for (const char of chars) {
+      const cUuidStr = char.uuid || String(char);
+      const propsStr = formatProperties(char.properties);
+      discoveredCharacteristics.push(cUuidStr);
+      logFn("info", `  [CARACTERÍSTICA] UUID: ${cUuidStr} (${propsStr})`);
+
+      // Detectar candidata para escritura de handshake
+      if ((char.properties.write || char.properties.writeWithoutResponse) && !writeCharacteristic) {
+        writeCharacteristic = char;
+        logFn("info", `  ⚡ Canal de escritura configurado para handshake: ${cUuidStr}`);
+      }
+
+      // Conectar listener a cualquier característica con notify o indicate
+      if (char.properties.notify || char.properties.indicate) {
+        try {
+          await char.startNotifications();
+          char.addEventListener("characteristicvaluechanged", onCharacteristicValue);
+          subscribedCharacteristics.push(cUuidStr);
+          logFn(
+            "info",
+            `  ✓ [NOTIFICACIONES ACTIVAS] Suscrito exitosamente a: ${cUuidStr}`
+          );
+        } catch (subErr: any) {
+          logFn("error", `  ✗ Error al suscribir notificaciones en ${cUuidStr}: ${subErr.message}`);
+        }
+      }
+    }
+  }
+
+  return {
+    services: discoveredServices,
+    characteristics: discoveredCharacteristics,
+    subscribedCharacteristics,
+    writeCharacteristic,
+  };
+}
 
 /**
  * Decodificador de telemetría Renpho / Yolanda / Chipsea / BLE SIG
