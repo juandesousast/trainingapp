@@ -51,12 +51,12 @@ export const TargetGoalDialog: React.FC<TargetGoalDialogProps> = ({
   };
 
   return (
-    <Drawer.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Drawer.Root open={isOpen} onOpenChange={(open) => !open && onClose()} handleOnly={true}>
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50" />
         <Drawer.Content className="bg-zinc-950 border-t border-zinc-800 fixed bottom-0 left-0 right-0 z-50 rounded-t-[32px] px-6 pt-5 pb-6 max-w-md mx-auto outline-none max-h-[85vh] overflow-y-auto">
           {/* Manija */}
-          <div className="w-12 h-1.5 bg-zinc-700 rounded-full mx-auto mb-4" />
+          <Drawer.Handle className="w-12 h-1.5 bg-zinc-700 rounded-full mx-auto mb-4 cursor-grab active:cursor-grabbing" />
 
           {/* Encabezado */}
           <div className="flex items-center justify-between mb-2">

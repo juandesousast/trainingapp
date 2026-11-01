@@ -105,12 +105,12 @@ export const PlateCalculatorDrawer: React.FC<PlateCalculatorDrawerProps> = ({
   ];
 
   return (
-    <Drawer.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Drawer.Root open={isOpen} onOpenChange={(open) => !open && onClose()} handleOnly={true}>
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50" />
         <Drawer.Content className="max-h-[90dvh] flex flex-col bg-zinc-950 border-t border-zinc-800 rounded-t-[28px] overflow-hidden fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto outline-none">
           {/* Handle superior visible */}
-          <div className="w-12 h-1.5 bg-zinc-700/80 rounded-full mx-auto my-3 shrink-0" />
+          <Drawer.Handle className="w-12 h-1.5 bg-zinc-700/80 rounded-full mx-auto my-3 shrink-0 cursor-grab active:cursor-grabbing" />
 
           {/* Cabecera Fija */}
           <div className="px-5 pb-3 border-b border-zinc-800/80 shrink-0">
