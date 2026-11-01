@@ -99,8 +99,22 @@ export const ExerciseTechnicalGuideDrawer: React.FC<ExerciseTechnicalGuideDrawer
           "Bloqueo y Respiración: Pausa en el punto superior, exhala y recupera la tensión antes de la siguiente repetición.",
         ];
 
+  const handleClose = () => {
+    if (typeof document !== "undefined") {
+      (document.activeElement as HTMLElement)?.blur();
+    }
+    onClose();
+  };
+
   return (
-    <Drawer.Root open={isOpen} onOpenChange={(open) => !open && onClose()} handleOnly={true}>
+    <Drawer.Root
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) handleClose();
+      }}
+      handleOnly={true}
+      repositionInputs={false}
+    >
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 transition-opacity" />
         <Drawer.Content className="max-h-[90dvh] flex flex-col bg-zinc-950 border-t border-zinc-800 rounded-t-[28px] overflow-hidden fixed bottom-0 left-0 right-0 z-50 max-w-lg mx-auto outline-none">
@@ -131,7 +145,7 @@ export const ExerciseTechnicalGuideDrawer: React.FC<ExerciseTechnicalGuideDrawer
               </div>
 
               <button
-                onClick={onClose}
+                onClick={handleClose}
                 className="w-9 h-9 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors shrink-0"
                 aria-label="Cerrar guía técnica"
               >

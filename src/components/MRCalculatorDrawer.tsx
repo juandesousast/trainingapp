@@ -118,12 +118,26 @@ export const MRCalculatorDrawer: React.FC<MRCalculatorDrawerProps> = ({
   const handleApply1RM = () => {
     if (estimated1RM > 0) {
       update1RM(exerciseSlug, estimated1RM);
-      onClose();
+      handleClose();
     }
   };
 
+  const handleClose = () => {
+    if (typeof document !== "undefined") {
+      (document.activeElement as HTMLElement)?.blur();
+    }
+    onClose();
+  };
+
   return (
-    <Drawer.Root open={isOpen} onOpenChange={(open) => !open && onClose()} handleOnly={true}>
+    <Drawer.Root
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) handleClose();
+      }}
+      handleOnly={true}
+      repositionInputs={false}
+    >
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50" />
         <Drawer.Content className="max-h-[90dvh] flex flex-col bg-zinc-950 border-t border-zinc-800 rounded-t-[28px] overflow-hidden fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto outline-none">
@@ -140,7 +154,7 @@ export const MRCalculatorDrawer: React.FC<MRCalculatorDrawerProps> = ({
                 </h2>
               </div>
               <button
-                onClick={onClose}
+                onClick={handleClose}
                 className="min-w-[40px] min-h-[40px] flex items-center justify-center rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white transition-all duration-200 active:scale-95"
                 aria-label="Cerrar modal"
               >

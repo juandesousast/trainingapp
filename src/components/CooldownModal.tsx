@@ -72,8 +72,22 @@ export const CooldownModal: React.FC<CooldownModalProps> = ({
     });
   };
 
+  const handleClose = () => {
+    if (typeof document !== "undefined") {
+      (document.activeElement as HTMLElement)?.blur();
+    }
+    onClose();
+  };
+
   return (
-    <Drawer.Root open={isOpen} onOpenChange={(open) => !open && onClose()} handleOnly={true}>
+    <Drawer.Root
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) handleClose();
+      }}
+      handleOnly={true}
+      repositionInputs={false}
+    >
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/85 backdrop-blur-md z-50" />
         <Drawer.Content className="max-h-[90dvh] flex flex-col bg-zinc-950 border-t border-zinc-800 rounded-t-[28px] overflow-hidden fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto outline-none">

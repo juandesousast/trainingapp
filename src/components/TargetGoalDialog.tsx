@@ -50,8 +50,22 @@ export const TargetGoalDialog: React.FC<TargetGoalDialogProps> = ({
     }
   };
 
+  const handleClose = () => {
+    if (typeof document !== "undefined") {
+      (document.activeElement as HTMLElement)?.blur();
+    }
+    onClose();
+  };
+
   return (
-    <Drawer.Root open={isOpen} onOpenChange={(open) => !open && onClose()} handleOnly={true}>
+    <Drawer.Root
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) handleClose();
+      }}
+      handleOnly={true}
+      repositionInputs={false}
+    >
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50" />
         <Drawer.Content className="bg-zinc-950 border-t border-zinc-800 fixed bottom-0 left-0 right-0 z-50 rounded-t-[32px] px-6 pt-5 pb-6 max-w-md mx-auto outline-none max-h-[85vh] overflow-y-auto">
@@ -67,7 +81,7 @@ export const TargetGoalDialog: React.FC<TargetGoalDialogProps> = ({
               </h2>
             </div>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="p-1 rounded-full text-zinc-400 hover:text-white"
             >
               <X className="w-5 h-5" />

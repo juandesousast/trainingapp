@@ -498,6 +498,7 @@ export const NutritionView: React.FC = () => {
                 {/* Cabecera del Acordeón */}
                 <button
                   type="button"
+                  data-meal-toggle={meal.id}
                   onClick={() => toggleMealExpand(meal.id)}
                   className="w-full p-3.5 flex items-center justify-between gap-2.5 text-left active:bg-zinc-800/40 transition-colors"
                 >
@@ -596,6 +597,7 @@ export const NutritionView: React.FC = () => {
                             {/* Chip Proteína */}
                             <button
                               type="button"
+                              data-swap-chip-protein={meal.id}
                               onClick={() =>
                                 openSwapDrawer(
                                   meal.id,
@@ -645,6 +647,7 @@ export const NutritionView: React.FC = () => {
                             {/* Chip Carbohidratos */}
                             <button
                               type="button"
+                              data-swap-chip-carbs={meal.id}
                               onClick={() =>
                                 openSwapDrawer(
                                   meal.id,

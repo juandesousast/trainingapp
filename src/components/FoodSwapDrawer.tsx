@@ -76,14 +76,28 @@ export const FoodSwapDrawer: React.FC<FoodSwapDrawerProps> = ({
 
   const CategoryIcon = categoryMeta.icon;
 
-  const handleSelect = (foodId: string) => {
-    soundEngine.playTap();
-    onSelectFood(foodId);
+  const handleClose = () => {
+    if (typeof document !== "undefined") {
+      (document.activeElement as HTMLElement)?.blur();
+    }
     onClose();
   };
 
+  const handleSelect = (foodId: string) => {
+    soundEngine.playTap();
+    onSelectFood(foodId);
+    handleClose();
+  };
+
   return (
-    <Drawer.Root open={isOpen} onOpenChange={(open) => !open && onClose()} handleOnly={true}>
+    <Drawer.Root
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) handleClose();
+      }}
+      handleOnly={true}
+      repositionInputs={false}
+    >
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 transition-opacity" />
         <Drawer.Content className="bg-zinc-950 border-t border-zinc-800 fixed bottom-0 left-0 right-0 z-50 rounded-t-[32px] max-h-[88vh] flex flex-col focus:outline-none shadow-2xl">

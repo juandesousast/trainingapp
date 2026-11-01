@@ -7,6 +7,15 @@ export const metadata: Metadata = {
   title: "Hoplita OS · Dark Kinetic Training",
   description: "Plataforma Mobile-First de entrenamiento de fuerza de alta intensidad BIIO",
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    apple: [
+      { url: "/icon-192.png" },
+    ],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
