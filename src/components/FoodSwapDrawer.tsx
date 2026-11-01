@@ -100,7 +100,7 @@ export const FoodSwapDrawer: React.FC<FoodSwapDrawerProps> = ({
     >
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 transition-opacity" />
-        <Drawer.Content className="bg-zinc-950 border-t border-zinc-800 fixed bottom-0 left-0 right-0 z-50 rounded-t-[32px] max-h-[88vh] flex flex-col focus:outline-none shadow-2xl">
+        <Drawer.Content className="fixed inset-x-0 bottom-0 z-50 flex flex-col rounded-t-[32px] bg-zinc-950 border-t border-zinc-800 max-h-[90dvh] h-auto focus:outline-none shadow-2xl">
           {/* Barra de Arrastre */}
           <Drawer.Handle className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-zinc-800 my-3 cursor-grab active:cursor-grabbing" />
 

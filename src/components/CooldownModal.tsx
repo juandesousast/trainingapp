@@ -90,7 +90,7 @@ export const CooldownModal: React.FC<CooldownModalProps> = ({
     >
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/85 backdrop-blur-md z-50" />
-        <Drawer.Content className="max-h-[90dvh] flex flex-col bg-zinc-950 border-t border-zinc-800 rounded-t-[28px] overflow-hidden fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto outline-none">
+        <Drawer.Content className="fixed inset-x-0 bottom-0 z-50 flex flex-col rounded-t-[28px] bg-zinc-950 border-t border-zinc-800 max-h-[90dvh] h-auto max-w-md mx-auto outline-none overflow-hidden">
           {/* Manija */}
           <Drawer.Handle className="w-12 h-1.5 bg-zinc-700/80 rounded-full mx-auto my-3 shrink-0 cursor-grab active:cursor-grabbing" />
 

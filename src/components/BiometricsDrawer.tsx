@@ -212,6 +212,12 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
     onClose();
   };
 
+  const handleInputBlur = () => {
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+  };
+
   return (
     <Drawer.Root
       open={isOpen}
@@ -223,7 +229,7 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
     >
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50" />
-        <Drawer.Content className="max-h-[90dvh] flex flex-col rounded-t-[28px] border-t border-zinc-800 bg-zinc-950 p-0 fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto outline-none overflow-hidden">
+        <Drawer.Content className="fixed inset-x-0 bottom-0 z-50 flex flex-col rounded-t-[28px] bg-zinc-950 border-t border-zinc-800 max-h-[90dvh] h-auto max-w-md mx-auto outline-none overflow-hidden">
           {/* Handle superior visible */}
           <Drawer.Handle className="w-12 h-1.5 bg-zinc-700/80 rounded-full mx-auto my-3 shrink-0 cursor-grab active:cursor-grabbing" />
 
@@ -281,6 +287,7 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
                       setBmi((w / ((h / 100) ** 2)).toFixed(1));
                     }
                   }}
+                  onBlur={handleInputBlur}
                   className={cn(
                     "w-full bg-zinc-950 border rounded-xl px-3 py-2 text-white font-mono font-black text-base focus:outline-none transition-colors",
                     heightError
@@ -323,6 +330,7 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
                       }
                     }
                   }}
+                  onBlur={handleInputBlur}
                   className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-1.5 text-white font-mono font-black text-lg focus:outline-none focus:border-zinc-500"
                 />
               </div>
@@ -349,6 +357,7 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
                   step="0.1"
                   value={bmi}
                   onChange={(e) => setBmi(e.target.value)}
+                  onBlur={handleInputBlur}
                   className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-1.5 text-white font-mono font-black text-lg focus:outline-none focus:border-zinc-500"
                 />
               </div>
@@ -378,6 +387,7 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
                   step="0.1"
                   value={bodyFatPct}
                   onChange={(e) => setBodyFatPct(e.target.value)}
+                  onBlur={handleInputBlur}
                   className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-2 py-1 text-amber-400 font-mono font-black text-base focus:outline-none"
                 />
               </div>
@@ -392,6 +402,7 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
                   step="0.1"
                   value={subcutaneousFatPct}
                   onChange={(e) => setSubcutaneousFatPct(e.target.value)}
+                  onBlur={handleInputBlur}
                   className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-2 py-1 text-zinc-200 font-mono font-black text-base focus:outline-none"
                 />
               </div>
@@ -418,6 +429,7 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
                   step="1"
                   value={visceralFatRating}
                   onChange={(e) => setVisceralFatRating(e.target.value)}
+                  onBlur={handleInputBlur}
                   className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-2 py-1 text-zinc-200 font-mono font-black text-base focus:outline-none"
                 />
               </div>
@@ -434,6 +446,7 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
                   step="0.05"
                   value={muscleMassKg}
                   onChange={(e) => setMuscleMassKg(e.target.value)}
+                  onBlur={handleInputBlur}
                   className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-1 font-mono font-black text-base focus:outline-none"
                   style={{ color: accentColor }}
                 />
@@ -448,6 +461,7 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
                   step="0.1"
                   value={skeletalMusclePct}
                   onChange={(e) => setSkeletalMusclePct(e.target.value)}
+                  onBlur={handleInputBlur}
                   className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-1 text-white font-mono font-black text-base focus:outline-none"
                 />
               </div>
@@ -464,6 +478,7 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
                   step="0.05"
                   value={fatFreeMassKg}
                   onChange={(e) => setFatFreeMassKg(e.target.value)}
+                  onBlur={handleInputBlur}
                   className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-2 py-1 text-zinc-200 font-mono font-bold text-sm focus:outline-none"
                 />
               </div>
@@ -477,6 +492,7 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
                   step="1"
                   value={bmrKcal}
                   onChange={(e) => setBmrKcal(e.target.value)}
+                  onBlur={handleInputBlur}
                   className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-2 py-1 text-zinc-200 font-mono font-bold text-sm focus:outline-none"
                 />
               </div>
@@ -490,6 +506,7 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
                   step="0.01"
                   value={boneMassKg}
                   onChange={(e) => setBoneMassKg(e.target.value)}
+                  onBlur={handleInputBlur}
                   className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-2 py-1 text-zinc-200 font-mono font-bold text-sm focus:outline-none"
                 />
               </div>
@@ -506,6 +523,7 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
                   step="0.1"
                   value={bodyWaterPct}
                   onChange={(e) => setBodyWaterPct(e.target.value)}
+                  onBlur={handleInputBlur}
                   className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-2.5 py-1 text-zinc-200 font-mono font-bold text-sm focus:outline-none"
                 />
               </div>
@@ -519,6 +537,7 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
                   step="0.1"
                   value={proteinPct}
                   onChange={(e) => setProteinPct(e.target.value)}
+                  onBlur={handleInputBlur}
                   className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-2.5 py-1 text-zinc-200 font-mono font-bold text-sm focus:outline-none"
                 />
               </div>
@@ -572,6 +591,7 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
                         step="0.5"
                         value={waistCm}
                         onChange={(e) => setWaistCm(e.target.value)}
+                        onBlur={handleInputBlur}
                         className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1 text-zinc-100 font-mono font-bold text-base focus:outline-none"
                       />
                     </div>
@@ -596,6 +616,7 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
                         step="0.5"
                         value={hipCm}
                         onChange={(e) => setHipCm(e.target.value)}
+                        onBlur={handleInputBlur}
                         className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1 text-zinc-100 font-mono font-bold text-base focus:outline-none"
                       />
                     </div>
@@ -610,6 +631,7 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
                         step="0.5"
                         value={neckCm}
                         onChange={(e) => setNeckCm(e.target.value)}
+                        onBlur={handleInputBlur}
                         className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1 text-zinc-100 font-mono font-bold text-base focus:outline-none"
                       />
                     </div>
@@ -624,6 +646,7 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
                         step="0.5"
                         value={chestCm}
                         onChange={(e) => setChestCm(e.target.value)}
+                        onBlur={handleInputBlur}
                         className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1 text-zinc-100 font-mono font-bold text-base focus:outline-none"
                       />
                     </div>
@@ -638,6 +661,7 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
                         step="0.5"
                         value={armCm}
                         onChange={(e) => setArmCm(e.target.value)}
+                        onBlur={handleInputBlur}
                         className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1 text-zinc-100 font-mono font-bold text-base focus:outline-none"
                       />
                     </div>
@@ -652,6 +676,7 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
                         step="0.5"
                         value={thighCm}
                         onChange={(e) => setThighCm(e.target.value)}
+                        onBlur={handleInputBlur}
                         className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1 text-zinc-100 font-mono font-bold text-base focus:outline-none"
                       />
                     </div>
