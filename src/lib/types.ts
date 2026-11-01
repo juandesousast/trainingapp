@@ -1,4 +1,4 @@
-export type ProfileSlug = "hoplita" | "hoplita_girl" | "juan" | "wendy" | "nato" | string;
+export type ProfileSlug = "vector" | "vector_girl" | "hoplita" | "hoplita_girl" | "juan" | "wendy" | "nato" | string;
 
 export type BiologicalSex = "male" | "female";
 
@@ -9,7 +9,7 @@ export interface Profile {
   userId?: string;
   slug?: string;
   displayName: string;
-  role?: "hoplita" | "hoplita_girl" | string;
+  role?: "vector" | "vector_girl" | "hoplita" | "hoplita_girl" | string;
   sex: BiologicalSex;
   gender?: "male" | "female"; // compatibilidad hacia atrás
   themeAccent: string; // '#CCFF00' o '#F43F5E'

@@ -300,7 +300,7 @@ export const MesocyclesDashboard: React.FC = () => {
       <div className="space-y-3">
         <div className="flex items-center justify-between px-1">
           <h3 className="text-xs font-black uppercase tracking-wider text-zinc-400 font-mono">
-            Plan Maestro Hoplita (5 Mesociclos Desbloqueados)
+            Plan Maestro VECTOR (5 Mesociclos Desbloqueados)
           </h3>
           <span className="text-[11px] font-mono text-zinc-400">
             {mesocycles.length} Bloques

@@ -1,5 +1,5 @@
 /**
- * HOPLITA OS - Base de Datos de Alimentos Limpios y Motor de Equivalencias
+ * VECTOR OS - Base de Datos de Alimentos Limpios y Motor de Equivalencias
  * Catálogo adaptado al mercado y supermercados de España (Mercadona, Carrefour, etc.)
  * Macros exactos cada 100 g de producto pesado (crudo o formato comercial).
  */

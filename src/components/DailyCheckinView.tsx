@@ -83,7 +83,7 @@ export const DailyCheckinView: React.FC = () => {
           PESTAÑA DIARIO · EXCEL
         </span>
         <h2 className="text-xl font-black text-white uppercase tracking-tight">
-          Check-in Diario del Hoplita
+          Check-in Diario VECTOR
         </h2>
         <p className="text-xs text-zinc-400 mt-0.5">
           Monitorea el descanso, la disposición mental y el esfuerzo subjetivo de la sesión.

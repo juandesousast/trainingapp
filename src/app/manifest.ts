@@ -2,14 +2,14 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Hoplita OS · Dark Kinetic Training",
-    short_name: "Hoplita OS",
-    description: "Sistema de entrenamiento de fuerza y recomposición corporal BIIO",
+    name: "VECTOR Training OS",
+    short_name: "VECTOR",
+    description: "Sistema de sobrecarga progresiva BIIO y nutrición deportiva de alta precisión.",
     start_url: "/",
     display: "standalone",
     orientation: "portrait",
-    background_color: "#09090B",
-    theme_color: "#09090B",
+    background_color: "#09090b",
+    theme_color: "#09090b",
     icons: [
       {
         src: "/icon.svg",
@@ -25,6 +25,11 @@ export default function manifest(): MetadataRoute.Manifest {
       {
         src: "/icon-512.png",
         sizes: "512x512",
+        type: "image/png",
+      },
+      {
+        src: "/apple-touch-icon.png",
+        sizes: "180x180",
         type: "image/png",
       },
     ],

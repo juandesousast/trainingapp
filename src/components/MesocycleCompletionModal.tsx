@@ -105,7 +105,7 @@ export const MesocycleCompletionModal: React.FC = () => {
               {isMacrocyleComplete ? (
                 <>
                   <Award className="w-3.5 h-3.5" />
-                  MACROCICLO COMPLETO · HOPLITA BIIO
+                  MACROCICLO COMPLETO · VECTOR BIIO
                 </>
               ) : (
                 <>
@@ -115,7 +115,7 @@ export const MesocycleCompletionModal: React.FC = () => {
               )}
             </span>
             <span className="text-xs font-mono font-bold text-zinc-500 uppercase tracking-widest">
-              HOPLITA BIIO
+              VECTOR BIIO
             </span>
           </div>
 
@@ -123,7 +123,7 @@ export const MesocycleCompletionModal: React.FC = () => {
           <div className="space-y-1.5">
             <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight uppercase leading-none">
               {isMacrocyleComplete
-                ? "MACROCICLO HOPLITA BIIO COMPLETADO"
+                ? "MACROCICLO VECTOR BIIO COMPLETADO"
                 : `${mesocycleName.toUpperCase()} CONCLUIDO`}
             </h2>
             <p className="text-xs text-zinc-400 leading-relaxed">

@@ -1,6 +1,78 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
-  <rect width="512" height="512" rx="128" fill="#09090B"/>
-  <path d="M256 64L384 140V280C384 360 256 448 256 448C256 448 128 360 128 280V140L256 64Z" stroke="#CCFF00" stroke-width="24" stroke-linejoin="round"/>
-  <path d="M272 160L208 272H288L240 352L336 240H256L272 160Z" fill="#CCFF00"/>
-  <circle cx="256" cy="416" r="12" fill="#F43F5E"/>
+  <defs>
+    <linearGradient id="pwaBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#181B20" />
+      <stop offset="100%" stop-color="#090A0D" />
+    </linearGradient>
+
+    <linearGradient id="pwaVolt" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E2FF38" />
+      <stop offset="100%" stop-color="#A3E635" />
+    </linearGradient>
+
+    <linearGradient id="pwaCyan" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="100%" stop-color="#06B6D4" />
+    </linearGradient>
+
+    <linearGradient id="pwaMetal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#94A3B8" />
+      <stop offset="50%" stop-color="#334155" />
+      <stop offset="100%" stop-color="#0F172A" />
+    </linearGradient>
+
+    <filter id="pwaGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- App Squircle Canvas -->
+  <rect width="512" height="512" rx="116" fill="url(#pwaBg)" stroke="#262D38" stroke-width="6" />
+
+  <!-- Outer Wings (Volt) -->
+  <g filter="url(#pwaGlow)">
+    <!-- Left Wing -->
+    <path
+      d="M 100 130 L 195 140 L 246 260 L 246 280 L 204 355 L 172 315 L 140 375 L 118 340 L 145 255 Z"
+      fill="url(#pwaVolt)"
+    />
+    <!-- Right Wing -->
+    <path
+      d="M 412 130 L 317 140 L 266 260 L 266 280 L 308 355 L 340 315 L 372 375 L 394 340 L 367 255 Z"
+      fill="url(#pwaVolt)"
+    />
+  </g>
+
+  <!-- Cyan Inner Chevrons & Energy Spine -->
+  <path
+    d="M 160 200 L 242 280 L 235 305 L 145 220 Z"
+    fill="url(#pwaCyan)"
+    opacity="0.9"
+  />
+  <path
+    d="M 352 200 L 270 280 L 277 305 L 367 220 Z"
+    fill="url(#pwaCyan)"
+    opacity="0.9"
+  />
+
+  <!-- Bottom Cyan Needle Tip -->
+  <polygon
+    points="256,420 230,345 242,345 256,370 270,345 282,345"
+    fill="url(#pwaCyan)"
+    filter="url(#pwaGlow)"
+  />
+
+  <!-- Titanium Core V -->
+  <path
+    d="M 205 155 L 256 195 L 307 155 L 256 270 Z"
+    fill="url(#pwaMetal)"
+    stroke="#64748B"
+    stroke-width="5"
+    stroke-linejoin="round"
+  />
+  <polygon points="256,220 235,185 277,185" fill="#090A0D" stroke="#475569" stroke-width="3" />
 </svg>

@@ -294,7 +294,7 @@ export const NutritionView: React.FC = () => {
             </div>
             <div>
               <span className="text-[10px] font-mono font-black tracking-widest text-zinc-400 uppercase block">
-                HOPLITA OS · NUTRICIÓN BIIO
+                VECTOR OS · NUTRICIÓN BIIO
               </span>
               <h1 className="text-base sm:text-lg font-black uppercase tracking-tight text-white flex items-center gap-1.5 mt-0.5">
                 <span>{isTrainingDay ? "Día de Entrenamiento" : "Día de Descanso"}</span>

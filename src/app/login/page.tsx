@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { useProfileStore } from "@/stores/useProfileStore";
 import { Lock, Mail, ArrowRight, ShieldCheck, Eye, EyeOff } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { VectorLogo } from "@/components/VectorLogo";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -62,16 +63,21 @@ export default function LoginPage() {
         className="w-full max-w-sm z-10 space-y-6"
       >
         {/* Cabecera / Identidad */}
-        <div className="text-center space-y-2">
-          <div className="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center font-black text-black text-xl tracking-tighter bg-[#CCFF00] shadow-2xl shadow-[#CCFF00]/20">
-            HOS
+        <div className="text-center space-y-3">
+          <div className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center bg-zinc-900 border border-zinc-800 shadow-2xl shadow-[#CCFF00]/15 p-2.5">
+            <VectorLogo size={46} accentColor="#CCFF00" />
           </div>
           <div>
-            <h1 className="text-xl font-black uppercase tracking-widest text-white">
-              HOPLITA OS
-            </h1>
-            <p className="text-[11px] font-mono tracking-wider uppercase text-zinc-400">
-              Sistema Cinético · Acceso Privado BIIO
+            <div className="flex items-center justify-center gap-1.5">
+              <h1 className="text-2xl font-black uppercase tracking-widest text-white">
+                VECTOR
+              </h1>
+              <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700/60">
+                OS
+              </span>
+            </div>
+            <p className="text-[11px] font-mono tracking-wider uppercase text-zinc-400 mt-1">
+              Performance & Nutrition · Acceso Privado BIIO
             </p>
           </div>
         </div>
@@ -166,10 +172,15 @@ export default function LoginPage() {
           </form>
         </div>
 
-        {/* Footer Seguridad */}
-        <div className="flex items-center justify-center gap-2 text-zinc-400 text-[11px] font-mono text-center">
-          <ShieldCheck className="w-3.5 h-3.5 shrink-0 text-emerald-400" />
-          <span>Acceso privado · Aislamiento total de datos con RLS</span>
+        {/* Footer Seguridad & Copyright */}
+        <div className="flex flex-col items-center justify-center gap-1.5 text-zinc-400 text-[11px] font-mono text-center">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-3.5 h-3.5 shrink-0 text-emerald-400" />
+            <span>Acceso privado · Aislamiento total de datos con RLS</span>
+          </div>
+          <p className="text-[10px] text-zinc-400 tracking-wider">
+            © 2026 VECTOR OS · Performance & Nutrition
+          </p>
         </div>
       </motion.div>
     </div>

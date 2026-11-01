@@ -258,12 +258,12 @@ export const ExerciseTechnicalGuideDrawer: React.FC<ExerciseTechnicalGuideDrawer
               </ol>
             </div>
 
-            {/* 4. NOTAS DEL ENTRENADOR HOPLITA */}
+            {/* 4. NOTAS DEL ENTRENADOR VECTOR */}
             {technicalNotes && (
               <div className="bg-amber-950/20 border border-amber-500/30 rounded-2xl p-4">
                 <div className="flex items-center gap-1.5 mb-1.5 text-xs font-mono font-black text-amber-400 uppercase tracking-wider">
                   <AlertTriangle className="w-3.5 h-3.5" />
-                  <span>Notas del Entrenador Hoplita</span>
+                  <span>Notas del Entrenador VECTOR</span>
                 </div>
                 <p className="text-xs text-amber-200/90 font-mono leading-relaxed">
                   {technicalNotes}

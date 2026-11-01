@@ -1,5 +1,5 @@
 /**
- * HOPLITA OS - Motor Metabólico y de Nutrición Dinámica
+ * VECTOR OS - Motor Metabólico y de Nutrición Dinámica
  *
  * Servicio matemático puro y reactivo que calcula el gasto energético (BMR / TDEE),
  * ajuste calórico según metas de recomposición corporal y distribución de macronutrientes

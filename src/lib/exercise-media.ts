@@ -252,7 +252,7 @@ export function getExerciseVisual(
     }
   }
 
-  // 3. Reglas semánticas para los 26 ejercicios del sistema Hoplita
+  // 3. Reglas semánticas para los 26 ejercicios del sistema VECTOR BIIO
   if (normName.includes("BOX SQUAT")) return EXERCISE_MEDIA["BOX SQUAT"];
   if (normName.includes("HIP THRUST")) return EXERCISE_MEDIA["HIP THRUST"];
   if (normName.includes("SQUAT") || normName.includes("SENTADILLA")) return EXERCISE_MEDIA["SQUAT"];

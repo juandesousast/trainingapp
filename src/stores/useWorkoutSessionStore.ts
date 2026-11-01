@@ -239,7 +239,7 @@ export function calculateLiftProgressions(
     });
   }
 
-  // Masculino: Juan / Hoplita
+  // Masculino: Juan / VECTOR
   const boxMax = currentMaxes["box_squat"] || 120;
   const benchMax = currentMaxes["bench_press"] || 100;
   const rowMax = currentMaxes["barbell_row"] || 85;

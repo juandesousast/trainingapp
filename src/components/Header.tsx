@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useProfileStore } from "@/stores/useProfileStore";
 import { useWorkoutSessionStore } from "@/stores/useWorkoutSessionStore";
 import { ProfileDrawer } from "@/components/ProfileDrawer";
+import { VectorLogo } from "@/components/VectorLogo";
 import { Flame, CheckCircle2, LogOut, AlertCircle, Settings } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -55,19 +56,21 @@ export const Header: React.FC = () => {
     <>
       <header className="sticky top-0 z-40 w-full bg-zinc-950/80 backdrop-blur-md border-b border-zinc-800/80 px-3 py-2.5 sm:px-4 sm:py-3">
         <div className="max-w-md mx-auto flex items-center justify-between gap-2">
-          {/* Logo & Marca */}
+          {/* Logo & Marca VECTOR */}
           <div className="flex items-center gap-2">
-            <div
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center font-black text-black text-xs sm:text-sm tracking-tighter shadow-lg transition-colors duration-300"
-              style={{ backgroundColor: accentColor }}
-            >
-              HOS
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center p-1 shadow-lg shadow-black/40">
+              <VectorLogo size={22} accentColor={accentColor} />
             </div>
             <div>
-              <h1 className="text-[11px] sm:text-xs font-black tracking-widest text-zinc-400 uppercase">
-                HOPLITA OS
-              </h1>
-              <p className="text-[10px] sm:text-[11px] font-semibold text-zinc-200 tracking-tight">
+              <div className="flex items-center gap-1.5">
+                <h1 className="text-[11px] sm:text-xs font-black tracking-widest text-zinc-100 uppercase">
+                  VECTOR
+                </h1>
+                <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-zinc-800/80 text-zinc-400 border border-zinc-700/50">
+                  OS
+                </span>
+              </div>
+              <p className="text-[10px] sm:text-[11px] font-semibold text-zinc-400 tracking-tight">
                 DARK KINETIC BIIO
               </p>
             </div>

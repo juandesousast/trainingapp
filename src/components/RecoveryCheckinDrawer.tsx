@@ -160,7 +160,7 @@ export const RecoveryCheckinDrawer: React.FC<RecoveryCheckinDrawerProps> = ({
               </button>
             </div>
             <p className="text-[11px] text-zinc-400 leading-snug">
-              Registra tu estado de recuperación diario según la pestaña DIARIO del sistema Hoplita para modular el volumen e intensidad.
+              Registra tu estado de recuperación diario según la pestaña DIARIO del sistema VECTOR para modular el volumen e intensidad.
             </p>
           </div>
 

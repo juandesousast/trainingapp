@@ -39,7 +39,7 @@ const defaultProfile: Profile = {
   id: "11111111-1111-1111-1111-111111111111",
   slug: "juan",
   displayName: "Juan",
-  role: "hoplita",
+  role: "vector",
   sex: "male",
   gender: "male",
   themeAccent: "#CCFF00",
@@ -64,7 +64,7 @@ function mapDbProfileToProfile(dbProfile: any): Profile {
     userId: dbProfile.user_id,
     slug: dbProfile.slug || `user-${dbProfile.id.slice(0, 8)}`,
     displayName: dbProfile.display_name || "Atleta",
-    role: dbProfile.role || (isFemale ? "hoplita_girl" : "hoplita"),
+    role: dbProfile.role || (isFemale ? "vector_girl" : "vector"),
     sex,
     gender: sex,
     themeAccent: dbProfile.theme_accent || (isFemale ? "#F43F5E" : "#CCFF00"),
@@ -186,7 +186,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
         if (typeof document !== "undefined") {
           document.documentElement.setAttribute(
             "data-theme",
-            isFemale ? "hoplita_girl" : "hoplita"
+            isFemale ? "vector_girl" : "vector"
           );
         }
 
@@ -234,7 +234,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     if (typeof document !== "undefined") {
       document.documentElement.setAttribute(
         "data-theme",
-        isFemale ? "hoplita_girl" : "hoplita"
+        isFemale ? "vector_girl" : "vector"
       );
     }
 
@@ -270,7 +270,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     const newSex = sex || activeProfile.sex;
     const isFemale = newSex === "female";
     const themeAccent = isFemale ? "#F43F5E" : "#CCFF00";
-    const role = isFemale ? "hoplita_girl" : "hoplita";
+    const role = isFemale ? "vector_girl" : "vector";
 
     // Actualización optimista local
     set((state) => ({
@@ -303,7 +303,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     }));
 
     if (typeof document !== "undefined") {
-      document.documentElement.setAttribute("data-theme", isFemale ? "hoplita_girl" : "hoplita");
+      document.documentElement.setAttribute("data-theme", isFemale ? "vector_girl" : "vector");
     }
 
     // Persistir en Supabase con filtro estricto por id de perfil
@@ -353,7 +353,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
         display_name: data.displayName,
         sex: data.sex,
         gender: data.sex,
-        role: isFemale ? "hoplita_girl" : "hoplita",
+        role: isFemale ? "vector_girl" : "vector",
         theme_accent: isFemale ? "#F43F5E" : "#CCFF00",
         target_weight_kg: data.targetWeightKg || (isFemale ? 60 : 75),
         target_body_fat_pct: data.targetBodyFatPct || (isFemale ? 21.0 : 16.0),
