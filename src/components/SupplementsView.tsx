@@ -20,6 +20,7 @@ import {
 import { useSupplementStore, SUPPLEMENT_CATALOG, SupplementItem } from "@/stores/useSupplementStore";
 import { useProfileStore } from "@/stores/useProfileStore";
 import { useBiometricsStore } from "@/stores/useBiometricsStore";
+import { calculateCreatineDose } from "@/lib/nutrition-engine";
 import { cn } from "@/lib/utils";
 
 const ICONS_MAP: Record<string, React.ElementType> = {
@@ -70,7 +71,7 @@ export const SupplementsView: React.FC = () => {
 
   // Cálculos dinámicos
   const creatineGrams = useMemo(() => {
-    return Math.round(currentWeightKg * 0.05 * 10) / 10;
+    return calculateCreatineDose(currentWeightKg);
   }, [currentWeightKg]);
 
   const targetWaterLiters = useMemo(() => {
@@ -259,18 +260,20 @@ export const SupplementsView: React.FC = () => {
         <div className="bg-zinc-900/70 border border-zinc-800 rounded-2xl p-3.5 space-y-1">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-400">
-              Creatina (0.05g/kg)
+              Creatina Monohidrato
             </span>
-            <Zap className="w-3.5 h-3.5" style={{ color: accentColor }} />
+            <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700/50">
+              Calibrado: 0.1g/kg
+            </span>
           </div>
           <div className="flex items-baseline gap-1.5">
             <span className="text-2xl font-black font-mono tracking-tight text-white tabular-nums">
               {creatineGrams.toFixed(1)}
             </span>
-            <span className="text-xs font-bold text-zinc-400">gramos</span>
+            <span className="text-xs font-bold text-zinc-400">g/día</span>
           </div>
           <span className="text-[10px] text-zinc-400 block truncate">
-            Base: {currentWeightKg.toFixed(1)} kg de peso
+            Base: {currentWeightKg.toFixed(1)} kg de peso corporal
           </span>
         </div>
 

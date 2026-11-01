@@ -6,7 +6,7 @@
  * y porciones de comida para días de entrenamiento vs. descanso.
  */
 
-import { NutritionGoal, BiologicalSex } from "./types";
+import type { NutritionGoal, BiologicalSex } from "./types";
 
 export interface NutritionEngineInput {
   weightKg: number;
@@ -256,3 +256,81 @@ export function calculateNutritionPlan(input: NutritionEngineInput): NutritionPl
     meals,
   };
 }
+
+/**
+ * Dosificación de creatina monohidrato basada en masa corporal.
+ * Regla: 0.1g por kg de peso corporal, redondeado a intervalos de 0.5g.
+ * Rango fisiológico seguro: mínimo 3g, máximo 10g/día.
+ */
+export function calculateCreatineDose(weightKg: number): number {
+  if (!weightKg || weightKg <= 0) return 5;
+  const dose = Math.round((weightKg * 0.1) * 2) / 2;
+  return Math.min(Math.max(dose, 3), 10);
+}
+
+export interface TargetWeightProjection {
+  recommendedWeightKg: number;
+  lbmKg: number;
+  fatMassDeltaKg: number;
+  isDeficit: boolean;
+  minWeeks: number;
+  optimalWeeks: number;
+  ratePerWeekKg: number;
+}
+
+/**
+ * Cálculo del peso objetivo recomendado preservando el 100% de la masa magra (LBM).
+ * Fórmula: Peso Objetivo = Masa Magra / (1 - (% Grasa Objetivo / 100))
+ * Plazos seguros:
+ * - Pérdida de grasa: 0.5% a 1.0% del peso corporal/semana (óptimo ~0.75%/sem para blindar masa muscular).
+ * - Ganancia limpia: 0.25% a 0.5% del peso corporal/semana.
+ */
+export function calculateRecommendedTargetWeight(params: {
+  currentWeightKg: number;
+  currentBodyFatPct: number;
+  targetBodyFatPct: number;
+}): TargetWeightProjection {
+  const { currentWeightKg, currentBodyFatPct, targetBodyFatPct } = params;
+
+  const currentFatFraction = Math.max(0.03, Math.min(0.65, currentBodyFatPct / 100));
+  const targetFatFraction = Math.max(0.03, Math.min(0.65, targetBodyFatPct / 100));
+
+  // Masa magra actual (LBM)
+  const lbmKg = currentWeightKg * (1 - currentFatFraction);
+
+  // Peso final necesario para que esa misma masa magra represente el (1 - targetFatFraction) del total
+  const rawTargetWeight = lbmKg / (1 - targetFatFraction);
+  const recommendedWeightKg = Math.round(rawTargetWeight * 10) / 10;
+
+  const weightDelta = Math.round((currentWeightKg - recommendedWeightKg) * 10) / 10;
+  const isDeficit = weightDelta > 0;
+  const absoluteDelta = Math.abs(weightDelta);
+
+  let optimalRatePerWeek = 0;
+  let minWeeks = 0;
+  let optimalWeeks = 0;
+
+  if (isDeficit) {
+    // Tasa óptima de pérdida: 0.75% del peso actual por semana; Máxima segura: 1.0%/semana
+    optimalRatePerWeek = Math.round((currentWeightKg * 0.0075) * 10) / 10;
+    const maxSafeRate = currentWeightKg * 0.01;
+    minWeeks = Math.max(1, Math.ceil(absoluteDelta / (maxSafeRate || 0.5)));
+    optimalWeeks = Math.max(1, Math.ceil(absoluteDelta / (optimalRatePerWeek || 0.5)));
+  } else {
+    // Superávit limpio: ganancia de ~0.25% - 0.35% por semana para minimizar acumulación adiposa
+    optimalRatePerWeek = Math.round((currentWeightKg * 0.003) * 10) / 10;
+    optimalWeeks = Math.max(1, Math.ceil(absoluteDelta / (optimalRatePerWeek || 0.2)));
+    minWeeks = Math.max(1, Math.ceil(optimalWeeks * 0.75));
+  }
+
+  return {
+    recommendedWeightKg,
+    lbmKg: Math.round(lbmKg * 10) / 10,
+    fatMassDeltaKg: absoluteDelta,
+    isDeficit,
+    minWeeks,
+    optimalWeeks,
+    ratePerWeekKg: optimalRatePerWeek,
+  };
+}
+

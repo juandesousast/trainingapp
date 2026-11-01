@@ -3,6 +3,7 @@ import { persist } from "zustand/middleware";
 import { supabase } from "@/lib/supabase";
 import { toLocalDateString } from "@/lib/activityStats";
 import { soundEngine } from "@/lib/audio";
+import { calculateCreatineDose } from "@/lib/nutrition-engine";
 
 export interface SupplementItem {
   id: string;
@@ -46,12 +47,12 @@ export const SUPPLEMENT_CATALOG: SupplementItem[] = [
     name: "Creatina Monohidrato",
     timing: "afternoon",
     block: "lunch",
-    baseDose: "4.0 g",
+    baseDose: "5.0 g",
     getDynamicDose: (weightKg) => {
-      const grams = Math.round(weightKg * 0.05 * 10) / 10;
-      return `${grams.toFixed(1)} g`;
+      const dose = calculateCreatineDose(weightKg);
+      return `${dose.toFixed(1)} g/día`;
     },
-    notes: "0.05g/kg de peso. Saturación de fosfocreatina y potencia neuromuscular.",
+    notes: "Calibrado: 0.1g/kg de peso. Saturación de fosfocreatina y potencia neuromuscular.",
     iconName: "Zap",
   },
   {

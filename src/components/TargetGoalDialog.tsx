@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Drawer } from "vaul";
 import { useProfileStore } from "@/stores/useProfileStore";
-import { Target, Check, X, Percent, Scale } from "lucide-react";
+import { useBiometricsStore } from "@/stores/useBiometricsStore";
+import { calculateRecommendedTargetWeight } from "@/lib/nutrition-engine";
+import { Target, Check, X, Percent, Scale, Sparkles } from "lucide-react";
 
 interface TargetGoalDialogProps {
   isOpen: boolean;
@@ -15,6 +17,7 @@ export const TargetGoalDialog: React.FC<TargetGoalDialogProps> = ({
   onClose,
 }) => {
   const { activeProfile, updateProfileGoals } = useProfileStore();
+  const { latestLog } = useBiometricsStore();
   const accentColor = activeProfile.themeAccent;
 
   const defaultFat = activeProfile.sex === "female" ? 21.0 : 16.0;
@@ -27,6 +30,19 @@ export const TargetGoalDialog: React.FC<TargetGoalDialogProps> = ({
     activeProfile.targetWeightKg || defaultWeight
   );
   const [isSaving, setIsSaving] = useState(false);
+
+  // Proyección biofísica basada en composición corporal actual
+  const currentWeightKg = latestLog?.weightKg || activeProfile.targetWeightKg || defaultWeight;
+  const currentBodyFatPct = latestLog?.bodyFatPct || defaultFat;
+
+  const projection = useMemo(() => {
+    if (!currentWeightKg || !currentBodyFatPct || !targetFat) return null;
+    return calculateRecommendedTargetWeight({
+      currentWeightKg,
+      currentBodyFatPct,
+      targetBodyFatPct: targetFat,
+    });
+  }, [currentWeightKg, currentBodyFatPct, targetFat]);
 
   useEffect(() => {
     if (activeProfile) {
@@ -203,6 +219,37 @@ export const TargetGoalDialog: React.FC<TargetGoalDialogProps> = ({
                   </button>
                 </div>
               </div>
+
+              {/* Tarjeta Informativa de Proyección Biofísica */}
+              {projection && (
+                <div className="mt-3 p-3 rounded-2xl bg-zinc-950 border border-zinc-800 flex items-center justify-between gap-3">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-1.5 text-xs text-zinc-200">
+                      <Sparkles className="w-3.5 h-3.5 text-lime-400 shrink-0" />
+                      <span>
+                        Sugerido por biofísica:{" "}
+                        <strong className="text-white font-mono">
+                          {projection.recommendedWeightKg} kg
+                        </strong>{" "}
+                        <span className="text-zinc-400 text-[11px]">
+                          (conservando {projection.lbmKg} kg de masa magra)
+                        </span>
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-zinc-400 font-mono">
+                      Plazo estimado: ~{projection.optimalWeeks} semanas a ritmo seguro de{" "}
+                      {projection.ratePerWeekKg} kg/sem
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setTargetWeight(projection.recommendedWeightKg)}
+                    className="px-2.5 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-lime-400 hover:text-white border border-lime-400/30 hover:border-lime-400 font-mono text-[10px] font-bold uppercase tracking-wider shrink-0 transition-all duration-150 active:scale-95"
+                  >
+                    Usar sugerido
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Botón de Guardado */}

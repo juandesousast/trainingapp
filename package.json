@@ -9,7 +9,8 @@
     "lint": "next lint",
     "test:e2e:visual": "node scratch/test_visual_audit.cjs",
     "test:e2e:reactive": "node scratch/test_reactive_audit.cjs",
-    "test:e2e:keyboard": "node scratch/test_drawer_keyboard_resize.cjs"
+    "test:e2e:keyboard": "node scratch/test_drawer_keyboard_resize.cjs",
+    "test:unit": "node --test src/lib/__tests__/nutrition-engine.test.ts"
   },
   "dependencies": {
     "@remotion/player": "^4.0.539",

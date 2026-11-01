@@ -6,6 +6,7 @@ import { useBiometricsStore } from "@/stores/useBiometricsStore";
 import { useProfileStore } from "@/stores/useProfileStore";
 import { supabase } from "@/lib/supabase";
 import { toLocalDateString } from "@/lib/activityStats";
+import { calculateCreatineDose } from "@/lib/nutrition-engine";
 import { HeartPulse, Check, X, Moon, Droplets, Zap, Footprints, Flame } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -18,9 +19,12 @@ export const RecoveryCheckinDrawer: React.FC<RecoveryCheckinDrawerProps> = ({
   isOpen,
   onClose,
 }) => {
-  const { addRecoveryCheckin } = useBiometricsStore();
+  const { addRecoveryCheckin, latestLog } = useBiometricsStore();
   const { activeProfile, refreshStats } = useProfileStore();
   const accentColor = activeProfile.themeAccent;
+
+  const currentWeightKg = latestLog?.weightKg || (activeProfile.targetWeightKg ? Number(activeProfile.targetWeightKg) : (activeProfile.sex === "female" ? 50 : 80));
+  const creatineGrams = calculateCreatineDose(currentWeightKg);
 
   const [sleepQuality, setSleepQuality] = useState<"Muy profundo" | "Reparador" | "Normal" | "Ligero" | "Imposible">("Reparador");
   const [domsLevel, setDomsLevel] = useState<"Sin dolor" | "Leve" | "Moderado" | "Intenso" | "Incapacitante">("Leve");
@@ -305,6 +309,26 @@ export const RecoveryCheckinDrawer: React.FC<RecoveryCheckinDrawerProps> = ({
                     </button>
                   ))}
                 </div>
+              </div>
+
+              {/* Protocolo Diario de Suplementación y Recuperación */}
+              <div className="p-3.5 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-between gap-3">
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-200">
+                    <Zap className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Creatina Monohidrato:</span>
+                    <span className="text-white font-mono font-black">{creatineGrams.toFixed(1)} g/día</span>
+                    <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700/50">
+                      (Calibrado: 0.1g/kg)
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-zinc-400 font-mono">
+                    Reposición neuromuscular calibrada para {currentWeightKg.toFixed(1)} kg de peso
+                  </p>
+                </div>
+                <span className="text-xs font-mono font-black px-2.5 py-1 rounded-xl bg-zinc-800 text-lime-400 border border-lime-400/20 tabular-nums shrink-0">
+                  {creatineGrams.toFixed(1)}g
+                </span>
               </div>
             </div>
 

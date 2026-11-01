@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import { Drawer } from "vaul";
 import { useProfileStore } from "@/stores/useProfileStore";
 import { useWorkoutSessionStore } from "@/stores/useWorkoutSessionStore";
+import { useBiometricsStore } from "@/stores/useBiometricsStore";
+import { calculateRecommendedTargetWeight } from "@/lib/nutrition-engine";
 import { NutritionGoal } from "@/lib/types";
 import { supabase } from "@/lib/supabase";
 import {
@@ -153,6 +155,7 @@ const NUTRITION_GOAL_OPTIONS: NutritionGoalOption[] = [
 export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ isOpen, onClose }) => {
   const { authUserId, activeProfile, updateProfileGoals } = useProfileStore();
   const { userMaxes, setUserMaxes } = useWorkoutSessionStore();
+  const { latestLog } = useBiometricsStore();
 
   const [sex, setSex] = useState<"male" | "female">(
     activeProfile.sex || (activeProfile.gender === "female" ? "female" : "male")
@@ -165,6 +168,22 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ isOpen, onClose })
   const [heightCm, setHeightCm] = useState("");
   const [targetWeightKg, setTargetWeightKg] = useState("");
   const [targetBodyFatPct, setTargetBodyFatPct] = useState("");
+
+  // Proyección biofísica dinámica en tiempo real
+  const currentWeightNum = latestLog?.weightKg || (activeProfile.targetWeightKg ? Number(activeProfile.targetWeightKg) : (isFemale ? 50 : 80));
+  const currentBodyFatNum = latestLog?.bodyFatPct || (isFemale ? 26 : 20);
+  const targetBodyFatNum = parseFloat(targetBodyFatPct);
+
+  const projection = React.useMemo(() => {
+    if (!currentWeightNum || !currentBodyFatNum || isNaN(targetBodyFatNum) || targetBodyFatNum <= 0) {
+      return null;
+    }
+    return calculateRecommendedTargetWeight({
+      currentWeightKg: currentWeightNum,
+      currentBodyFatPct: currentBodyFatNum,
+      targetBodyFatPct: targetBodyFatNum,
+    });
+  }, [currentWeightNum, currentBodyFatNum, targetBodyFatNum]);
 
   // Estado de Objetivo Nutricional
   const [nutritionGoal, setNutritionGoal] = useState<NutritionGoal>("fat_loss");
@@ -484,6 +503,37 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ isOpen, onClose })
                     />
                   </div>
                 </div>
+
+                {/* Tarjeta Informativa de Proyección Biofísica */}
+                {projection && (
+                  <div className="mt-2.5 p-3 rounded-2xl bg-zinc-900 border border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-200">
+                        <Sparkles className="w-3.5 h-3.5 text-lime-400 shrink-0" />
+                        <span>
+                          Sugerido por biofísica:{" "}
+                          <strong className="text-white font-mono">
+                            {projection.recommendedWeightKg} kg
+                          </strong>{" "}
+                          <span className="text-zinc-400 font-normal text-[11px]">
+                            (conservando {projection.lbmKg} kg de masa magra)
+                          </span>
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-zinc-400 font-mono">
+                        Plazo estimado: ~{projection.optimalWeeks} semanas a ritmo seguro de{" "}
+                        {projection.ratePerWeekKg} kg/sem
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setTargetWeightKg(String(projection.recommendedWeightKg))}
+                      className="self-start sm:self-center px-2.5 py-1 text-[11px] font-mono font-bold uppercase tracking-wider rounded-lg bg-zinc-800 hover:bg-zinc-700 text-lime-400 border border-lime-400/30 hover:border-lime-400 transition-colors shrink-0 active:scale-95"
+                    >
+                      Usar sugerido
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* SECCIÓN 2: OBJETIVO NUTRICIONAL ACTUAL */}
