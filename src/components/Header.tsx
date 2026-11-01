@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useProfileStore } from "@/stores/useProfileStore";
 import { useWorkoutSessionStore } from "@/stores/useWorkoutSessionStore";
 import { ProfileDrawer } from "@/components/ProfileDrawer";
-import { Flame, CheckCircle2, LogOut, AlertCircle, ChevronDown, Check, Settings } from "lucide-react";
+import { Flame, CheckCircle2, LogOut, AlertCircle, Settings } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -13,8 +13,6 @@ export const Header: React.FC = () => {
   const pathname = usePathname();
   const {
     activeProfile,
-    profiles,
-    switchProfile,
     initAuthSession,
     refreshStats,
     signOut,
@@ -23,7 +21,6 @@ export const Header: React.FC = () => {
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isProfileDrawerOpen, setIsProfileDrawerOpen] = useState(false);
-  const [showAthleteMenu, setShowAthleteMenu] = useState(false);
 
   const { isLiveSession, loadUserMaxes } = useWorkoutSessionStore();
 
@@ -113,107 +110,21 @@ export const Header: React.FC = () => {
               </span>
             </div>
 
-            {/* Selector Dinámico de Atletas BIIO */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setShowAthleteMenu(!showAthleteMenu)}
-                className="px-2.5 py-1.5 text-xs font-black uppercase tracking-wider rounded-full shadow-md select-none transition-transform duration-200 active:scale-95 cursor-pointer flex items-center gap-1.5 focus:outline-none min-h-[36px]"
-                style={{
-                  backgroundColor: accentColor,
-                  color: isGirl ? "#ffffff" : "#000000",
-                }}
-                title="Conmutar atleta o ver ajustes"
-              >
-                <span>{activeProfile.displayName}</span>
-                <ChevronDown
-                  className={cn(
-                    "w-3.5 h-3.5 transition-transform duration-200",
-                    showAthleteMenu ? "rotate-180" : ""
-                  )}
-                />
-              </button>
-
-              <AnimatePresence>
-                {showAthleteMenu && (
-                  <>
-                    {/* Backdrop para cerrar al tocar fuera */}
-                    <div
-                      className="fixed inset-0 z-40"
-                      onClick={() => setShowAthleteMenu(false)}
-                    />
-
-                    <motion.div
-                      initial={{ opacity: 0, y: -6, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -6, scale: 0.95 }}
-                      transition={{ duration: 0.15 }}
-                      className="absolute right-0 mt-2 w-56 rounded-2xl bg-zinc-950/95 border border-zinc-800 p-2 shadow-2xl z-50 backdrop-blur-md space-y-1"
-                    >
-                      <div className="px-2 py-1 flex items-center justify-between text-[10px] font-mono uppercase tracking-widest text-zinc-500 font-bold border-b border-zinc-900 pb-1.5 mb-1">
-                        <span>Atletas ({profiles.length})</span>
-                        <span>BIIO OS</span>
-                      </div>
-
-                      <div className="max-h-56 overflow-y-auto space-y-1">
-                        {profiles.map((p) => {
-                          const isCurrent = p.id === activeProfile.id;
-                          const isPgirl =
-                            p.sex === "female" || p.gender === "female" || p.role === "hoplita_girl";
-                          return (
-                            <button
-                              key={p.id}
-                              type="button"
-                              data-athlete-id={p.id}
-                              data-athlete-option
-                              onClick={() => {
-                                switchProfile(p.id);
-                                setShowAthleteMenu(false);
-                              }}
-                              className={cn(
-                                "w-full text-left px-2.5 py-2 rounded-xl text-xs flex items-center justify-between transition-all min-h-[40px]",
-                                isCurrent
-                                  ? "bg-zinc-800/80 text-white font-black"
-                                  : "text-zinc-400 hover:text-white hover:bg-zinc-900"
-                              )}
-                            >
-                              <div className="flex items-center gap-2 min-w-0">
-                                <span
-                                  className="w-2 h-2 rounded-full shrink-0"
-                                  style={{
-                                    backgroundColor: isPgirl ? "#F43F5E" : "#CCFF00",
-                                  }}
-                                />
-                                <span className="truncate">{p.displayName}</span>
-                                <span className="text-[9px] font-mono text-zinc-500 uppercase shrink-0">
-                                  ({isPgirl ? "Mujer" : "Hombre"})
-                                </span>
-                              </div>
-                              {isCurrent && <Check className="w-3.5 h-3.5 text-white shrink-0" />}
-                            </button>
-                          );
-                        })}
-                      </div>
-
-                      <div className="pt-1.5 border-t border-zinc-900">
-                        <button
-                          type="button"
-                          data-profile-settings
-                          onClick={() => {
-                            setShowAthleteMenu(false);
-                            setIsProfileDrawerOpen(true);
-                          }}
-                          className="w-full text-left px-2.5 py-2 rounded-xl text-xs font-bold text-zinc-300 hover:text-white hover:bg-zinc-900 flex items-center gap-2 transition-all min-h-[40px]"
-                        >
-                          <Settings className="w-3.5 h-3.5 text-zinc-400" />
-                          <span>Ajustes & 1RM ({activeProfile.displayName})</span>
-                        </button>
-                      </div>
-                    </motion.div>
-                  </>
-                )}
-              </AnimatePresence>
-            </div>
+            {/* Botón de Perfil & Ajustes (Abre directamente ProfileDrawer) */}
+            <button
+              type="button"
+              data-profile-trigger
+              onClick={() => setIsProfileDrawerOpen(true)}
+              className="px-3 py-1.5 text-xs font-black uppercase tracking-wider rounded-full shadow-md select-none transition-transform duration-200 active:scale-95 cursor-pointer flex items-center gap-1.5 focus:outline-none min-h-[36px]"
+              style={{
+                backgroundColor: accentColor,
+                color: isGirl ? "#ffffff" : "#000000",
+              }}
+              title={`Ajustes y 1RM de ${activeProfile.displayName}`}
+            >
+              <span>{activeProfile.displayName}</span>
+              <Settings className="w-3.5 h-3.5 opacity-80" />
+            </button>
 
             {/* Botón Logout */}
             <button

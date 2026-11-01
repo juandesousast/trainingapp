@@ -121,10 +121,16 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
 
   loadAllProfiles: async () => {
     try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) return [];
+
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
-        .order("created_at", { ascending: true });
+        .or(`id.eq.${user.id},user_id.eq.${user.id}`);
 
       if (error) {
         console.warn("Aviso al consultar profiles en Supabase:", error.message);
@@ -137,7 +143,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
         return mapped;
       }
     } catch (err) {
-      console.error("Error al cargar lista de perfiles:", err);
+      console.error("Error al cargar perfil de usuario autenticado:", err);
     }
     return [];
   },
@@ -148,33 +154,67 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
         data: { user },
       } = await supabase.auth.getUser();
 
-      if (user) {
-        set({ authUserId: user.id, authUserEmail: user.email || null });
+      if (!user) {
+        set({
+          authUserId: null,
+          authUserEmail: null,
+          activeProfile: defaultProfile,
+          profiles: [],
+        });
+        return;
       }
 
-      // Cargar lista dinámica de todos los perfiles de la base de datos
-      const allProfiles = await get().loadAllProfiles();
+      set({ authUserId: user.id, authUserEmail: user.email || null });
 
-      let targetProfile: Profile | undefined;
-      const savedProfileId =
-        typeof window !== "undefined"
-          ? localStorage.getItem("hoplita_active_profile_id")
-          : null;
+      // Consultar única y exclusivamente el registro de profiles donde id = user.id (o user_id = user.id)
+      const { data: dbProfile, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .or(`id.eq.${user.id},user_id.eq.${user.id}`)
+        .maybeSingle();
 
-      if (savedProfileId) {
-        targetProfile = allProfiles.find((p) => p.id === savedProfileId);
+      if (error) {
+        console.warn("Aviso al consultar profile autenticado:", error.message);
+        return;
       }
 
-      if (!targetProfile && user) {
-        targetProfile = allProfiles.find((p) => p.userId === user.id);
-      }
+      if (dbProfile) {
+        const mapped = mapDbProfileToProfile(dbProfile);
+        const isFemale = mapped.sex === "female";
 
-      if (!targetProfile && allProfiles.length > 0) {
-        targetProfile = allProfiles[0];
-      }
+        // Actualizar tema cinético en DOM
+        if (typeof document !== "undefined") {
+          document.documentElement.setAttribute(
+            "data-theme",
+            isFemale ? "hoplita_girl" : "hoplita"
+          );
+        }
 
-      if (targetProfile) {
-        await get().switchProfile(targetProfile.id);
+        set({ activeProfile: mapped, profiles: [mapped] });
+
+        // 1. Asegurar mesociclo M1 en Supabase
+        await ensureUserMesocyclesInitialized(mapped.id, user.id);
+
+        // 2. Aislar y cargar 1RM individual del perfil
+        await useWorkoutSessionStore.getState().loadUserMaxes(mapped.id);
+
+        // 3. Aislar y cargar registros biométricos del perfil
+        await useBiometricsStore.getState().fetchUserData(mapped.id);
+
+        // 4. Cargar estadísticas de actividad
+        try {
+          const stats = await fetchUserActivityStats(user.id, mapped.weeklyTarget);
+          set((state) => ({
+            activeProfile: {
+              ...state.activeProfile,
+              streakDays: stats.streakDays,
+              weeklyCompleted: stats.weeklyCompleted,
+              weeklyTarget: stats.weeklyTarget,
+            },
+          }));
+        } catch (err) {
+          console.error("Error al refrescar stats de actividad:", err);
+        }
       }
     } catch (err) {
       console.error("Error al inicializar sesión de autenticación:", err);
@@ -182,21 +222,13 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   },
 
   switchProfile: async (profileId: string) => {
-    const { profiles, authUserId } = get();
-    let target = profiles.find((p) => p.id === profileId);
-
-    if (!target) {
-      // Intentar refrescar profiles
-      const refreshed = await get().loadAllProfiles();
-      target = refreshed.find((p) => p.id === profileId);
-      if (!target) return;
+    const { activeProfile } = get();
+    if (!activeProfile || activeProfile.id !== profileId) {
+      await get().initAuthSession();
+      return;
     }
 
-    if (typeof window !== "undefined") {
-      localStorage.setItem("hoplita_active_profile_id", target.id);
-    }
-
-    const isFemale = target.sex === "female";
+    const isFemale = activeProfile.sex === "female";
 
     // Actualizar tema cinético en DOM
     if (typeof document !== "undefined") {
@@ -206,33 +238,14 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       );
     }
 
-    set({ activeProfile: target });
-
     // 1. Asegurar mesociclo M1 en Supabase
-    await ensureUserMesocyclesInitialized(target.id, authUserId || target.userId);
+    await ensureUserMesocyclesInitialized(activeProfile.id, activeProfile.userId);
 
     // 2. Aislar y cargar 1RM individual del perfil
-    await useWorkoutSessionStore.getState().loadUserMaxes(target.id);
+    await useWorkoutSessionStore.getState().loadUserMaxes(activeProfile.id);
 
     // 3. Aislar y cargar registros biométricos del perfil
-    await useBiometricsStore.getState().fetchUserData(target.id);
-
-    // 4. Cargar estadísticas de actividad
-    try {
-      if (target.userId) {
-        const stats = await fetchUserActivityStats(target.userId, target.weeklyTarget);
-        set((state) => ({
-          activeProfile: {
-            ...state.activeProfile,
-            streakDays: stats.streakDays,
-            weeklyCompleted: stats.weeklyCompleted,
-            weeklyTarget: stats.weeklyTarget,
-          },
-        }));
-      }
-    } catch (err) {
-      console.error("Error al refrescar stats de actividad:", err);
-    }
+    await useBiometricsStore.getState().fetchUserData(activeProfile.id);
   },
 
   updateActivityStats: (streakDays: number, weeklyCompleted: number, weeklyTarget: number) => {
@@ -333,8 +346,10 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
 
   createProfile: async (data) => {
     try {
+      const { authUserId } = get();
       const isFemale = data.sex === "female";
       const newProfileRow = {
+        user_id: authUserId,
         display_name: data.displayName,
         sex: data.sex,
         gender: data.sex,
@@ -358,8 +373,8 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       }
 
       const created = mapDbProfileToProfile(inserted);
-      await ensureUserMesocyclesInitialized(created.id, null);
-      await get().loadAllProfiles();
+      set({ activeProfile: created, profiles: [created] });
+      await ensureUserMesocyclesInitialized(created.id, authUserId);
       await get().switchProfile(created.id);
       return created;
     } catch (err) {
