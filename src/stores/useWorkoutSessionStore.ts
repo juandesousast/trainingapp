@@ -969,3 +969,8 @@ export const useWorkoutSessionStore = create<WorkoutSessionState>((set, get) => 
     }
   },
 }));
+
+if (typeof window !== "undefined") {
+  (window as any).__workoutSessionStore = useWorkoutSessionStore;
+}
+

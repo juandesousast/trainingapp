@@ -616,6 +616,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ isOpen, onClose })
             <div className="p-4 border-t border-zinc-800 bg-zinc-950/95 backdrop-blur shrink-0 pb-[calc(env(safe-area-inset-bottom)+1rem)]">
               <button
                 type="submit"
+                data-save-profile
                 disabled={isSaving}
                 className={cn(
                   "w-full h-12 rounded-2xl font-black text-xs uppercase tracking-wider transition-all duration-200 active:scale-98 flex items-center justify-center gap-2 shadow-lg",
