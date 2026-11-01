@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { Drawer } from "vaul";
 import { useProfileStore } from "@/stores/useProfileStore";
 import { useWorkoutSessionStore } from "@/stores/useWorkoutSessionStore";
@@ -19,6 +20,7 @@ import {
   Plus,
   Sparkles,
   Apple,
+  FlaskConical,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -640,7 +642,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ isOpen, onClose })
             </div>
 
             {/* Footer Fijo con Botón Guardar */}
-            <div className="p-4 border-t border-zinc-800 bg-zinc-950/95 backdrop-blur shrink-0 pb-[calc(env(safe-area-inset-bottom)+1rem)]">
+            <div className="p-4 border-t border-zinc-800 bg-zinc-950/95 backdrop-blur shrink-0 pb-[calc(env(safe-area-inset-bottom)+1rem)] space-y-2.5">
               <button
                 type="submit"
                 data-save-profile
@@ -671,6 +673,18 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ isOpen, onClose })
                   </>
                 )}
               </button>
+
+              {/* Acceso discreto al Laboratorio Renpho BLE */}
+              <div className="text-center pt-1">
+                <Link
+                  href="/renpho-lab"
+                  onClick={onClose}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 text-[11px] font-mono font-bold text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors"
+                >
+                  <FlaskConical className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>🧪 Laboratorio Renpho BLE</span>
+                </Link>
+              </div>
             </div>
           </form>
         </Drawer.Content>
