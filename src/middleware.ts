@@ -1,24 +1,24 @@
-import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { createServerClient } from "@supabase/ssr";
 
 export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
   });
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
+  // Si faltan las variables en Edge, no lanzar throw fatal
   if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error(
-      "Error de configuración en Middleware: NEXT_PUBLIC_SUPABASE_URL o NEXT_PUBLIC_SUPABASE_ANON_KEY faltantes."
-    );
+    console.error("VECTOR Middleware: Faltan variables de entorno de Supabase.");
+    return response;
   }
 
-  const supabase = createServerClient(
-    supabaseUrl,
-    supabaseAnonKey,
-    {
+  try {
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
         getAll() {
           return request.cookies.getAll();
@@ -27,63 +27,57 @@ export async function middleware(request: NextRequest) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
-          supabaseResponse = NextResponse.next({
-            request,
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
           });
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
+            response.cookies.set(name, value, options)
           );
         },
       },
-    }
-  );
+    });
 
-  // Obtener usuario autenticado usando supabase.auth.getUser()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  const isLoginPage = request.nextUrl.pathname.startsWith("/login");
-  const isApiRoute = request.nextUrl.pathname.startsWith("/api");
+    const isAuthRoute = request.nextUrl.pathname.startsWith("/login");
+    const isApiRoute = request.nextUrl.pathname.startsWith("/api");
 
-  // Rutas de API: Si no hay usuario autenticado, denegar acceso con 401 JSON
-  if (isApiRoute) {
-    if (!user) {
+    // Manejo de APIs no autorizadas
+    if (isApiRoute && !user) {
       return NextResponse.json(
-        { error: { message: "No autorizado. Inicia sesión para acceder a las APIs de VECTOR OS." } },
+        { error: { message: "No autorizado. Sesión requerida." } },
         { status: 401 }
       );
     }
-    return supabaseResponse;
-  }
 
-  // Si no hay usuario y no está en /login, redirigir a /login
-  if (!user && !isLoginPage) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    return NextResponse.redirect(url);
-  }
+    // Redirección si no está autenticado y no es ruta pública/login
+    if (!user && !isAuthRoute && !request.nextUrl.pathname.startsWith("/_next")) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+    }
 
-  // Si ya hay usuario autenticado y va a /login, redirigir a la app principal /
-  if (user && isLoginPage) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/";
-    return NextResponse.redirect(url);
-  }
+    // Si ya está autenticado e intenta ir a login, enviar a inicio
+    if (user && isAuthRoute) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/";
+      return NextResponse.redirect(url);
+    }
 
-  return supabaseResponse;
+    return response;
+  } catch (error) {
+    console.error("VECTOR Middleware Exception:", error);
+    // En caso de error inesperado, permitir el flujo sin tirar un 500
+    return response;
+  }
 }
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - manifest.webmanifest (PWA manifest)
-     * - media files
-     */
     "/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp|mp4)$).*)",
   ],
 };
