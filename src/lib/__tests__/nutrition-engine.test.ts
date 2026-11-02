@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   calculateCreatineDose,
   calculateRecommendedTargetWeight,
+  evaluateBodyFatGoal,
 } from "../nutrition-engine.ts";
 
 describe("Motor Nutricional y Biofísica - VECTOR OS", () => {
@@ -48,5 +49,31 @@ describe("Motor Nutricional y Biofísica - VECTOR OS", () => {
     assert.equal(calculateCreatineDose(120), 10.0);
     // Intervalos de 0.5g
     assert.equal(calculateCreatineDose(85), 8.5);
+  });
+
+  test("Evaluador fisiológico de % Grasa Corporal (evaluateBodyFatGoal)", () => {
+    // Wendy (female) con 15% de grasa: Competición extrema y advertencia
+    const wendyEval = evaluateBodyFatGoal("female", 15);
+    assert.equal(wendyEval.zone, "competition");
+    assert.equal(wendyEval.color, "amber");
+    assert.ok(wendyEval.warning, "Debe incluir advertencia de nivel tarima / hormonal");
+    assert.deepEqual(wendyEval.recommendedRange, { min: 20, max: 24 });
+
+    // Juan (male) con 15% de grasa: Atlético Óptimo sin advertencia
+    const juanEval = evaluateBodyFatGoal("male", 15);
+    assert.equal(juanEval.zone, "athletic");
+    assert.equal(juanEval.color, "emerald");
+    assert.equal(juanEval.warning, undefined);
+    assert.deepEqual(juanEval.recommendedRange, { min: 10, max: 15 });
+
+    // Riesgo crítico esencial femenino (<14%)
+    const femaleRisk = evaluateBodyFatGoal("female", 12);
+    assert.equal(femaleRisk.zone, "essential_risk");
+    assert.equal(femaleRisk.color, "rose");
+
+    // Riesgo crítico esencial masculino (<6%)
+    const maleRisk = evaluateBodyFatGoal("male", 5);
+    assert.equal(maleRisk.zone, "essential_risk");
+    assert.equal(maleRisk.color, "rose");
   });
 });

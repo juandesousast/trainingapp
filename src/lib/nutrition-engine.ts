@@ -334,3 +334,103 @@ export function calculateRecommendedTargetWeight(params: {
   };
 }
 
+export type FatZone = 'essential_risk' | 'competition' | 'athletic' | 'fitness' | 'high';
+
+export interface FatEvaluation {
+  zone: FatZone;
+  label: string;
+  warning?: string;
+  recommendedRange: { min: number; max: number };
+  color: 'rose' | 'amber' | 'emerald' | 'zinc';
+}
+
+export function evaluateBodyFatGoal(sex: 'male' | 'female', fatPct: number): FatEvaluation {
+  if (sex === 'female') {
+    const recommendedRange = { min: 20, max: 24 };
+    if (fatPct < 14) {
+      return {
+        zone: 'essential_risk',
+        label: 'Riesgo Hormonal Crítico',
+        warning: 'Grasa esencial comprometida. Alto riesgo de amenorrea y pérdida de densidad ósea.',
+        recommendedRange,
+        color: 'rose',
+      };
+    }
+    if (fatPct < 18) {
+      return {
+        zone: 'competition',
+        label: 'Competición Extrema',
+        warning: 'Nivel de tarima culturista. Difícil de sostener sin afectación hormonal o metabólica.',
+        recommendedRange,
+        color: 'amber',
+      };
+    }
+    if (fatPct <= 23) {
+      return {
+        zone: 'athletic',
+        label: 'Atlético Óptimo',
+        recommendedRange,
+        color: 'emerald',
+      };
+    }
+    if (fatPct <= 28) {
+      return {
+        zone: 'fitness',
+        label: 'Salud / Fitness',
+        recommendedRange,
+        color: 'zinc',
+      };
+    }
+    return {
+      zone: 'high',
+      label: 'Elevado',
+      recommendedRange,
+      color: 'amber',
+    };
+  }
+
+  // Sexo: male
+  const recommendedRange = { min: 10, max: 15 };
+  if (fatPct < 6) {
+    return {
+      zone: 'essential_risk',
+      label: 'Riesgo Crítico',
+      warning: 'Límite de grasa esencial. Hipogonadismo y letargo severo.',
+      recommendedRange,
+      color: 'rose',
+    };
+  }
+  if (fatPct < 9) {
+    return {
+      zone: 'competition',
+      label: 'Competición Extrema',
+      warning: 'Tarima culturismo. Insostenible para rendimiento atlético BIIO continuado.',
+      recommendedRange,
+      color: 'amber',
+    };
+  }
+  if (fatPct <= 15) {
+    return {
+      zone: 'athletic',
+      label: 'Atlético Óptimo',
+      recommendedRange,
+      color: 'emerald',
+    };
+  }
+  if (fatPct <= 20) {
+    return {
+      zone: 'fitness',
+      label: 'Salud / Fitness',
+      recommendedRange,
+      color: 'zinc',
+    };
+  }
+  return {
+    zone: 'high',
+    label: 'Elevado',
+    recommendedRange,
+    color: 'amber',
+  };
+}
+
+

@@ -5,7 +5,10 @@ import { Drawer } from "vaul";
 import { useProfileStore } from "@/stores/useProfileStore";
 import { useWorkoutSessionStore } from "@/stores/useWorkoutSessionStore";
 import { useBiometricsStore } from "@/stores/useBiometricsStore";
-import { calculateRecommendedTargetWeight } from "@/lib/nutrition-engine";
+import {
+  calculateRecommendedTargetWeight,
+  evaluateBodyFatGoal,
+} from "@/lib/nutrition-engine";
 import { NutritionGoal } from "@/lib/types";
 import { supabase } from "@/lib/supabase";
 import {
@@ -184,6 +187,12 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ isOpen, onClose })
       targetBodyFatPct: targetBodyFatNum,
     });
   }, [currentWeightNum, currentBodyFatNum, targetBodyFatNum]);
+
+  // Evaluación fisiológica de % grasa
+  const fatEval = React.useMemo(() => {
+    if (isNaN(targetBodyFatNum) || targetBodyFatNum <= 0) return null;
+    return evaluateBodyFatGoal(sex, targetBodyFatNum);
+  }, [sex, targetBodyFatNum]);
 
   // Estado de Objetivo Nutricional
   const [nutritionGoal, setNutritionGoal] = useState<NutritionGoal>("fat_loss");
@@ -493,7 +502,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ isOpen, onClose })
                     <input
                       type="number"
                       step="any"
-                      min="5"
+                      min="4"
                       max="40"
                       placeholder={isFemale ? "21.0" : "16.0"}
                       value={targetBodyFatPct}
@@ -501,8 +510,62 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ isOpen, onClose })
                       onBlur={handleInputBlur}
                       className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-2.5 py-1.5 text-emerald-400 font-mono font-black text-base focus:outline-none focus:border-zinc-500"
                     />
+                    {/* Badge Reactivo de Zona */}
+                    {fatEval && (
+                      <div className="mt-1.5 flex items-center justify-start">
+                        <span
+                          className={cn(
+                            "text-[8px] sm:text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-full inline-flex items-center gap-0.5 border truncate max-w-full",
+                            fatEval.color === "emerald" &&
+                              "bg-emerald-950/60 text-emerald-400 border-emerald-500/40",
+                            fatEval.color === "amber" &&
+                              "bg-amber-950/60 text-amber-400 border-amber-500/40",
+                            fatEval.color === "rose" &&
+                              "bg-rose-950/60 text-rose-400 border-rose-500/40",
+                            fatEval.color === "zinc" &&
+                              "bg-zinc-800 text-zinc-300 border-zinc-700"
+                          )}
+                        >
+                          {fatEval.zone === "essential_risk" && <span>⛔</span>}
+                          {fatEval.zone === "competition" && <span>⚠️</span>}
+                          <span className="truncate">{fatEval.label}</span>
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
+
+                {/* Mensaje de Advertencia y Rango Sugerido para % Grasa */}
+                {fatEval && fatEval.warning && (
+                  <div
+                    className={cn(
+                      "mt-2 p-3 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-2.5",
+                      fatEval.zone === "essential_risk"
+                        ? "bg-rose-950/40 border-rose-800/60 text-rose-200"
+                        : "bg-amber-950/40 border-amber-800/60 text-amber-200"
+                    )}
+                  >
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-1.5 text-xs font-bold">
+                        <span>{fatEval.zone === "essential_risk" ? "⛔" : "⚠️"}</span>
+                        <span>{fatEval.warning}</span>
+                      </div>
+                      <p className="text-[11px] font-mono opacity-85">
+                        Óptimo recomendado:{" "}
+                        <strong className="text-white">
+                          {fatEval.recommendedRange.min}% - {fatEval.recommendedRange.max}%
+                        </strong>
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setTargetBodyFatPct(String(fatEval.recommendedRange.min))}
+                      className="self-start sm:self-center px-2.5 py-1 text-[11px] font-mono font-bold uppercase tracking-wider rounded-lg bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-600 transition-colors shrink-0 active:scale-95"
+                    >
+                      Aplicar {fatEval.recommendedRange.min}%
+                    </button>
+                  </div>
+                )}
 
                 {/* Tarjeta Informativa de Proyección Biofísica */}
                 {projection && (

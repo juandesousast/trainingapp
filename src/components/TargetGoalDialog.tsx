@@ -4,8 +4,12 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Drawer } from "vaul";
 import { useProfileStore } from "@/stores/useProfileStore";
 import { useBiometricsStore } from "@/stores/useBiometricsStore";
-import { calculateRecommendedTargetWeight } from "@/lib/nutrition-engine";
+import {
+  calculateRecommendedTargetWeight,
+  evaluateBodyFatGoal,
+} from "@/lib/nutrition-engine";
 import { Target, Check, X, Percent, Scale, Sparkles } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface TargetGoalDialogProps {
   isOpen: boolean;
@@ -34,6 +38,13 @@ export const TargetGoalDialog: React.FC<TargetGoalDialogProps> = ({
   // Proyección biofísica basada en composición corporal actual
   const currentWeightKg = latestLog?.weightKg || activeProfile.targetWeightKg || defaultWeight;
   const currentBodyFatPct = latestLog?.bodyFatPct || defaultFat;
+
+  const userSex: "male" | "female" =
+    activeProfile.sex || (activeProfile.gender === "female" ? "female" : "male");
+
+  const fatEval = useMemo(() => {
+    return evaluateBodyFatGoal(userSex, targetFat);
+  }, [userSex, targetFat]);
 
   const projection = useMemo(() => {
     if (!currentWeightKg || !currentBodyFatPct || !targetFat) return null;
@@ -128,14 +139,14 @@ export const TargetGoalDialog: React.FC<TargetGoalDialogProps> = ({
                 <div className="flex gap-1.5">
                   <button
                     type="button"
-                    onClick={() => setTargetFat((v) => Math.max(8, Math.round((v - 1) * 10) / 10))}
+                    onClick={() => setTargetFat((v) => Math.max(4, Math.round((v - 1) * 10) / 10))}
                     className="min-w-[44px] min-h-[44px] rounded-xl bg-zinc-800 hover:bg-zinc-700 font-bold text-white text-xs font-mono tabular-nums transition-all duration-200 active:scale-95 flex items-center justify-center"
                   >
                     -1%
                   </button>
                   <button
                     type="button"
-                    onClick={() => setTargetFat((v) => Math.max(8, Math.round((v - 0.5) * 10) / 10))}
+                    onClick={() => setTargetFat((v) => Math.max(4, Math.round((v - 0.5) * 10) / 10))}
                     className="min-w-[44px] min-h-[44px] rounded-xl bg-zinc-800 hover:bg-zinc-700 font-bold text-white text-[11px] font-mono tabular-nums transition-all duration-200 active:scale-95 flex items-center justify-center"
                   >
                     -0.5
@@ -163,6 +174,60 @@ export const TargetGoalDialog: React.FC<TargetGoalDialogProps> = ({
                   </button>
                 </div>
               </div>
+
+              {/* Badge Reactivo de Zona Fisiológica */}
+              <div className="mt-3 pt-3 border-t border-zinc-800/80 flex items-center justify-between">
+                <span className="text-[11px] font-mono text-zinc-400">Estado Fisiológico:</span>
+                <span
+                  className={cn(
+                    "text-xs font-mono font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1 border",
+                    fatEval.color === "emerald" &&
+                      "bg-emerald-950/60 text-emerald-400 border-emerald-500/40",
+                    fatEval.color === "amber" &&
+                      "bg-amber-950/60 text-amber-400 border-amber-500/40",
+                    fatEval.color === "rose" &&
+                      "bg-rose-950/60 text-rose-400 border-rose-500/40",
+                    fatEval.color === "zinc" &&
+                      "bg-zinc-800 text-zinc-300 border-zinc-700"
+                  )}
+                >
+                  {fatEval.zone === "essential_risk" && <span>⛔</span>}
+                  {fatEval.zone === "competition" && <span>⚠️</span>}
+                  {fatEval.label}
+                </span>
+              </div>
+
+              {/* Mensaje de Advertencia y Rango Sugerido */}
+              {fatEval.warning && (
+                <div
+                  className={cn(
+                    "mt-3 p-3 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-2.5",
+                    fatEval.zone === "essential_risk"
+                      ? "bg-rose-950/40 border-rose-800/60 text-rose-200"
+                      : "bg-amber-950/40 border-amber-800/60 text-amber-200"
+                  )}
+                >
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-1.5 text-xs font-bold">
+                      <span>{fatEval.zone === "essential_risk" ? "⛔" : "⚠️"}</span>
+                      <span>{fatEval.warning}</span>
+                    </div>
+                    <p className="text-[11px] font-mono opacity-85">
+                      Óptimo recomendado:{" "}
+                      <strong className="text-white">
+                        {fatEval.recommendedRange.min}% - {fatEval.recommendedRange.max}%
+                      </strong>
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setTargetFat(fatEval.recommendedRange.min)}
+                    className="self-start sm:self-center px-2.5 py-1 text-[11px] font-mono font-bold uppercase tracking-wider rounded-lg bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-600 transition-colors shrink-0 active:scale-95"
+                  >
+                    Aplicar {fatEval.recommendedRange.min}%
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Meta de Peso Corporal (kg) */}
