@@ -4,7 +4,7 @@
  * Macros exactos cada 100 g de producto pesado (crudo o formato comercial).
  */
 
-export type MacroCategory = "protein" | "carbs" | "fats";
+export type MacroCategory = "protein" | "carbs" | "fats" | "micros";
 
 export interface FoodItem {
   id: string;
@@ -87,15 +87,15 @@ export const CLEAN_FOODS: Record<string, FoodItem> = {
   },
   salmon_fresco: {
     id: "salmon_fresco",
-    name: "Salmón fresco",
+    name: "Salmón fresco (lomo)",
     shortName: "Salmón Fresco",
     category: "protein",
     emoji: "🍣",
     proteinPer100g: 20.0,
-    fatsPer100g: 12.0,
+    fatsPer100g: 13.0,
     carbsPer100g: 0.0,
-    caloriesPer100g: 190,
-    commercialNote: "Lomo con piel y omega-3 natural",
+    caloriesPer100g: 208,
+    commercialNote: "Lomo con piel y ácidos grasos Omega-3 EPA/DHA",
   },
   atun_natural: {
     id: "atun_natural",
@@ -337,16 +337,127 @@ export const CLEAN_FOODS: Record<string, FoodItem> = {
     caloriesPer100g: 610,
     commercialNote: "100% cacahuete sin azúcar ni aceites",
   },
+
+  // ==========================================
+  // D. FUENTES DE MICRONUTRIENTES, FIBRA Y ANTIOXIDANTES
+  // ==========================================
+  arandanos_frutos_rojos: {
+    id: "arandanos_frutos_rojos",
+    name: "Arándanos / Frutos rojos frescos o congelados",
+    shortName: "Arándanos / Frutos Rojos",
+    category: "micros",
+    emoji: "🫐",
+    proteinPer100g: 0.7,
+    carbsPer100g: 14.5,
+    fatsPer100g: 0.3,
+    caloriesPer100g: 57,
+    commercialNote: "Ricos en antocianinas, polifenoles y antioxidantes",
+  },
+  fresas_frescas: {
+    id: "fresas_frescas",
+    name: "Fresas frescas",
+    shortName: "Fresas Frescas",
+    category: "micros",
+    emoji: "🍓",
+    proteinPer100g: 0.7,
+    carbsPer100g: 7.7,
+    fatsPer100g: 0.3,
+    caloriesPer100g: 32,
+    commercialNote: "Vitamina C y baja densidad calórica",
+  },
+  kiwi_fresco: {
+    id: "kiwi_fresco",
+    name: "Kiwi verde / amarillo",
+    shortName: "Kiwi",
+    category: "micros",
+    emoji: "🥝",
+    proteinPer100g: 1.1,
+    carbsPer100g: 14.7,
+    fatsPer100g: 0.5,
+    caloriesPer100g: 61,
+    commercialNote: "Actinidina digestiva y vitamina C",
+  },
+  brocoli_vapor: {
+    id: "brocoli_vapor",
+    name: "Brócoli al vapor o cocido",
+    shortName: "Brócoli al Vapor",
+    category: "micros",
+    emoji: "🥦",
+    proteinPer100g: 2.5,
+    carbsPer100g: 4.0,
+    fatsPer100g: 0.4,
+    caloriesPer100g: 28,
+    commercialNote: "Sulforafano, folatos y alta fibra prebiótica",
+  },
+  espinacas_baby: {
+    id: "espinacas_baby",
+    name: "Espinacas baby frescas o al vapor",
+    shortName: "Espinacas Baby",
+    category: "micros",
+    emoji: "🥬",
+    proteinPer100g: 2.9,
+    carbsPer100g: 3.6,
+    fatsPer100g: 0.4,
+    caloriesPer100g: 23,
+    commercialNote: "Magnesio, hierro y nitratos para vasodilatación",
+  },
+  esparragos_trigueros: {
+    id: "esparragos_trigueros",
+    name: "Espárragos trigueros a la plancha",
+    shortName: "Espárragos Trigueros",
+    category: "micros",
+    emoji: "🌱",
+    proteinPer100g: 2.2,
+    carbsPer100g: 3.9,
+    fatsPer100g: 0.1,
+    caloriesPer100g: 20,
+    commercialNote: "Asparagina y equilibrio hídrico celular",
+  },
+  calabacin_plancha: {
+    id: "calabacin_plancha",
+    name: "Calabacín a la plancha o al vapor",
+    shortName: "Calabacín a la Plancha",
+    category: "micros",
+    emoji: "🥒",
+    proteinPer100g: 1.2,
+    carbsPer100g: 3.1,
+    fatsPer100g: 0.3,
+    caloriesPer100g: 17,
+    commercialNote: "Volumen gástrico y digestión liviana para cena",
+  },
+  judias_verdes: {
+    id: "judias_verdes",
+    name: "Judías verdes redondas / Ensalada mixta",
+    shortName: "Judías Verdes / Ensalada",
+    category: "micros",
+    emoji: "🫛",
+    proteinPer100g: 1.8,
+    carbsPer100g: 7.0,
+    fatsPer100g: 0.2,
+    caloriesPer100g: 31,
+    commercialNote: "Fibra saciante y micronutrientes esenciales",
+  },
 };
 
 export const PROTEIN_FOODS = Object.values(CLEAN_FOODS).filter((f) => f.category === "protein");
 export const CARB_FOODS = Object.values(CLEAN_FOODS).filter((f) => f.category === "carbs");
 export const FAT_FOODS = Object.values(CLEAN_FOODS).filter((f) => f.category === "fats");
+export const MICRO_FOODS = Object.values(CLEAN_FOODS).filter((f) => f.category === "micros");
 
-export function getFoodsByCategory(category: MacroCategory): FoodItem[] {
+export function getFoodsByCategory(category: MacroCategory, mealId?: string): FoodItem[] {
   if (category === "protein") return PROTEIN_FOODS;
   if (category === "carbs") return CARB_FOODS;
-  return FAT_FOODS;
+  if (category === "fats") return FAT_FOODS;
+  if (mealId === "meal_1") {
+    // Frutas / Antioxidantes de Desayuno
+    return MICRO_FOODS.filter((f) =>
+      ["arandanos_frutos_rojos", "fresas_frescas", "kiwi_fresco"].includes(f.id)
+    );
+  }
+  // Verduras fibrosas para Almuerzo y Cena
+  return MICRO_FOODS.filter(
+    (f) => !["arandanos_frutos_rojos", "fresas_frescas", "kiwi_fresco"].includes(f.id)
+  );
 }
 
 export interface PortionResult {
@@ -370,6 +481,27 @@ export function calculateFoodPortion(
   macroType: MacroCategory,
   food: FoodItem
 ): PortionResult {
+  if (macroType === "micros") {
+    const isFruit = ["arandanos_frutos_rojos", "fresas_frescas", "kiwi_fresco"].includes(food.id);
+    const grams = targetMacroGrams > 0 ? targetMacroGrams : (isFruit ? 100 : 200);
+    const factor = grams / 100;
+    const calories = Math.round(food.caloriesPer100g * factor);
+    const proteinContribution = Math.round(food.proteinPer100g * factor * 10) / 10;
+    const carbContribution = Math.round(food.carbsPer100g * factor * 10) / 10;
+    const fatContribution = Math.round(food.fatsPer100g * factor * 10) / 10;
+
+    return {
+      grams,
+      displayQuantity: `${grams}g`,
+      targetMacroGrams,
+      macroType,
+      calories,
+      proteinContribution,
+      carbContribution,
+      fatContribution,
+    };
+  }
+
   const macroKeyPer100g =
     macroType === "protein"
       ? food.proteinPer100g

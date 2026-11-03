@@ -6,6 +6,7 @@ export interface MealCustomization {
   proteinFoodId: string;
   carbFoodId: string;
   fatFoodId: string;
+  microFoodId?: string;
 }
 
 export const DEFAULT_MEAL_FOODS: Record<string, MealCustomization> = {
@@ -13,11 +14,13 @@ export const DEFAULT_MEAL_FOODS: Record<string, MealCustomization> = {
     proteinFoodId: "huevos_enteros",
     carbFoodId: "avena_integral",
     fatFoodId: "nueces",
+    microFoodId: "arandanos_frutos_rojos",
   },
   meal_2: {
     proteinFoodId: "pechuga_pollo",
     carbFoodId: "arroz_basmati",
     fatFoodId: "aove",
+    microFoodId: "brocoli_vapor",
   },
   meal_3: {
     proteinFoodId: "whey_isolate",
@@ -28,6 +31,7 @@ export const DEFAULT_MEAL_FOODS: Record<string, MealCustomization> = {
     proteinFoodId: "merluza_bacalao",
     carbFoodId: "patata",
     fatFoodId: "aove",
+    microFoodId: "calabacin_plancha",
   },
 };
 
@@ -70,6 +74,7 @@ export const useMealCustomizationsStore = create<MealCustomizationsState>()(
           ...(category === "protein" ? { proteinFoodId: foodId } : {}),
           ...(category === "carbs" ? { carbFoodId: foodId } : {}),
           ...(category === "fats" ? { fatFoodId: foodId } : {}),
+          ...(category === "micros" ? { microFoodId: foodId } : {}),
         };
 
         set((state) => ({

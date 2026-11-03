@@ -478,18 +478,51 @@ export const NutritionView: React.FC = () => {
             const fatFood =
               CLEAN_FOODS[custom.fatFoodId] || CLEAN_FOODS.aove;
 
+            const hasMicroSlot =
+              meal.id === "meal_1" || meal.id === "meal_2" || meal.id === "meal_4";
+            const defaultMicroId =
+              meal.id === "meal_1"
+                ? "arandanos_frutos_rojos"
+                : meal.id === "meal_2"
+                ? "brocoli_vapor"
+                : "calabacin_plancha";
+
+            const microFood =
+              CLEAN_FOODS[custom.microFoodId || defaultMicroId] ||
+              CLEAN_FOODS[defaultMicroId];
+            const microTargetGrams = meal.id === "meal_1" ? 100 : 200;
+            const microPortion = hasMicroSlot
+              ? calculateFoodPortion(microTargetGrams, "micros", microFood)
+              : null;
+
+            // Descuento de carbohidratos de la fruta/verdura del carbohidrato base
+            const microCarbDeduction = microPortion
+              ? Math.round(microPortion.carbContribution)
+              : 0;
+            const adjustedCarbGrams = hasMicroSlot
+              ? Math.max(10, meal.carbGrams - microCarbDeduction)
+              : meal.carbGrams;
+
             const proteinPortion = calculateFoodPortion(
               meal.proteinGrams,
               "protein",
               proteinFood
             );
+
+            // Compensación de grasas si se elige Salmón fresco
+            let adjustedFatGrams = meal.fatGrams;
+            if (custom.proteinFoodId === "salmon_fresco") {
+              const salmonFatGrams = Math.round(proteinPortion.fatContribution);
+              adjustedFatGrams = Math.max(0, meal.fatGrams - salmonFatGrams);
+            }
+
             const carbPortion = calculateFoodPortion(
-              meal.carbGrams,
+              adjustedCarbGrams,
               "carbs",
               carbFood
             );
             const fatPortion = calculateFoodPortion(
-              meal.fatGrams,
+              adjustedFatGrams,
               "fats",
               fatFood
             );
@@ -658,7 +691,7 @@ export const NutritionView: React.FC = () => {
                                   meal.name,
                                   meal.subtitle,
                                   "carbs",
-                                  meal.carbGrams,
+                                  adjustedCarbGrams,
                                   custom.carbFoodId
                                 )
                               }
@@ -683,7 +716,7 @@ export const NutritionView: React.FC = () => {
                                     )}
                                   </div>
                                   <span className="text-[10px] font-mono text-amber-400/80 block">
-                                    ➔ ({meal.carbGrams}g C)
+                                    ➔ ({adjustedCarbGrams}g C{microCarbDeduction > 0 ? ` · -${microCarbDeduction}g por ${meal.id === "meal_1" ? "fruta" : "verdura"}` : ""})
                                   </span>
                                 </div>
                               </div>
@@ -707,7 +740,7 @@ export const NutritionView: React.FC = () => {
                                   meal.name,
                                   meal.subtitle,
                                   "fats",
-                                  meal.fatGrams,
+                                  adjustedFatGrams,
                                   custom.fatFoodId
                                 )
                               }
@@ -732,7 +765,7 @@ export const NutritionView: React.FC = () => {
                                     )}
                                   </div>
                                   <span className="text-[10px] font-mono text-rose-400/80 block">
-                                    ➔ ({meal.fatGrams}g G)
+                                    ➔ ({adjustedFatGrams}g G{custom.proteinFoodId === "salmon_fresco" ? ` · compensado con salmón` : ""})
                                   </span>
                                 </div>
                               </div>
@@ -746,6 +779,85 @@ export const NutritionView: React.FC = () => {
                                 </div>
                               </div>
                             </button>
+
+                            {/* Chip Micronutrientes (Slot 4: Fruta en desayuno, Verdura en almuerzo/cena) */}
+                            {hasMicroSlot && microPortion && (
+                              <button
+                                type="button"
+                                data-swap-chip-micros={meal.id}
+                                onClick={() =>
+                                  openSwapDrawer(
+                                    meal.id,
+                                    meal.name,
+                                    meal.subtitle,
+                                    "micros",
+                                    microTargetGrams,
+                                    microFood.id
+                                  )
+                                }
+                                className={cn(
+                                  "w-full text-left p-2.5 rounded-xl border transition-all flex items-center justify-between gap-2.5 group active:scale-[0.99] touch-manipulation min-h-[44px]",
+                                  meal.id === "meal_1"
+                                    ? "bg-purple-950/20 hover:bg-purple-950/30 border-purple-500/25 hover:border-purple-500/50"
+                                    : "bg-emerald-950/20 hover:bg-emerald-950/30 border-emerald-500/25 hover:border-emerald-500/50"
+                                )}
+                              >
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                  <span className="text-lg shrink-0 leading-none" role="img" aria-label="micros">
+                                    {microFood.emoji}
+                                  </span>
+                                  <div className="min-w-0">
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                      <span className="text-xs font-bold text-zinc-100">
+                                        <span
+                                          className={cn(
+                                            "font-mono font-black mr-1",
+                                            meal.id === "meal_1" ? "text-purple-300" : "text-emerald-300"
+                                          )}
+                                        >
+                                          {microPortion.grams}g
+                                        </span>
+                                        {microFood.shortName}
+                                      </span>
+                                      <span className="text-[10px] font-mono text-zinc-400">
+                                        ({meal.id === "meal_1" ? "Antioxidantes" : "Fibra & Minerales"})
+                                      </span>
+                                    </div>
+                                    <span
+                                      className={cn(
+                                        "text-[10px] font-mono block",
+                                        meal.id === "meal_1" ? "text-purple-400/80" : "text-emerald-400/80"
+                                      )}
+                                    >
+                                      ➔ ({microPortion.carbContribution}g C · {microPortion.calories} kcal)
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                  <span
+                                    className={cn(
+                                      "text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border",
+                                      meal.id === "meal_1"
+                                        ? "text-purple-400 bg-purple-500/10 border-purple-500/20"
+                                        : "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
+                                    )}
+                                  >
+                                    {microPortion.calories} kcal
+                                  </span>
+                                  <div
+                                    className={cn(
+                                      "w-6 h-6 rounded-lg bg-zinc-900 border flex items-center justify-center transition-colors",
+                                      meal.id === "meal_1"
+                                        ? "border-purple-500/30 text-purple-400 group-hover:text-white group-hover:border-purple-400"
+                                        : "border-emerald-500/30 text-emerald-400 group-hover:text-white group-hover:border-emerald-400"
+                                    )}
+                                  >
+                                    <ArrowRightLeft className="w-3 h-3" />
+                                  </div>
+                                </div>
+                              </button>
+                            )}
                           </div>
                         </div>
                       </div>

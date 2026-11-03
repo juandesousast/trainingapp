@@ -33,6 +33,7 @@ export interface MealPortion {
     protein: string;
     carbs: string;
     fats: string;
+    micros?: string;
   };
 }
 
@@ -136,12 +137,16 @@ export function calculateNutritionPlan(input: NutritionEngineInput): NutritionPl
   const fatKcal = fatGrams * 9;
 
   //    - Carbohidratos (Ciclados por demanda): Cubren el balance calórico restante
-  const carbKcal = Math.max(0, targetCalories - proteinKcal - fatKcal);
-  const carbGrams = Math.round(carbKcal / 4);
+  const rawCarbKcal = Math.max(0, targetCalories - proteinKcal - fatKcal);
+  const carbGrams = Math.round(rawCarbKcal / 4);
+  const carbKcal = carbGrams * 4;
+
+  // Presupuesto calórico total alineado exactamente con la suma real de macronutrientes (P*4 + F*9 + C*4)
+  const finalTargetCalories = proteinKcal + fatKcal + carbKcal;
 
   // Porcentajes calóricos
-  const proteinPct = Math.round((proteinKcal / targetCalories) * 100);
-  const fatPct = Math.round((fatKcal / targetCalories) * 100);
+  const proteinPct = Math.round((proteinKcal / finalTargetCalories) * 100);
+  const fatPct = Math.round((fatKcal / finalTargetCalories) * 100);
   const carbPct = Math.max(0, 100 - proteinPct - fatPct);
 
   // 6. Subdivisión en 4 comidas
@@ -172,9 +177,10 @@ export function calculateNutritionPlan(input: NutritionEngineInput): NutritionPl
       subtitle: "Desayuno Anabólico",
       timing: "08:00 - 09:00",
       suggestions: {
-        protein: "Huevos camperos enteros (3 u) + 100g de claras o scoop de Whey",
-        carbs: "50-70g Copos de avena integral o frutos rojos / arándanos",
-        fats: "Yemas de huevo + 15g de nueces o crema de cacahuete pura",
+        protein: "Huevos camperos enteros + claras pasteurizadas o scoop de Whey",
+        carbs: "Copos de avena integral (descontando carbohidratos de la fruta)",
+        fats: "Nueces peladas o crema de cacahuete pura",
+        micros: "80-100g Arándanos frescos o frutos rojos antioxidantes",
       },
     },
     {
@@ -183,9 +189,10 @@ export function calculateNutritionPlan(input: NutritionEngineInput): NutritionPl
       subtitle: isTrainingDay ? "Pre-Entreno / Almuerzo" : "Almuerzo Principal",
       timing: "13:30 - 14:30",
       suggestions: {
-        protein: "160-200g Pechuga de pollo de corral o ternera magra",
-        carbs: "Arroz basmati / jazmín o 250g patata cocida al vapor",
+        protein: "Pechuga de pollo de corral o pavo en crudo",
+        carbs: "Arroz basmati / vaporizado (ajustado en báscula por verduras)",
         fats: "1 cucharada sopera de AOVE (Aceite de Oliva Virgen Extra)",
+        micros: "200g Brócoli al vapor, espárragos trigueros o espinacas baby",
       },
     },
     {
@@ -195,7 +202,7 @@ export function calculateNutritionPlan(input: NutritionEngineInput): NutritionPl
       timing: "18:00 - 19:00",
       suggestions: {
         protein: "1 scoop Whey Isolate + 150g queso fresco batido 0%",
-        carbs: "Tortitas de arroz con miel cruda o 1 plátano maduro",
+        carbs: "Tortitas de arroz / maíz de rápida asimilación",
         fats: "10-15g Almendras crudas o semillas de chía",
       },
     },
@@ -205,18 +212,37 @@ export function calculateNutritionPlan(input: NutritionEngineInput): NutritionPl
       subtitle: "Cena Regenerativa",
       timing: "21:30 - 22:30",
       suggestions: {
-        protein: "180-220g Lomo de salmón salvaje, merluza o dorada al horno",
-        carbs: "Ensalada verde abundante + espárragos, calabacín o brócoli",
-        fats: "AOVE en crudo + 1/4 de aguacate maduro",
+        protein: "Lomo de salmón fresco, merluza o dorada al horno",
+        carbs: "Patata cocida o boniato asado (ajustado por verduras)",
+        fats: "AOVE en crudo (compensado si se elige pescado azul/salmón)",
+        micros: "200g Calabacín a la plancha, judías verdes o ensalada mixta",
       },
     },
   ];
 
+  let sumP = 0;
+  let sumF = 0;
+  let sumC = 0;
+
   const meals: MealPortion[] = mealConfigs.map((cfg, idx) => {
-    const r = ratios[idx];
-    const mP = Math.round(proteinGrams * r.p);
-    const mF = Math.round(fatGrams * r.f);
-    const mC = Math.round(carbGrams * r.c);
+    let mP = 0;
+    let mF = 0;
+    let mC = 0;
+
+    if (idx === mealConfigs.length - 1) {
+      mP = Math.max(0, proteinGrams - sumP);
+      mF = Math.max(0, fatGrams - sumF);
+      mC = Math.max(0, carbGrams - sumC);
+    } else {
+      const r = ratios[idx];
+      mP = Math.round(proteinGrams * r.p);
+      mF = Math.round(fatGrams * r.f);
+      mC = Math.round(carbGrams * r.c);
+      sumP += mP;
+      sumF += mF;
+      sumC += mC;
+    }
+
     const mKcal = mP * 4 + mF * 9 + mC * 4;
 
     return {
@@ -228,9 +254,9 @@ export function calculateNutritionPlan(input: NutritionEngineInput): NutritionPl
       fatGrams: mF,
       carbGrams: mC,
       calories: mKcal,
-      proteinPct: Math.round(r.p * 100),
-      fatPct: Math.round(r.f * 100),
-      carbPct: Math.round(r.c * 100),
+      proteinPct: Math.round((mP / (proteinGrams || 1)) * 100),
+      fatPct: Math.round((mF / (fatGrams || 1)) * 100),
+      carbPct: Math.round((mC / (carbGrams || 1)) * 100),
       suggestions: cfg.suggestions,
     };
   });
@@ -243,7 +269,7 @@ export function calculateNutritionPlan(input: NutritionEngineInput): NutritionPl
     goalLabel,
     isDeficitPhase,
     caloricAdjustmentPct,
-    targetCalories,
+    targetCalories: finalTargetCalories,
     proteinGrams,
     proteinKcal,
     proteinPct,

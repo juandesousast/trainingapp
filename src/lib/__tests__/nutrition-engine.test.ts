@@ -4,7 +4,12 @@ import {
   calculateCreatineDose,
   calculateRecommendedTargetWeight,
   evaluateBodyFatGoal,
+  calculateNutritionPlan,
 } from "../nutrition-engine.ts";
+import {
+  CLEAN_FOODS,
+  calculateFoodPortion,
+} from "../food-database.ts";
 
 describe("Motor Nutricional y Biofísica - VECTOR OS", () => {
   test("Atleta Wendy: 50 kg, 26% grasa actual -> meta 21%", () => {
@@ -75,5 +80,58 @@ describe("Motor Nutricional y Biofísica - VECTOR OS", () => {
     const maleRisk = evaluateBodyFatGoal("male", 5);
     assert.equal(maleRisk.zone, "essential_risk");
     assert.equal(maleRisk.color, "rose");
+  });
+
+  test("Reconciliación matemática exacta de las 4 comidas con el presupuesto diario", () => {
+    const testCases = [
+      { weightKg: 50, bodyFatPct: 26, isTrainingDay: true, sex: "female" as const },
+      { weightKg: 82, bodyFatPct: 20, isTrainingDay: true, sex: "male" as const },
+      { weightKg: 70, bodyFatPct: 15, isTrainingDay: false, sex: "male" as const },
+      { weightKg: 55, bodyFatPct: 22, isTrainingDay: false, sex: "female" as const },
+    ];
+
+    for (const tc of testCases) {
+      const plan = calculateNutritionPlan(tc);
+
+      assert.equal(plan.meals.length, 4, "Debe generar exactamente 4 comidas");
+
+      const sumCalories = plan.meals.reduce((acc, m) => acc + m.calories, 0);
+      const sumProtein = plan.meals.reduce((acc, m) => acc + m.proteinGrams, 0);
+      const sumCarbs = plan.meals.reduce((acc, m) => acc + m.carbGrams, 0);
+      const sumFats = plan.meals.reduce((acc, m) => acc + m.fatGrams, 0);
+
+      assert.equal(sumCalories, plan.targetCalories, `Calorías sumadas (${sumCalories}) deben ser idénticas al target (${plan.targetCalories})`);
+      assert.equal(sumProtein, plan.proteinGrams, `Proteína sumada (${sumProtein}) debe ser idéntica al target (${plan.proteinGrams})`);
+      assert.equal(sumCarbs, plan.carbGrams, `Carbohidratos sumados (${sumCarbs}) deben ser idénticos al target (${plan.carbGrams})`);
+      assert.equal(sumFats, plan.fatGrams, `Grasas sumadas (${sumFats}) deben ser idénticas al target (${plan.fatGrams})`);
+    }
+  });
+
+  test("Catálogo y cálculo de porciones de Micronutrientes y Salmón", () => {
+    // 100g de arándanos (Desayuno)
+    const arandanos = CLEAN_FOODS.arandanos_frutos_rojos;
+    assert.ok(arandanos, "Debe existir arandanos_frutos_rojos en CLEAN_FOODS");
+    const portionArandanos = calculateFoodPortion(100, "micros", arandanos);
+    assert.equal(portionArandanos.grams, 100);
+    assert.equal(portionArandanos.carbContribution, 14.5);
+    assert.equal(portionArandanos.calories, 57);
+
+    // 200g de brócoli al vapor (Almuerzo)
+    const brocoli = CLEAN_FOODS.brocoli_vapor;
+    assert.ok(brocoli, "Debe existir brocoli_vapor en CLEAN_FOODS");
+    const portionBrocoli = calculateFoodPortion(200, "micros", brocoli);
+    assert.equal(portionBrocoli.grams, 200);
+    assert.equal(portionBrocoli.carbContribution, 8);
+    assert.equal(portionBrocoli.calories, 56);
+
+    // Salmón fresco y aporte lipídico
+    const salmon = CLEAN_FOODS.salmon_fresco;
+    assert.ok(salmon, "Debe existir salmon_fresco en CLEAN_FOODS");
+    assert.equal(salmon.fatsPer100g, 13);
+    assert.equal(salmon.proteinPer100g, 20);
+    const portionSalmon = calculateFoodPortion(40, "protein", salmon);
+    // Para 40g de proteína se requieren 200g de salmón
+    assert.equal(portionSalmon.grams, 200);
+    assert.equal(portionSalmon.fatContribution, 26); // 200g * 13g/100g = 26g de grasa
   });
 });

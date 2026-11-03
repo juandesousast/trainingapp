@@ -38,6 +38,7 @@ export const FoodSwapDrawer: React.FC<FoodSwapDrawerProps> = ({
   isOpen,
   onClose,
   category,
+  mealId,
   mealName,
   mealSubtitle,
   targetMacroGrams,
@@ -45,7 +46,7 @@ export const FoodSwapDrawer: React.FC<FoodSwapDrawerProps> = ({
   themeAccent = "#CCFF00",
   onSelectFood,
 }) => {
-  const foods = getFoodsByCategory(category);
+  const foods = getFoodsByCategory(category, mealId);
 
   const categoryMeta = {
     protein: {
@@ -71,6 +72,14 @@ export const FoodSwapDrawer: React.FC<FoodSwapDrawerProps> = ({
       bg: "rgba(251, 113, 133, 0.12)",
       border: "rgba(251, 113, 133, 0.3)",
       icon: Droplets,
+    },
+    micros: {
+      label: mealId === "meal_1" ? "Frutas / Antioxidantes" : "Verduras / Fibra Verde",
+      tag: mealId === "meal_1" ? "ANTIOXIDANTES & POLIFENOLES" : "FIBRA VEGETAL & MINERALES",
+      color: mealId === "meal_1" ? "#C084FC" : "#34D399", // purple-400 / emerald-400
+      bg: mealId === "meal_1" ? "rgba(192, 132, 252, 0.12)" : "rgba(52, 211, 153, 0.12)",
+      border: mealId === "meal_1" ? "rgba(192, 132, 252, 0.3)" : "rgba(52, 211, 153, 0.3)",
+      icon: Sparkles,
     },
   }[category];
 
