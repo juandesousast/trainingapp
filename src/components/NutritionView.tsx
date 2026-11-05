@@ -21,6 +21,8 @@ import {
   Activity,
   ShieldCheck,
   ArrowRightLeft,
+  ShoppingCart,
+  Share2,
 } from "lucide-react";
 import {
   useSupplementStore,
@@ -41,6 +43,11 @@ import {
 } from "@/lib/food-database";
 import { useMealCustomizationsStore } from "@/stores/useMealCustomizationsStore";
 import { FoodSwapDrawer } from "@/components/FoodSwapDrawer";
+import {
+  generateSmartGroceryList,
+  generateGroceryWhatsAppText,
+  type GroceryHorizon,
+} from "@/lib/grocery-engine";
 import { soundEngine } from "@/lib/audio";
 import { cn } from "@/lib/utils";
 
@@ -189,6 +196,135 @@ export const NutritionView: React.FC = () => {
 
   const toggleMealExpand = (id: string) => {
     setExpandedMeal((prev) => (prev === id ? null : id));
+  };
+
+  // Subnavegador: Menú Diario vs Lista de la Compra
+  const [activeSubTab, setActiveSubTab] = useState<"menu" | "grocery">("menu");
+
+  // Horizonte temporal para la lista de compra (3, 5 o 7 días)
+  const [groceryHorizon, setGroceryHorizon] = useState<GroceryHorizon>(7);
+
+  // Artículos tachados / completados en la lista de la compra
+  const [checkedItemIds, setCheckedItemIds] = useState<string[]>([]);
+
+  // Secciones colapsadas en lista de compra (todas abiertas por defecto)
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+
+  // Toast de copiado para WhatsApp
+  const [copyToastVisible, setCopyToastVisible] = useState(false);
+
+  // Cargar ítems tachados desde localStorage al montar o al cambiar de atleta
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const saved = localStorage.getItem(`vector_grocery_checked_${profileId}`);
+      if (saved) {
+        setCheckedItemIds(JSON.parse(saved));
+      } else {
+        setCheckedItemIds([]);
+      }
+    } catch (e) {
+      console.error("Error al cargar lista de compra desde localStorage:", e);
+    }
+  }, [profileId]);
+
+  const toggleGroceryItem = (itemId: string) => {
+    soundEngine.playTap();
+    setCheckedItemIds((prev) => {
+      const next = prev.includes(itemId)
+        ? prev.filter((id) => id !== itemId)
+        : [...prev, itemId];
+      try {
+        localStorage.setItem(`vector_grocery_checked_${profileId}`, JSON.stringify(next));
+      } catch (e) {
+        console.error("Error al guardar en localStorage:", e);
+      }
+      return next;
+    });
+  };
+
+  const resetGroceryList = () => {
+    soundEngine.playTap();
+    setCheckedItemIds([]);
+    try {
+      localStorage.removeItem(`vector_grocery_checked_${profileId}`);
+    } catch (e) {
+      console.error("Error al resetear lista en localStorage:", e);
+    }
+  };
+
+  const toggleSectionCollapse = (catKey: string) => {
+    soundEngine.playTap();
+    setCollapsedSections((prev) => ({
+      ...prev,
+      [catKey]: !prev[catKey],
+    }));
+  };
+
+  // Cálculo reactivo de la lista de la compra inteligente
+  const groceryList = useMemo(() => {
+    return generateSmartGroceryList({
+      weightKg: currentWeightKg,
+      bodyFatPct: currentBodyFatPct,
+      targetBodyFatPct: activeProfile.targetBodyFatPct,
+      nutritionGoal: activeProfile.nutritionGoal,
+      sex: activeProfile.sex,
+      profileId: activeProfile.id,
+      athleteName: activeProfile.displayName || "Atleta",
+      horizonDays: groceryHorizon,
+      getCustomization,
+    });
+  }, [
+    currentWeightKg,
+    currentBodyFatPct,
+    activeProfile.targetBodyFatPct,
+    activeProfile.nutritionGoal,
+    activeProfile.sex,
+    activeProfile.id,
+    activeProfile.displayName,
+    groceryHorizon,
+    getCustomization,
+  ]);
+
+  const checkedGroceryCount = useMemo(() => {
+    let count = 0;
+    for (const sec of groceryList.sections) {
+      for (const item of sec.items) {
+        if (checkedItemIds.includes(item.id)) {
+          count++;
+        }
+      }
+    }
+    return count;
+  }, [groceryList, checkedItemIds]);
+
+  const groceryProgressPct =
+    groceryList.totalItemsCount > 0
+      ? Math.round((checkedGroceryCount / groceryList.totalItemsCount) * 100)
+      : 0;
+
+  const handleCopyWhatsApp = async () => {
+    if (!groceryList) return;
+    const text = generateGroceryWhatsAppText(groceryList);
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+      }
+      soundEngine.playClusterRepBeep();
+      setCopyToastVisible(true);
+      setTimeout(() => {
+        setCopyToastVisible(false);
+      }, 2500);
+    } catch (err) {
+      console.error("Error al copiar texto:", err);
+    }
   };
 
   const renderSupplementRow = (item: SupplementItem) => {
@@ -351,22 +487,302 @@ export const NutritionView: React.FC = () => {
         </div>
       </motion.div>
 
-      {/* 2. DASHBOARD DE MACROS & CALORÍAS OBJETIVO */}
-      <div className="bg-zinc-900/80 border border-zinc-800 rounded-3xl p-5 space-y-4 shadow-xl">
-        <div className="flex items-baseline justify-between border-b border-zinc-800/70 pb-3">
-          <div>
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-400 block mb-0.5">
-              Presupuesto Energético Diario
-            </span>
-            <div className="flex items-baseline gap-2">
-              <span className="font-mono text-3xl sm:text-4xl font-black tabular-nums text-white">
-                {plan.targetCalories.toLocaleString()}
+      {/* SUBNAVEGADOR: Menú Diario vs. Lista de la Compra */}
+      <div className="grid grid-cols-2 gap-1.5 p-1 bg-zinc-900/90 border border-zinc-800 rounded-2xl shadow-inner">
+        <button
+          type="button"
+          onClick={() => {
+            soundEngine.playTap();
+            setActiveSubTab("menu");
+          }}
+          className={cn(
+            "py-2.5 px-3 rounded-xl text-xs font-mono font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98]",
+            activeSubTab === "menu"
+              ? "bg-zinc-800 text-white shadow-md border border-zinc-700/60"
+              : "text-zinc-400 hover:text-zinc-200"
+          )}
+          style={{
+            borderColor: activeSubTab === "menu" ? `${accentColor}60` : undefined,
+          }}
+        >
+          <Utensils
+            className="w-3.5 h-3.5"
+            style={{ color: activeSubTab === "menu" ? accentColor : undefined }}
+          />
+          <span>🍽️ Menú Diario</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            soundEngine.playTap();
+            setActiveSubTab("grocery");
+          }}
+          className={cn(
+            "py-2.5 px-3 rounded-xl text-xs font-mono font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98]",
+            activeSubTab === "grocery"
+              ? "bg-zinc-800 text-white shadow-md border border-zinc-700/60"
+              : "text-zinc-400 hover:text-zinc-200"
+          )}
+          style={{
+            borderColor: activeSubTab === "grocery" ? `${accentColor}60` : undefined,
+          }}
+        >
+          <ShoppingCart
+            className="w-3.5 h-3.5"
+            style={{ color: activeSubTab === "grocery" ? accentColor : undefined }}
+          />
+          <span>🛒 Lista de la Compra</span>
+        </button>
+      </div>
+
+      {activeSubTab === "grocery" ? (
+        /* VISTA: LISTA DE LA COMPRA INTELIGENTE */
+        <motion.div
+          key="grocery-view"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.2 }}
+          className="space-y-4"
+        >
+          {/* BARRA DE ACCIONES SUPERIOR */}
+          <div className="bg-zinc-900/80 border border-zinc-800 rounded-3xl p-4 shadow-xl space-y-3.5">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              {/* Selector de Horizonte */}
+              <div className="flex items-center gap-1 bg-zinc-950 p-1 rounded-xl border border-zinc-800">
+                {([3, 5, 7] as GroceryHorizon[]).map((days) => (
+                  <button
+                    key={days}
+                    type="button"
+                    onClick={() => {
+                      soundEngine.playTap();
+                      setGroceryHorizon(days);
+                    }}
+                    className={cn(
+                      "px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all active:scale-95",
+                      groceryHorizon === days
+                        ? "text-black shadow-sm font-black"
+                        : "text-zinc-400 hover:text-zinc-200"
+                    )}
+                    style={{
+                      backgroundColor: groceryHorizon === days ? accentColor : "transparent",
+                    }}
+                  >
+                    {days} Días
+                  </button>
+                ))}
+              </div>
+
+              {/* Botón Copiar para WhatsApp */}
+              <button
+                type="button"
+                onClick={handleCopyWhatsApp}
+                className="px-3.5 py-2 rounded-xl text-xs font-mono font-bold bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 hover:border-emerald-500/50 text-emerald-400 flex items-center gap-1.5 transition-all active:scale-95 shadow-sm"
+              >
+                <Share2 className="w-3.5 h-3.5" />
+                <span>Copiar para WhatsApp</span>
+              </button>
+            </div>
+
+            {/* Contador de Progreso & Reinicio */}
+            <div className="pt-2 border-t border-zinc-800/80 space-y-2">
+              <div className="flex items-center justify-between text-xs font-mono">
+                <div className="flex items-center gap-2">
+                  <span className="text-zinc-400 font-bold uppercase tracking-wider text-[10px]">
+                    Progreso:
+                  </span>
+                  <span className="font-mono tabular-nums font-bold text-white bg-zinc-800 px-2 py-0.5 rounded-md text-[11px]">
+                    {checkedGroceryCount}/{groceryList.totalItemsCount} tachados ({groceryProgressPct}%)
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={resetGroceryList}
+                  title="Desmarcar todos los artículos de la lista"
+                  className="text-[10px] font-mono text-zinc-400 hover:text-zinc-200 flex items-center gap-1 px-2.5 py-1 rounded-lg border border-zinc-800 hover:border-zinc-700 bg-zinc-900/60 active:scale-95 transition-all"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  <span>Reiniciar lista</span>
+                </button>
+              </div>
+
+              {/* Barra de progreso */}
+              <div className="w-full h-2 rounded-full bg-zinc-950 overflow-hidden border border-zinc-800">
+                <div
+                  className="h-full rounded-full transition-all duration-300"
+                  style={{
+                    width: `${groceryProgressPct}%`,
+                    backgroundColor: accentColor,
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Info de días ponderados */}
+            <div className="text-[10px] font-mono text-zinc-400 flex items-center justify-between pt-0.5">
+              <span>
+                Ponderación BIIO:{" "}
+                <strong className="text-zinc-300">
+                  {groceryList.trainingDays}d entreno + {groceryList.restDays}d descanso
+                </strong>
               </span>
-              <span className="text-xs font-mono font-bold uppercase tracking-wider text-zinc-400">
-                kcal
+              <span>
+                Atleta: <strong className="text-zinc-300">{groceryList.athleteName}</strong>
               </span>
             </div>
           </div>
+
+          {/* CHECKLIST POR CATEGORÍAS */}
+          <div className="space-y-3">
+            {groceryList.sections.map((section) => {
+              const isCollapsed = !!collapsedSections[section.category];
+              const sectionCheckedCount = section.items.filter((i) =>
+                checkedItemIds.includes(i.id)
+              ).length;
+              const isSectionAllChecked =
+                section.items.length > 0 && sectionCheckedCount === section.items.length;
+
+              return (
+                <div
+                  key={section.category}
+                  className="rounded-2xl border border-zinc-800 bg-zinc-900/70 overflow-hidden transition-all duration-200"
+                >
+                  {/* Cabecera de Categoría */}
+                  <button
+                    type="button"
+                    onClick={() => toggleSectionCollapse(section.category)}
+                    className="w-full p-3.5 flex items-center justify-between gap-2.5 text-left active:bg-zinc-800/40 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">{section.emoji}</span>
+                      <span className="text-xs font-black text-white uppercase tracking-tight">
+                        {section.name}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={cn(
+                          "text-[10px] font-mono px-2 py-0.5 rounded-md font-bold tabular-nums",
+                          isSectionAllChecked
+                            ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+                            : "bg-zinc-800 text-zinc-400"
+                        )}
+                      >
+                        {sectionCheckedCount}/{section.items.length}
+                      </span>
+                      <div
+                        className={cn(
+                          "w-6 h-6 rounded-lg bg-zinc-800/80 flex items-center justify-center text-zinc-400 transition-transform duration-200",
+                          isCollapsed ? "" : "rotate-180 text-white"
+                        )}
+                      >
+                        <ChevronDown className="w-3.5 h-3.5" />
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* Lista de Ítems */}
+                  {!isCollapsed && (
+                    <div className="px-3 pb-3 pt-1 border-t border-zinc-800/60 space-y-2">
+                      {section.items.map((item) => {
+                        const isChecked = checkedItemIds.includes(item.id);
+
+                        return (
+                          <div
+                            key={item.id}
+                            onClick={() => toggleGroceryItem(item.id)}
+                            className={cn(
+                              "w-full min-h-[52px] p-3 rounded-xl border transition-all duration-200 cursor-pointer flex items-center justify-between gap-3 select-none active:scale-[0.99]",
+                              isChecked
+                                ? "bg-zinc-950/70 border-zinc-800/80 opacity-70"
+                                : "bg-zinc-900/90 border-zinc-800 hover:border-zinc-700"
+                            )}
+                            style={{
+                              borderColor: isChecked ? `${accentColor}30` : undefined,
+                            }}
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <span className="text-lg shrink-0 leading-none">
+                                {item.emoji}
+                              </span>
+                              <div className="min-w-0">
+                                <span
+                                  className={cn(
+                                    "text-xs font-bold block transition-colors leading-tight",
+                                    isChecked
+                                      ? "text-zinc-500 line-through"
+                                      : "text-zinc-100"
+                                  )}
+                                >
+                                  {item.name}
+                                </span>
+                                <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                  <span
+                                    className={cn(
+                                      "text-[11px] font-mono font-black tabular-nums transition-colors",
+                                      isChecked ? "text-zinc-500" : "text-zinc-300"
+                                    )}
+                                  >
+                                    {item.formattedAmount}
+                                  </span>
+                                  {item.commercialNote && (
+                                    <span className="text-[10px] font-mono text-zinc-400">
+                                      ({item.commercialNote})
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Checkbox táctil */}
+                            <button
+                              type="button"
+                              aria-label={`Marcar ${item.name}`}
+                              className={cn(
+                                "w-8 h-8 min-w-[32px] min-h-[32px] rounded-xl flex items-center justify-center shrink-0 border transition-all duration-200",
+                                isChecked
+                                  ? "text-black shadow-md"
+                                  : "bg-zinc-950 border-zinc-800 text-transparent hover:border-zinc-700"
+                              )}
+                              style={{
+                                backgroundColor: isChecked ? accentColor : undefined,
+                                borderColor: isChecked ? accentColor : undefined,
+                              }}
+                            >
+                              <Check className="w-4 h-4 stroke-[3]" />
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </motion.div>
+      ) : (
+        /* VISTA: MENÚ DIARIO */
+        <>
+          {/* 2. DASHBOARD DE MACROS & CALORÍAS OBJETIVO */}
+          <div className="bg-zinc-900/80 border border-zinc-800 rounded-3xl p-5 space-y-4 shadow-xl">
+            <div className="flex items-baseline justify-between border-b border-zinc-800/70 pb-3">
+              <div>
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-400 block mb-0.5">
+                  Presupuesto Energético Diario
+                </span>
+                <div className="flex items-baseline gap-2">
+                  <span className="font-mono text-3xl sm:text-4xl font-black tabular-nums text-white">
+                    {plan.targetCalories.toLocaleString()}
+                  </span>
+                  <span className="text-xs font-mono font-bold uppercase tracking-wider text-zinc-400">
+                    kcal
+                  </span>
+                </div>
+              </div>
 
           <div className="text-right font-mono text-[11px] space-y-0.5">
             <div className="text-zinc-400">
@@ -1041,6 +1457,25 @@ export const NutritionView: React.FC = () => {
           <div className="space-y-2">{nightItems.map(renderSupplementRow)}</div>
         </div>
       </div>
+        </>
+      )}
+
+      {/* TOAST FLOTANTE: Feedback de copia al portapapeles */}
+      <AnimatePresence>
+        {copyToastVisible && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-2xl bg-zinc-900 border border-emerald-500/50 text-white font-mono text-xs shadow-2xl flex items-center gap-2 pointer-events-none backdrop-blur-xl"
+          >
+            <div className="w-5 h-5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center shrink-0">
+              <Check className="w-3 h-3 stroke-[3]" />
+            </div>
+            <span className="font-bold">Lista copiada al portapapeles</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* MODAL / DRAWER INTERCAMBIO INTELIGENTE DE ALIMENTOS */}
       {swapDrawerState && (

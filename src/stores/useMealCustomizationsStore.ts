@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { MacroCategory } from "@/lib/food-database";
+import type { MacroCategory } from "../lib/food-database";
 
 export interface MealCustomization {
   proteinFoodId: string;
